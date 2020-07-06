@@ -1,3 +1,3 @@
 #!/bin/sh
-cd app
+cd build
 exec ./main "$@"
