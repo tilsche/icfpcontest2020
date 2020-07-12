@@ -1,3 +1,4 @@
 #!/bin/sh
+
 cd build
-exec ./main "$@"
+./main "$@" || echo "run error code: $?"
