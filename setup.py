@@ -9,14 +9,13 @@ setup(
     scripts=[],
     entry_points="""
       [console_scripts]
-      app=app:main
+      py-zebra=app:main
       """,
     install_requires=[
         "click",
         "numpy",
         "requests",
         "scipy",
-        "tensorflow",
         "pandas"
     ],
 )

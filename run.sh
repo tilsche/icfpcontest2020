@@ -3,4 +3,4 @@
 pwd
 ls -lha
 echo $PATH
-app "$@" || echo "run error code: $?"
+py-zebra "$@" || echo "run error code: $?"

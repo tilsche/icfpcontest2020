@@ -1,7 +1,7 @@
 import requests
 import sys
 
-import click, numpy, requests, scipy, tensorflow, pandas
+import click, numpy, requests, scipy, pandas
 
 
 def main():
