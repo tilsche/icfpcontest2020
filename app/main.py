@@ -1,6 +1,8 @@
 import requests
 import sys
 
+import click, numpy, requests, scipy, tensorflow, pandas
+
 
 def main():
     server_url = sys.argv[1]
