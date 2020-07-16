@@ -3,6 +3,11 @@ import sys
 
 import click, numpy, requests, scipy, pandas
 
+print('click', click.__version__)
+print('np', numpy.__version__)
+print('scipy', scipy.__version__)
+print('pandas', pandas.__version__)
+
 
 def main():
     server_url = sys.argv[1]
