@@ -1,3 +1,6 @@
 #!/bin/sh
 
-python app/main.py "$@" || echo "run error code: $?"
+pwd
+ls -lha
+echo $PATH
+app "$@" || echo "run error code: $?"
