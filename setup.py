@@ -16,7 +16,6 @@ setup(
         "numpy",
         "requests",
         "scipy",
-        "tensorflow",
         "pandas"
     ],
 )
