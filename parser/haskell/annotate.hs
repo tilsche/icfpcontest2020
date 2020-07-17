@@ -118,6 +118,7 @@ symDecode img (x, y) (w, h)
       && not (px (0, 0))
 
     isNegativeNumber = True
+      && size >= 2
       && w + 1 == h
       && not (px (0, 0))
       && px (0, size)
@@ -128,6 +129,7 @@ symDecode img (x, y) (w, h)
       && px (0, 0)
 
     isVariable = True
+      && size >= 4
       && w == h
       && px (1, 1)
       && all px [(x',     size-1) | x' <- [0 .. size-1]] -- bottom is full
@@ -310,11 +312,15 @@ symRepr (SymOperator val) = (text, "yellow")
           -- constants
           , (2, "t")
           , (8, "f")
+          , (14, "nil")
           -- unary operators
+          , (10, "neg")
           , (401, "dec")
           , (417, "inc")
           , (170, "mod")
           , (341, "dem")
+          , (68191693600, "pwr2")
+          , (15, "isnil")
           -- binary operators
           , (40, "div")
           , (146, "mul")
@@ -322,16 +328,19 @@ symRepr (SymOperator val) = (text, "yellow")
           -- comparisons
           , (416, "lt")
           , (448, "eq")
+            -- combinators
           -- B,C,K,W-system (https://en.wikipedia.org/wiki/B,_C,_K,_W_system)
           , (6, "c")
           , (5, "b")
           , (7, "s")
-          -- my annotations (https://github.com/zaitsev85/message-from-space/issues/44)
-          , (68191693600, "pwr2")
+          , (1, "i")
+          -- lists
           , (64170, "cons")
           , (64174, "car")
           , (64171, "cdr")
-          , (10, "neg")
+          -- misc
+          , ( 174, "send" )
+          , ( 58336, "if0" )
           ]
 symRepr (SymVariable val) = ('x' : show val, "blue")
 
