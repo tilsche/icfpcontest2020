@@ -1,4 +1,4 @@
 #!/bin/sh
 
 cd build
-./main "$@" || echo "run error code: $?"
+./solver "$@" || echo "run error code: $?"
