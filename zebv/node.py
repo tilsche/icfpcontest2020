@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Callable, Iterable, Iterator, List, Optional, Union
 
-from . import parsing
 from .var_map import VarMap
 
 

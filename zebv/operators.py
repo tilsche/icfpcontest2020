@@ -72,7 +72,7 @@ class Div(BinaryOperator):
 
     def __call__(self, a1: OperatorArgument, a2: OperatorArgument):
         if isinstance(a1, Number) and isinstance(a2, Number):
-            return Number(a1.value // a2.value)
+            return Number(int(a1.value / a2.value))
         else:
             raise NoEvalError()
 
@@ -118,6 +118,16 @@ class Lt(BinaryOperator):
             raise NoEvalError()
 
 
-operators = {op().name: op() for op in (Inc, Dec, Add, Mul, Div, T, F, Eq, Lt)}
+class Neg(UnaryOperator):
+    name = "neg"
+
+    def __call__(self, a1: OperatorArgument):
+        if isinstance(a1, Number):
+            return Number(-a1.value)
+        else:
+            raise NoEvalError()
+
+
+operators = {op().name: op() for op in (Inc, Dec, Add, Mul, Div, T, F, Eq, Lt, Neg)}
 
 max_operator_arity = 2

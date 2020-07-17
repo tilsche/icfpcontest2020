@@ -53,12 +53,6 @@ class MatchPattern(Token):
 class Expr:
     pass
 
-    def to_dict(self):
-        return {}
-
-    def ev(self) -> "Expr":
-        return self
-
 
 class Ap(Expr):
     def __init__(self, fst, snd):
@@ -67,19 +61,6 @@ class Ap(Expr):
 
     def __str__(self):
         return f"Ap({self.fst}, {self.snd})"
-
-    def to_dict(self):
-        return self.fst.to_dict(), self.snd.to_dict()
-
-    def ev(self):
-        if isinstance(self.fst, Atom):
-            KNOWN = {
-                0b100001011: lambda x: x + 1,
-                "inc": lambda x: x + 1,
-            }
-            return KNOWN[self.fst.value](self.snd.value)
-        else:
-            return self
 
 
 class Atom(Expr):
