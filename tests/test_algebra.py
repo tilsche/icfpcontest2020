@@ -64,3 +64,57 @@ def test_div(e):
     assert s(e, "ap ap div -5 -3") == t("1")
     # TODO
     # assert s(e, "ap ap div x0 1") == t("x0")
+
+
+def test_eq(e):
+    assert s(e, "ap ap eq x0 x0") == t("t")
+    assert s(e, "ap ap eq 0 -2") == t("f")
+    assert s(e, "ap ap eq 0 -1") == t("f")
+    assert s(e, "ap ap eq 0 0") == t("t")
+    assert s(e, "ap ap eq 0 1") == t("f")
+    assert s(e, "ap ap eq 0 2") == t("f")
+    assert s(e, "ap ap eq 1 -1") == t("f")
+    assert s(e, "ap ap eq 1 0") == t("f")
+    assert s(e, "ap ap eq 1 1") == t("t")
+    assert s(e, "ap ap eq 1 2") == t("f")
+    assert s(e, "ap ap eq 1 3") == t("f")
+    assert s(e, "ap ap eq 2 0") == t("f")
+    assert s(e, "ap ap eq 2 1") == t("f")
+    assert s(e, "ap ap eq 2 2") == t("t")
+    assert s(e, "ap ap eq 2 3") == t("f")
+    assert s(e, "ap ap eq 2 4") == t("f")
+    assert s(e, "ap ap eq 19 20") == t("f")
+    assert s(e, "ap ap eq 20 20") == t("t")
+    assert s(e, "ap ap eq 21 20") == t("f")
+    assert s(e, "ap ap eq -19 -20") == t("f")
+    assert s(e, "ap ap eq -20 -20") == t("t")
+    assert s(e, "ap ap eq -21 -20") == t("f")
+
+
+def test_lt(e):
+    assert s(e, "ap ap lt 0 -1") == t("f")
+    assert s(e, "ap ap lt 0 0") == t("f")
+    assert s(e, "ap ap lt 0 1") == t("t")
+    assert s(e, "ap ap lt 0 2") == t("t")
+    assert s(e, "ap ap lt 1 0") == t("f")
+    assert s(e, "ap ap lt 1 1") == t("f")
+    assert s(e, "ap ap lt 1 2") == t("t")
+    assert s(e, "ap ap lt 1 3") == t("t")
+    assert s(e, "ap ap lt 2 1") == t("f")
+    assert s(e, "ap ap lt 2 2") == t("f")
+    assert s(e, "ap ap lt 2 3") == t("t")
+    assert s(e, "ap ap lt 2 4") == t("t")
+    assert s(e, "ap ap lt 19 20") == t("t")
+    assert s(e, "ap ap lt 20 20") == t("f")
+    assert s(e, "ap ap lt 21 20") == t("f")
+    assert s(e, "ap ap lt -19 -20") == t("f")
+    assert s(e, "ap ap lt -20 -20") == t("f")
+    assert s(e, "ap ap lt -21 -20") == t("t")
+
+
+def test_neg(e):
+    assert s(e, "ap neg 0") == t("0")
+    assert s(e, "ap neg 1") == t("-1")
+    assert s(e, "ap neg -1") == t("1")
+    assert s(e, "ap neg 2") == t("-2")
+    assert s(e, "ap neg -2") == t("2")
