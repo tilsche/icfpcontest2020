@@ -35,8 +35,25 @@ ap nil x0   =   t
 ap isnil nil   =   t
 ap isnil ap ap cons x0 x1   =   f
 vec   =   cons
+ap ap ap if0 0 x0 x1   =   x0
+ap ap ap if0 1 x0 x1   =   x1
 """.strip()
 
-pattern_operators = "s", "c", "b", "t", "f", "pwr2"
+pattern_operators = (
+    "s",
+    "c",
+    "b",
+    "t",
+    "f",
+    "pwr2",
+    "i",
+    "cons",
+    "car",
+    "cdr",
+    "nil",
+    "isnil",
+    "vec",
+    "if0",
+)
 
 default_patterns = parse_patterns(_default_pattern_str)
