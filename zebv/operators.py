@@ -113,7 +113,10 @@ class Lt(BinaryOperator):
 
     def __call__(self, a1: OperatorArgument, a2: OperatorArgument):
         if isinstance(a1, Number) and isinstance(a2, Number):
-            return Number(a1.value < a2.value)
+            if a1.value < a2.value:
+                return T()
+            else:
+                return F()
         else:
             raise NoEvalError()
 
