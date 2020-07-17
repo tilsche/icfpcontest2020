@@ -7,13 +7,3 @@ import pytest
 @pytest.fixture
 def e():
     yield Evaluator()
-
-
-@pytest.fixture
-def simplify(e):
-    yield lambda x: e.simplify(build_expression(tokenize(x)))
-
-
-@pytest.fixture
-def tokenize(e):
-    yield lambda x: build_expression(tokenize(x))
