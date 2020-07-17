@@ -19,8 +19,6 @@ def mod_num(input: int) -> str:
 
         unary_len = "1" * n + "0"
 
-        logger.debug(f"{input=} {unary_len=} {n=} {bit_len=}")
-
         return f"{pos_or_neg}{unary_len}{abs_val:0{4*n}b}"
 
 
@@ -28,14 +26,17 @@ def mod(input) -> str:
     if isinstance(input, int):
         return mod_num(input)
     elif isinstance(input, tuple):
-        if len(input) == 0:
+        arity = len(input)
+        if arity == 0:
             return "00"
-        elif len(input) == 2:
+        elif arity == 2:
             head = mod(input[0])
             tail = mod(input[1])
             return f"11{head}{tail}"
+        else:
+            raise ValueError(f"Expected tuple of length 0 or 2, got {arity}")
     else:
-        raise TypeError(f"The fuck is this? {input=}")
+        raise TypeError(f"The fuck is this? input={input}")
 
 
 def demod_num(input: str) -> (int, str):
@@ -75,5 +76,4 @@ def demod(input: str) -> Union[Tuple, int]:
             raise ValueError(f"Unexpected type {type_!r}")
 
     (result, rest) = demod_impl(input)
-    print(f"demod_impl({input=}) => {result=} {rest=}")
     return result
