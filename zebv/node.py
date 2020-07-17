@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import Callable, List, Optional, Union
+from typing import Callable, Iterable, Iterator, List, Optional, Union
 
+from . import parsing
 from .var_map import VarMap
 
 
@@ -29,6 +30,13 @@ class Node(ABC):
     def copy(self, vm: Optional[VarMap] = None):
         return type(self)(*self.children)
 
+    def __str__(self):
+        cstr = ", ".join((str(c) for c in self.children))
+        return f"[{type(self).__name__}: {cstr}]"
+
+    def __repr__(self):
+        return str(self)
+
 
 class Number(Node):
     value: int
@@ -41,6 +49,9 @@ class Number(Node):
 
     def copy(self, vm: Optional[VarMap] = None):
         return Number(self.value)
+
+    def __str__(self):
+        return str(self.value)
 
 
 class Variable(Node):
@@ -56,6 +67,9 @@ class Variable(Node):
         if vm:
             return vm[self.id].copy()
         return Variable(id)
+
+    def __str__(self):
+        return f"x{self.id}"
 
 
 class Equals(Node):
@@ -87,13 +101,14 @@ class Operator(Node):
 
 
 class Ap(Node):
-    def __init__(self, op: Union[Operator, Callable, Node], arg: Node):
+    def __init__(self, op: Union[Operator, Callable, "Variable", "Name"], arg: Node):
         self.children = [op, arg]
 
     def eval(self):
-        op, arg = self.children()
+        op, arg = self.children
         if isinstance(op, (Callable, Operator)):
             return op(arg)
+        raise NoEvalError()
 
 
 class Inc(Operator):
@@ -103,11 +118,14 @@ class Inc(Operator):
         else:
             raise NoEvalError()
 
+    def __str__(self):
+        return "inc"
+
 
 class GenericOperator(Operator):
-    id: int
+    id: str
 
-    def __init__(self, id: int):
+    def __init__(self, id: str):
         self.id = id
 
     def __eq__(self, other):
@@ -118,3 +136,59 @@ class GenericOperator(Operator):
 
     def __call__(self, *args, **kwargs):
         raise NoEvalError()
+
+    def __str__(self):
+        return f":{self.id}"
+
+
+class Name(Node):
+    id: int
+
+    def __init__(self, id: int):
+        self.id = id
+
+    def __eq__(self, other):
+        return type(other) == Name and self.id == other.id
+
+    def copy(self, vm: Optional[VarMap] = None):
+        return self
+
+    def __call__(self, *args, **kwargs):
+        raise NoEvalError()
+
+    def __str__(self):
+        return f":{self.id}"
+
+
+def _parse_expression(tokens: Iterator[parsing.Token]):
+    tok = next(tokens)
+
+    if isinstance(tok, parsing.Literal):
+        if tok.name == "ap":
+            return Ap(_parse_expression(tokens), _parse_expression(tokens))
+
+        if tok.name in ["?", "=", "=="]:
+            raise ValueError(f"strange token {tok}")
+
+        if tok.name.startswith("x"):
+            return Variable(int(tok.name[1:]))
+
+        # Assume operator
+        return GenericOperator(tok.name)
+
+    if isinstance(tok, parsing.ColonName):
+        return Name(tok._id)
+
+    if isinstance(tok, parsing.IntLiteral):
+        return Number(tok.value)
+
+    raise TypeError(f"unknown token type: {type(tok)} {tok}")
+
+
+def build_expression(tokens: Iterable[parsing.Token]):
+    it = iter(tokens)
+    expression = _parse_expression(it)
+    rest = list(it)
+    if rest:
+        raise RuntimeError(f"Tokens not all consumed: {rest}")
+    return expression

@@ -1,12 +1,14 @@
 class VarMap:
-    map: dict
+    mapping: dict
 
-    def __init__(self, map=None):
-        if map:
-            self.map = map
+    def __init__(self, mapping=None):
+        if mapping:
+            self.mapping = mapping
         else:
-            self.map = {}
+            self.mapping = {}
 
     def merge(self, other: "VarMap"):
-        assert (set(self.map.keys()) & set(other.map.keys())) == set()
-        map.update(other.map)
+        assert not set(self.mapping.keys()).intersection(set(other.mapping.keys()))
+        new_mapping = self.mapping.copy()
+        new_mapping.update(other.mapping)
+        return VarMap(new_mapping)

@@ -1,32 +1,32 @@
-from copy import deepcopy
 from functools import reduce
 
 from .node import Ap, Node, NoEvalError, Variable
+from .patterns import default_patterns
 from .var_map import VarMap
 
 
-def match(left: Node, right: Node):
-    if isinstance(left, Variable):
+def match(node: Node, pattern: Node):
+    if isinstance(pattern, Variable):
         # if isinstance(right, Variable):
         #     if left.id == right.id:
         #         return VarMap()
         #     else:
         #         # Oh shit
         #         raise RuntimeError("I don't know what to do here.")
-        return VarMap({left.id: right})
+        return VarMap({pattern.id: node})
 
-    if type(left) != type(right):
+    if type(node) != type(pattern):
         return False
 
-    assert len(left.children) == len(right.children)
+    assert len(node.children) == len(pattern.children)
 
-    if not left.children:
-        if left == right:
+    if not node.children:
+        if node == pattern:
             return VarMap()
         else:
             return False
 
-    matches = [match(lc, rc) for lc, rc in zip(left.children, right.children)]
+    matches = [match(nc, pc) for nc, pc in zip(node.children, pattern.children)]
     if not all(matches):
         return False
 
@@ -36,13 +36,16 @@ def match(left: Node, right: Node):
 class Evaluator:
     patterns = []
 
-    def __init__(self, patterns):
-        self.patterns = patterns
+    def __init__(self, extra_patterns=None):
+        self.patterns = default_patterns
+        if extra_patterns:
+            self.patterns = self.patterns + extra_patterns
 
-    def simplify(self, node: Node):
+    def simplify_once(self, node: Node):
         if isinstance(node, Ap):
             try:
                 yield node.eval()
+                return
             except NoEvalError:
                 pass
 
@@ -53,7 +56,7 @@ class Evaluator:
             yield replacement.copy(vm)
 
         for index, child in enumerate(node.children):
-            for simple_child in self.simplify(child):
+            for simple_child in self.simplify_once(child):
                 copy = node.copy()
                 copy.children[index] = simple_child
                 yield copy
