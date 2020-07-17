@@ -27,6 +27,13 @@ ap ap ap b x0 x1 x2   =   ap x0 ap x1 x2
 ap ap t x0 x1   =   x0
 ap ap f x0 x1   =   x1
 pwr2   =   ap ap s ap ap c ap eq 0 1 ap ap b ap mul 2 ap ap b pwr2 ap add -1
+ap i x0   =   x0
+ap ap ap cons x0 x1 x2   =   ap ap x2 x0 x1
+ap car ap ap cons x0 x1   =   x0
+ap cdr ap ap cons x0 x1   =   x1
+ap nil x0   =   t
+ap isnil nil   =   t
+ap isnil ap ap cons x0 x1   =   f
 """.strip()
 
 pattern_operators = "s", "c", "b", "t", "f", "pwr2"

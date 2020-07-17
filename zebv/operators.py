@@ -96,11 +96,14 @@ class Eq(BinaryOperator):
 
     def __call__(self, a1: OperatorArgument, a2: OperatorArgument):
         if isinstance(a1, Number) and isinstance(a2, Number):
-            return a1.value == a2.value
+            if a1.value == a2.value:
+                return T()
+            else:
+                return F()
 
         # TODO HMM Do we want this?
         if a1 == a2:
-            return True
+            return T()
 
         raise NoEvalError()
 
@@ -115,6 +118,6 @@ class Lt(BinaryOperator):
             raise NoEvalError()
 
 
-operators = {op().name: op() for op in (Inc, Dec, Add, Mul, Div, T, F, Lt)}
+operators = {op().name: op() for op in (Inc, Dec, Add, Mul, Div, T, F, Eq, Lt)}
 
 max_operator_arity = 2

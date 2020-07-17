@@ -16,4 +16,4 @@ def tt(s):
 # tt("ap pwr2 0")
 # tt("ap ap ap s ap ap c ap eq 0 1 ap ap b ap mul 2 ap ap b pwr2 ap add -1 0")
 
-print(e.simplify(build_expression(tokenize("ap pwr2 0"))))
+print(e.simplify(build_expression(tokenize("ap pwr2 3"))))

@@ -96,7 +96,7 @@ class Evaluator:
         visited_exprs = []
         visited_strs = set()
 
-        for _ in range(100):
+        for _ in range(10000):
             if not todo_exprs:
                 return sorted(visited_exprs, key=len)[0]
 
