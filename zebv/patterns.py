@@ -34,6 +34,7 @@ ap cdr ap ap cons x0 x1   =   x1
 ap nil x0   =   t
 ap isnil nil   =   t
 ap isnil ap ap cons x0 x1   =   f
+vec   =   cons
 """.strip()
 
 pattern_operators = "s", "c", "b", "t", "f", "pwr2"
