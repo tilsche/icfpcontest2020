@@ -118,3 +118,14 @@ def test_neg(e):
     assert s(e, "ap neg -1") == t("1")
     assert s(e, "ap neg 2") == t("-2")
     assert s(e, "ap neg -2") == t("2")
+
+
+def test_pwr2(e):
+    pass
+    assert s(e, "ap pwr2 2") == t("4")
+    assert s(e, "ap pwr2 3") == t("8")
+    # assert s(e, "ap pwr2 4") == t("16")
+    # assert s(e, "ap pwr2 5") == t("32")
+    # assert s(e, "ap pwr2 6") == t("64")
+    # assert s(e, "ap pwr2 7") == t("128")
+    # assert s(e, "ap pwr2 8") == t("256")
