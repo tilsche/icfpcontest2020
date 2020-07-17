@@ -7,6 +7,9 @@ class VarMap:
         else:
             self.mapping = {}
 
+    def __getitem__(self, item: int):
+        return self.mapping[item]
+
     def merge(self, other: "VarMap"):
         assert not set(self.mapping.keys()).intersection(set(other.mapping.keys()))
         new_mapping = self.mapping.copy()

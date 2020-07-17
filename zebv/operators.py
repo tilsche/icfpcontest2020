@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from typing import Union
 
 from .node import NoEvalError, Number, Operator, Variable
@@ -6,13 +7,27 @@ OperatorArgument = Union[Number, Variable]
 
 
 class HardcodedOperator(Operator):
-    name: str
-
-    def __str__(self):
-        return self.name
+    def __eq__(self, other):
+        return type(other) == type(self)
 
 
-class Inc(HardcodedOperator):
+class EvaluatableOperator(HardcodedOperator):
+    arity: int
+
+    @abstractmethod
+    def __call__(self, *args):
+        raise NoEvalError()
+
+
+class UnaryOperator(EvaluatableOperator):
+    arity = 1
+
+
+class BinaryOperator(EvaluatableOperator):
+    arity = 2
+
+
+class Inc(UnaryOperator):
     name = "inc"
 
     def __call__(self, argument: OperatorArgument):
@@ -22,7 +37,7 @@ class Inc(HardcodedOperator):
             raise NoEvalError()
 
 
-class Dec(HardcodedOperator):
+class Dec(UnaryOperator):
     name = "dec"
 
     def __call__(self, argument: OperatorArgument):
@@ -32,50 +47,32 @@ class Dec(HardcodedOperator):
             raise NoEvalError()
 
 
-class Add(HardcodedOperator):
+class Add(BinaryOperator):
     name = "add"
 
-    def __call__(self, a1: OperatorArgument):
-        if isinstance(a1, Number):
-            value1 = a1.value
-
-            def add2(a2: OperatorArgument):
-                if isinstance(a2, Number):
-                    return Number(value1 + a2.value)
-
-            return add2
+    def __call__(self, a1: OperatorArgument, a2: OperatorArgument):
+        if isinstance(a1, Number) and isinstance(a2, Number):
+            return Number(a1.value + a2.value)
         else:
             raise NoEvalError()
 
 
-class Mul(HardcodedOperator):
-    name = "add"
+class Mul(BinaryOperator):
+    name = "mul"
 
-    def __call__(self, a1: OperatorArgument):
-        if isinstance(a1, Number):
-            value1 = a1.value
-
-            def mul2(a2: OperatorArgument):
-                if isinstance(a2, Number):
-                    return Number(value1 * a2.value)
-
-            return mul2
+    def __call__(self, a1: OperatorArgument, a2: OperatorArgument):
+        if isinstance(a1, Number) and isinstance(a2, Number):
+            return Number(a1.value * a2.value)
         else:
             raise NoEvalError()
 
 
-class Div(HardcodedOperator):
-    name = "add"
+class Div(BinaryOperator):
+    name = "div"
 
-    def __call__(self, a1: OperatorArgument):
-        if isinstance(a1, Number):
-            value1 = a1.value
-
-            def div2(a2: OperatorArgument):
-                if isinstance(a2, Number):
-                    return Number(value1 // a2.value)
-
-            return div2
+    def __call__(self, a1: OperatorArgument, a2: OperatorArgument):
+        if isinstance(a1, Number) and isinstance(a2, Number):
+            return Number(a1.value // a2.value)
         else:
             raise NoEvalError()
 
@@ -94,36 +91,30 @@ class F(HardcodedOperator):
         raise NoEvalError()
 
 
-class Eq(HardcodedOperator):
+class Eq(BinaryOperator):
     name = "eq"
 
-    def __call__(self, a1: OperatorArgument):
-        def eq2(a2: OperatorArgument):
-            if a1 == a2:
-                return True
+    def __call__(self, a1: OperatorArgument, a2: OperatorArgument):
+        if isinstance(a1, Number) and isinstance(a2, Number):
+            return a1.value == a2.value
 
-            if isinstance(a1, Number) and isinstance(a2, Number):
-                return a1.value == a2.value
+        # TODO HMM Do we want this?
+        if a1 == a2:
+            return True
 
-            raise NoEvalError()
-
-        return eq2
+        raise NoEvalError()
 
 
-class Lt(HardcodedOperator):
+class Lt(BinaryOperator):
     name = "lt"
 
-    def __call__(self, a1: OperatorArgument):
-        def eq2(a2: OperatorArgument):
-            if a1 == a2:
-                return False
-
-            if isinstance(a1, Number) and isinstance(a2, Number):
-                return a1.value < a2.value
-
+    def __call__(self, a1: OperatorArgument, a2: OperatorArgument):
+        if isinstance(a1, Number) and isinstance(a2, Number):
+            return Number(a1.value < a2.value)
+        else:
             raise NoEvalError()
 
-        return eq2
 
+operators = {op().name: op() for op in (Inc, Dec, Add, Mul, Div, T, F, Lt)}
 
-operators = {op().name: op() for op in (Inc, Dec, Add, Mul, Div, T, F, Eq, Lt)}
+max_operator_arity = 2

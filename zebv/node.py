@@ -28,11 +28,15 @@ class Node(ABC):
         return 1 + sum((len(c) for c in self.children))
 
     def copy(self, vm: Optional[VarMap] = None):
-        return type(self)(*self.children)
+        return type(self)(*(c.copy(vm) for c in self.children))
+
+    # def __str__(self):
+    #     cstr = ", ".join((str(c) for c in self.children))
+    #     return f"[{type(self).__name__}: {cstr}]"
 
     def __str__(self):
-        cstr = ", ".join((str(c) for c in self.children))
-        return f"[{type(self).__name__}: {cstr}]"
+        cstr = " ".join((str(c) for c in self.children))
+        return f"{type(self).__name__.lower()} {cstr}"
 
     def __repr__(self):
         return str(self)
@@ -67,7 +71,7 @@ class Variable(Node):
     def copy(self, vm: Optional[VarMap] = None):
         if vm:
             return vm[self.id].copy()
-        return Variable(id)
+        return Variable(self.id)
 
     def __str__(self):
         return f"x{self.id}"
@@ -79,26 +83,16 @@ class Equals(Node):
 
 
 class Operator(Node):
-    @abstractmethod
-    def __call__(self, argument):
-        raise NoEvalError()
+    name: str
 
+    def __eq__(self, other):
+        return isinstance(other, Operator) and self.name == other.name
 
-# class Ap(Node):
-#     op: Union[Operator, Callable]
-#     arguments: List[Node]
-#
-#     def __init__(self, op: Union[Operator, Callable], args: List[Node]):
-#         self.op = op
-#         self.args = args
-#
-#     def __call__(self):
-#         op = self.op(self.args[0])
-#         args = self.args[1:]
-#         if args:
-#             return Ap(op, args)
-#         else:
-#             return op
+    def copy(self, vm: Optional[VarMap] = None):
+        return self
+
+    def __str__(self):
+        return f":{self.name}"
 
 
 class Ap(Node):
@@ -111,24 +105,18 @@ class Ap(Node):
             return op(arg)
         raise NoEvalError()
 
+    @property
+    def op(self):
+        return self.children[0]
+
+    @property
+    def arg(self):
+        return self.children[1]
+
 
 class GenericOperator(Operator):
-    id: str
-
-    def __init__(self, id: str):
-        self.id = id
-
-    def __eq__(self, other):
-        return type(other) == GenericOperator and self.id == other.id
-
-    def copy(self, vm: Optional[VarMap] = None):
-        return self
-
-    def __call__(self, *args, **kwargs):
-        raise NoEvalError()
-
-    def __str__(self):
-        return f":{self.id}"
+    def __init__(self, name: str):
+        self.name = name
 
 
 class Name(Node):

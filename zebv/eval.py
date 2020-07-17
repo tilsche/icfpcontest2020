@@ -1,6 +1,7 @@
 from functools import reduce
 
 from .node import Ap, Node, NoEvalError, Variable
+from .operators import EvaluatableOperator, max_operator_arity
 from .patterns import default_patterns
 from .var_map import VarMap
 
@@ -33,6 +34,33 @@ def match(node: Node, pattern: Node):
     return reduce(VarMap.merge, matches)
 
 
+def try_apply_operator(node, args=None):
+    if not isinstance(node, Ap):
+        return NoEvalError()
+
+    op, arg = node.children
+
+    if args is None:
+        args = (arg,)
+    else:
+        args = (arg, *args)
+
+    if isinstance(op, EvaluatableOperator):
+        # <= ?
+        if op.arity == len(args):
+            return op(*args)
+
+    if isinstance(op, Ap):
+        # We need to go deeper
+        if len(args) >= max_operator_arity:
+            # Nah, no more than binary operators
+            raise NoEvalError()
+
+        return try_apply_operator(op, args)
+
+    raise NoEvalError()
+
+
 class Evaluator:
     patterns = []
 
@@ -44,7 +72,7 @@ class Evaluator:
     def simplify_once(self, node: Node):
         if isinstance(node, Ap):
             try:
-                yield node.eval()
+                yield try_apply_operator(node)
                 return
             except NoEvalError:
                 pass
@@ -60,3 +88,37 @@ class Evaluator:
                 copy = node.copy()
                 copy.children[index] = simple_child
                 yield copy
+
+    def simplify(self, expression: Node):
+        todo_exprs = [expression]
+        todo_strs = set((str(expression),))
+
+        visited_exprs = []
+        visited_strs = set()
+
+        for _ in range(100):
+            if not todo_exprs:
+                return sorted(visited_exprs, key=len)[0]
+
+            todo_exprs = list(sorted(todo_exprs, key=len))
+            current = todo_exprs[0]
+            todo_exprs = todo_exprs[1:]
+            todo_strs.remove(str(current))
+            print(f"looking at: {current}")
+
+            for candidate in self.simplify_once(current):
+                s = str(candidate)
+                if s in visited_strs or s in todo_strs:
+                    continue
+
+                if not isinstance(candidate, Ap):
+                    return candidate
+
+                visited_strs.add(s)
+                todo_strs.add(s)
+
+                todo_exprs.append(candidate)
+                visited_exprs.append(candidate)
+
+        print("giving up")
+        return sorted(visited_exprs, key=len)[0]
