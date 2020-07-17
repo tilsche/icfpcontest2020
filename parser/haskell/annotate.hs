@@ -326,6 +326,12 @@ symRepr (SymOperator val) = (text, "yellow")
           , (6, "c")
           , (5, "b")
           , (7, "s")
+          -- my annotations (https://github.com/zaitsev85/message-from-space/issues/44)
+          , (68191693600, "pwr2")
+          , (64170, "cons")
+          , (64174, "car")
+          , (64171, "cdr")
+          , (10, "neg")
           ]
 symRepr (SymVariable val) = ('x' : show val, "blue")
 
