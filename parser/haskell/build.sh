@@ -2,4 +2,4 @@
 # sudo apt-get install haskell-platform
 
 cabal install JuicyPixels JuicyPixels-util errors extra groupBy
-ghc parser.hs --make
+ghc annotate.hs --make
