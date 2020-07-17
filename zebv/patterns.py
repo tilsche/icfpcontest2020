@@ -4,7 +4,9 @@ from . import parsing
 
 
 def parse_patterns(text: str):
-    token_lists = [parsing.tokenize(line) for line in text.splitlines()]
+    token_lists = [
+        parsing.tokenize(line) for line in text.splitlines() if not line.startswith("#")
+    ]
     patterns = []
     for tokens in token_lists:
         left, right = [
@@ -34,9 +36,13 @@ ap cdr ap ap cons x0 x1   =   x1
 ap nil x0   =   t
 ap isnil nil   =   t
 ap isnil ap ap cons x0 x1   =   f
-vec   =   cons
+#vec   =   cons
 ap ap ap if0 0 x0 x1   =   x0
 ap ap ap if0 1 x0 x1   =   x1
+# ap modem x0 = ap dem ap mod x0
+ap modem x0 = x0
+ap ap f38 x2 x0 = ap ap ap if0 ap car x0 ap ap cons ap modem ap car ap cdr x0 ap ap cons ap multipledraw ap car ap cdr ap cdr x0 nil ap ap ap interact x2 ap modem ap car ap cdr x0 ap send ap car ap cdr ap cdr x0
+ap ap ap interact x2 x4 x3 = ap ap f38 x2 ap ap x2 x4 x3
 """.strip()
 
 pattern_operators = (
@@ -52,8 +58,11 @@ pattern_operators = (
     "cdr",
     "nil",
     "isnil",
-    "vec",
+    # "vec",
     "if0",
+    "modem",
+    "f38",
+    "interact",
 )
 
 default_patterns = parse_patterns(_default_pattern_str)

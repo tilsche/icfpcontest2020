@@ -33,6 +33,8 @@ class ColonName(Token):
 
 class Literal(Token):
     def __init__(self, tok: str):
+        if tok == "vec":
+            tok = "cons"
         self.name = tok
 
     def __repr__(self):

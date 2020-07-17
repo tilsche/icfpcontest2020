@@ -1,8 +1,6 @@
-from typing import Union, Tuple
-
-from math import ceil
-
 from logging import getLogger
+from math import ceil
+from typing import Tuple, Union
 
 logger = getLogger(__name__)
 

@@ -1,6 +1,5 @@
 import pytest
-
-from zebv.modem import mod, demod, mod_num
+from zebv.modem import demod, mod, mod_num
 
 MODULATED_TO_DEMODULATED = [
     ("010", 0),
