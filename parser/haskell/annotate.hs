@@ -105,6 +105,9 @@ imgAllPixels img = range2d 0 0 (imgWidth img - 1) (imgHeight img - 1)
 
 symDecode :: Img -> Coord -> Size -> Symbol
 symDecode img (x, y) (w, h)
+  | checkSymbol img symGalaxy (x, y) = SymSpecial "galaxy"
+  | checkSymbol img symHuman (x, y) = SymSpecial "human"
+  | checkSymbol img symSpacecraft (x, y) = SymSpecial "spacecraft"
   | isNonNegativeNumber = SymNumber value
   | isNegativeNumber = SymNumber (-value)
   | isModulatedNumber = SymModulatedNumber modulatedValue
@@ -112,9 +115,9 @@ symDecode img (x, y) (w, h)
   | isOperator = SymOperator value
   | isBox = SymBox (w-2) (h-2) boxValue
   | isEllipsis = SymEllipsis
-  | checkSymbol img symOpenPar (x-1, y-1) = SymSpecial "<"
-  | checkSymbol img symClosePar (x-1, y-1) = SymSpecial ">"
-  | checkSymbol img symPipe (x-1, y-1) = SymSpecial "|"
+  | checkSymbol img symOpenPar (x-1, y-1) = SymSpecial "("
+  | checkSymbol img symClosePar (x-1, y-1) = SymSpecial ")"
+  | checkSymbol img symPipe (x-1, y-1) = SymSpecial ","
   | otherwise = SymUnknown
   where
     size = w
@@ -126,7 +129,6 @@ symDecode img (x, y) (w, h)
       && not (px (0, 0))
 
     isNegativeNumber = True
-      && size >= 2
       && w + 1 == h
       && not (px (0, 0))
       && px (0, size)
@@ -137,7 +139,6 @@ symDecode img (x, y) (w, h)
       && px (0, 0)
 
     isVariable = True
-      && size >= 4
       && w == h
       && size >= 4
       && px (1, 1)
@@ -200,6 +201,9 @@ symDetectSingle img (x, y)
   | checkSymbol img symOpenPar (x-1, y-1) = Just (3, 5)
   | checkSymbol img symClosePar (x-1, y-1) = Just (3, 5)
   | checkSymbol img symPipe (x-1, y-1) = Just (2, 5)
+  | checkSymbol img symGalaxy (x, y) = Just (7, 7)
+  | checkSymbol img symHuman (x, y) = Just (7, 7)
+  | checkSymbol img symSpacecraft (x, y) = Just (7, 7)
   | otherwise = Nothing
   where
     px x' y' = imgPixel img (x + x', y + y')
@@ -260,6 +264,39 @@ symPipe = map (map (=='#'))
   , ".##."
   , ".##."
   , "...."
+  ]
+
+symGalaxy :: [[Bool]]
+symGalaxy = map (map (=='#'))
+  [ "..###.."
+  , ".....#."
+  , ".###..#"
+  , "#.#.#.#"
+  , "#..###."
+  , " #....."
+  , "..###.."
+  ]
+
+symHuman :: [[Bool]]
+symHuman = map (map (=='#'))
+  [ "..#.#.."
+  , "..#.#.."
+  , "..###.."
+  , "..###.."
+  , "..###.."
+  , "#######"
+  , "...#..."
+  ]
+
+symSpacecraft :: [[Bool]]
+symSpacecraft = map (map (=='#'))
+  [ "...#..."
+  , ".#####."
+  , ".#...#."
+  , "##...##"
+  , "##.#.##"
+  , ".#####."
+  , "#.#.#.#"
   ]
 
 checkLine :: Img -> [Bool] -> Coord -> Bool
@@ -401,6 +438,13 @@ symRepr (SymOperator val) = (text, "yellow")
           -- misc
           , ( 174, "send" )
           , ( 58336, "if0" )
+          , ( 11184810, "checkerboard" )
+          , ( 33047056, "draw")
+          , ( 17043521, "vec")
+          , ( 68259412260, "multipledraw" )
+          , (33053392, "interact")
+          , (7110656, "modem")
+          , (33053392, "interact")
           ]
 symRepr (SymBox w h val) = ('#' : show w ++ ":" ++ show h ++ ":" ++ showHex val "", "orange")
 symRepr (SymVariable val) = ('x' : show val, "blue")
