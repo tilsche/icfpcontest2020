@@ -1,6 +1,5 @@
-import zebv.parsing as parsing
-
 import pytest
+import zebv.parsing as parsing
 
 
 def t(exp):
