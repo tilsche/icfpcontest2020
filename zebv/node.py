@@ -42,6 +42,7 @@ class Number(Node):
     value: int
 
     def __init__(self, value: int):
+        assert type(value) == int
         self.value = value
 
     def __eq__(self, other):
@@ -111,17 +112,6 @@ class Ap(Node):
         raise NoEvalError()
 
 
-class Inc(Operator):
-    def __call__(self, argument: Union[Number, Variable]):
-        if type(argument) == Number:
-            return Number(argument.value + 1)
-        else:
-            raise NoEvalError()
-
-    def __str__(self):
-        return "inc"
-
-
 class GenericOperator(Operator):
     id: str
 
@@ -158,37 +148,3 @@ class Name(Node):
 
     def __str__(self):
         return f":{self.id}"
-
-
-def _parse_expression(tokens: Iterator[parsing.Token]):
-    tok = next(tokens)
-
-    if isinstance(tok, parsing.Literal):
-        if tok.name == "ap":
-            return Ap(_parse_expression(tokens), _parse_expression(tokens))
-
-        if tok.name in ["?", "=", "=="]:
-            raise ValueError(f"strange token {tok}")
-
-        if tok.name.startswith("x"):
-            return Variable(int(tok.name[1:]))
-
-        # Assume operator
-        return GenericOperator(tok.name)
-
-    if isinstance(tok, parsing.ColonName):
-        return Name(tok._id)
-
-    if isinstance(tok, parsing.IntLiteral):
-        return Number(tok.value)
-
-    raise TypeError(f"unknown token type: {type(tok)} {tok}")
-
-
-def build_expression(tokens: Iterable[parsing.Token]):
-    it = iter(tokens)
-    expression = _parse_expression(it)
-    rest = list(it)
-    if rest:
-        raise RuntimeError(f"Tokens not all consumed: {rest}")
-    return expression

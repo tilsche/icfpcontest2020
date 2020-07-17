@@ -1,7 +1,6 @@
 import itertools
 
 from . import parsing
-from .node import build_expression
 
 
 def parse_patterns(text: str):
@@ -15,7 +14,9 @@ def parse_patterns(text: str):
             )
             if not k
         ]
-        patterns.append((build_expression(left), build_expression(right)))
+        patterns.append(
+            (parsing.build_expression(left), parsing.build_expression(right))
+        )
     return patterns
 
 
