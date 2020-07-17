@@ -113,6 +113,12 @@ class Ap(Node):
     def arg(self):
         return self.children[1]
 
+    def __str__(self):
+        return "ap {self.children[0]} {self.children[1]}".format(self=self)
+
+    def __repr__(self):
+        return "Ap" + str((self.children[0] , self.children[1]))
+
 
 class GenericOperator(Operator):
     def __init__(self, name: str):
