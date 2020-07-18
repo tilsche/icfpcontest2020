@@ -5,7 +5,7 @@ import click
 import click_log
 from zebv.api import ApiClient
 from zebv.modem import demod, mod_node
-from zebv.node import Ap, Number
+from zebv.node import Ap, Integer
 from zebv.operators import Cons, Nil
 
 
@@ -45,7 +45,7 @@ def main(server_url, player_key):
     logger.info("ServerUrl: %s; PlayerKey: %s" % (server_url, player_key))
 
     client = ApiClient(server_url, player_key)
-    request = Ap(Ap(Cons(), Number(0)), Nil())
+    request = Ap(Ap(Cons(), Integer(0)), Nil())
     modulated = mod_node(request)
 
     logger.info(f"=> {request} -> (modulate) {modulated} ~~~~~> (send)")

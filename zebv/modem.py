@@ -2,7 +2,7 @@ from logging import getLogger
 from math import ceil
 from typing import Tuple, Union
 
-from .node import Ap, Number, Node
+from .node import Ap, Integer, Node
 from .operators import Cons, Nil
 
 logger = getLogger(__name__)
@@ -40,8 +40,8 @@ def mod(input) -> str:
         raise TypeError(f"The fuck is this? input={input}")
 
 
-def _to_tuple_list(node: Union[Ap, Number, Nil]):
-    if isinstance(node, Number):
+def _to_tuple_list(node: Union[Ap, Integer, Nil]):
+    if isinstance(node, Integer):
         return int(node.value)
     elif isinstance(node, Nil):
         return ()
@@ -58,7 +58,7 @@ def _to_tuple_list(node: Union[Ap, Number, Nil]):
 
 def _from_tuple_list(tuple_list) -> Node:
     if isinstance(tuple_list, int):
-        return Number(tuple_list)
+        return Integer(tuple_list)
     elif isinstance(tuple_list, tuple):
         arity = len(tuple_list)
         if arity == 0:
@@ -72,7 +72,7 @@ def _from_tuple_list(tuple_list) -> Node:
         raise ValueError(f"Invalid tuple_list {tuple_list!r}")
 
 
-def mod_node(node: Union[Ap, Number, Nil]) -> str:
+def mod_node(node: Union[Ap, Integer, Nil]) -> str:
     return mod(_to_tuple_list(node))
 
 

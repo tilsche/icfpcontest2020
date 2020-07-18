@@ -77,4 +77,3 @@ class Picture:
         self._img = Image.fromarray(np.transpose(self._pixels), mode="L")
         print(filename)
         self._img.save(filename, format="png")
-

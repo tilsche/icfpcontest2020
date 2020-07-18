@@ -3,7 +3,7 @@ import time
 from functools import reduce
 from typing import Optional
 
-from .node import Ap, Name, Node, NoEvalError, Number, Operator, Variable
+from .node import Ap, Integer, Name, Node, NoEvalError, Operator, Placeholder
 from .operators import Bool, EvaluatableOperator, max_operator_arity
 from .patterns import (
     default_direct_patterns,
@@ -14,8 +14,8 @@ from .var_map import VarMap
 
 
 def match(node: Node, pattern: Node):
-    if isinstance(pattern, Variable):
-        return VarMap({pattern.id: node})
+    if isinstance(pattern, Placeholder):
+        return VarMap({pattern.value: node})
 
     if type(node) != type(pattern):
         return False
@@ -48,7 +48,7 @@ def try_apply_operator(node, args=None):
 
     if isinstance(op, EvaluatableOperator):
         # <= ?
-        if op.arity == len(args):
+        if op._arity == len(args):
             return op(*args)
 
     if isinstance(op, Ap):
@@ -111,7 +111,7 @@ class Evaluator:
                 continue
             assert shrinked is None
             # keep going just to see that no two patterns ever match. Then we must try more ways...
-            shrinked = replacement.copy(vm)
+            shrinked = replacement.instantiate(vm)
 
         if shrinked is not None:
             return shrinked
@@ -193,7 +193,7 @@ class Evaluator:
             vm = match(node, pattern)
             if not vm:
                 continue
-            yield replacement.copy(vm)
+            yield replacement.instantiate(vm)
 
     def expand_once(self, node: Node):
         for n in self.expand_once_direct(node):
@@ -202,7 +202,9 @@ class Evaluator:
             for n in self.expand_once_pattern(node):
                 yield n
 
-    def simplify(self, expression: Node, stop_types=(Number, Variable, Bool)) -> Node:
+    def simplify(
+        self, expression: Node, stop_types=(Integer, Placeholder, Bool)
+    ) -> Node:
         start = time.time()
 
         expression = self.shrink(expression)
@@ -252,7 +254,7 @@ class Evaluator:
         # return sorted(visited_exprs, key=len)[0]
 
     def simplify_linear(
-        self, expression: Node, stop_types=(Number, Variable, Bool)
+        self, expression: Node, stop_types=(Integer, Placeholder, Bool)
     ) -> Node:
         start = time.time()
         for step in range(10000):

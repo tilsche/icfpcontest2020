@@ -2,7 +2,7 @@ from logging import getLogger
 from typing import Callable
 
 from .eval import Evaluator
-from .node import Ap, Node, Number
+from .node import Ap, Integer, Node
 from .operators import Cons, Nil
 from .parsing import build_expression
 from .patterns import parse_patterns
@@ -51,7 +51,7 @@ class Interaction:
         # print(f38_map.map)
         proto_expr = Ap(Ap(self.protocol, self.state), vector)
         proto_result = self.evaluator.simplify_linear(
-            proto_expr, (Ap, Cons, Nil, Number)
+            proto_expr, (Ap, Cons, Nil, Integer)
         )
         # This will probably crash, sorry
         flag, new_state, data = proto_result.as_list.children
