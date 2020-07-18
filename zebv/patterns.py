@@ -19,7 +19,7 @@ def parse_patterns(text: str):
         ]
         ex_left = parsing.build_expression(left)
         ex_right = parsing.build_expression(right)
-        if len(ex_left) > len(ex_right):
+        if len(ex_left) >= len(ex_right):
             shrink_patterns.append((ex_left, ex_right))
         else:
             expand_patterns.append((ex_left, ex_right))

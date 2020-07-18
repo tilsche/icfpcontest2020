@@ -7,7 +7,7 @@ def t(exp):
 
 
 def s(e, exp):
-    return e.simplify(t(exp))
+    return e.shrink(t(exp))
 
 
 def test_ap(e):
