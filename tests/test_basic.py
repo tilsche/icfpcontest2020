@@ -1,4 +1,3 @@
-from zebv import patterns
 from zebv.eval import Evaluator
 from zebv.parsing import build_expression, tokenize
 
