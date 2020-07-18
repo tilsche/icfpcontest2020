@@ -90,7 +90,7 @@ def test_checkerboard_1():
     data_list = e.simplify(
         build_expression(tokenize("ap ap checkerboard 7 0")), (Cons, Nil, Ap, Number)
     ).as_list
-    ret = draw.draw(data_list.get(), "checkerboard_1.png")
+    ret = draw.draw(data_list, "checkerboard_1.png")
     exp = np_checkboard((7,7))
     assert (exp == ret).all()
 
@@ -102,7 +102,7 @@ def test_checkerboard_2():
     data_list = e.simplify(
         build_expression(tokenize("ap ap checkerboard 13 0")), (Cons, Nil, Ap, Number)
     ).as_list
-    ret = draw.draw(data_list.get(), "checkerboard_2.png")
+    ret = draw.draw(data_list, "checkerboard_2.png")
     exp = np_checkboard((13,13))
     assert (exp == ret).all()
 

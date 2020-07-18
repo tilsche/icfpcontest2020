@@ -118,9 +118,8 @@ class SugarList(Node):
         inner = ", ".join((str(c) for c in self.children))
         return f"({inner})"
 
-    def get(self):
-        for c in self.children:
-            yield c
+    def __iter__(self):
+        return iter(self.children)
 
 
 
