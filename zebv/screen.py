@@ -2,7 +2,7 @@ from threading import Thread
 
 import tcod
 
-WIDTH, HEIGHT = 20, 20  # Console width and height in tiles.
+WIDTH, HEIGHT = 1, 1  # Console width and height in tiles.
 
 PIXEL = 9565
 
@@ -66,7 +66,7 @@ class AlienScreen(Thread):
         self.generations.append(points)
 
     def clear(self):
-        self.points = []
+        self.generations = []
 
     def on_mouse_click(self, x, y):
         print(f"mouse click on ({x}, {y})")
