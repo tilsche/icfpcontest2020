@@ -118,6 +118,12 @@ class SugarList(Node):
         inner = ", ".join((str(c) for c in self.children))
         return f"({inner})"
 
+    def get(self):
+        for c in self.children:
+            yield c
+
+
+
 
 class SugarVector(Node):
     def __init__(self, *children):
@@ -127,6 +133,8 @@ class SugarVector(Node):
         assert len(self.children) == 2
         c1, c2 = self.children
         return f"<{c1}, {c2}>"
+
+
 
 
 class Ap(Node):
