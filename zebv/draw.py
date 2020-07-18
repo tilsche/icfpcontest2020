@@ -38,6 +38,10 @@ def draw(nodes=[], filename="", size=(1, 1)):
     return im.pixels
 
 
+def draw_sub_image(*args, **kwargs):
+    return draw(*args, **kwargs)
+
+
 def multipledraw(nodes, filename=""):
     pic = Picture
     for node in nodes:
