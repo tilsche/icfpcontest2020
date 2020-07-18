@@ -1,5 +1,5 @@
 import pytest
-from zebv.modem import _to_tuple_list, demod, mod, mod_node, mod_num
+from zebv.modem import _to_tuple_list, demod, mod, mod_node, mod_num, demod_node
 from zebv.node import Ap
 from zebv.operators import Cons, Nil, Number
 
@@ -45,6 +45,13 @@ def test_to_tuple_list(node, tuple_list):
 )
 def test_mod_node(node, expected):
     assert mod_node(node) == expected
+
+
+@pytest.mark.parametrize(
+    "input, node", [(input, node) for (node, _, input) in TEST_NODES]
+)
+def test_demod_node(input, node):
+    assert demod_node(input) == node
 
 
 TEST_NUMBERS = [

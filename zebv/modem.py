@@ -2,7 +2,7 @@ from logging import getLogger
 from math import ceil
 from typing import Tuple, Union
 
-from .node import Ap, Number
+from .node import Ap, Number, Node
 from .operators import Cons, Nil
 
 logger = getLogger(__name__)
@@ -56,6 +56,22 @@ def _to_tuple_list(node: Union[Ap, Number, Nil]):
         raise ValueError(f'Node {node!r} is neither a number, "nil" nor an "ap cons"')
 
 
+def _from_tuple_list(tuple_list) -> Node:
+    if isinstance(tuple_list, int):
+        return Number(tuple_list)
+    elif isinstance(tuple_list, tuple):
+        arity = len(tuple_list)
+        if arity == 0:
+            return Nil()
+        elif arity == 2:
+            (left, right) = tuple_list
+            return Ap(Ap(Cons(), _from_tuple_list(left)), _from_tuple_list(right))
+        else:
+            raise ValueError(f"Invalid tuple_list {tuple_list!r}")
+    else:
+        raise ValueError(f"Invalid tuple_list {tuple_list!r}")
+
+
 def mod_node(node: Union[Ap, Number, Nil]) -> str:
     return mod(_to_tuple_list(node))
 
@@ -98,3 +114,7 @@ def demod(input: str) -> Union[Tuple, int]:
 
     (result, rest) = demod_impl(input)
     return result
+
+
+def demod_node(input: str) -> Node:
+    return _from_tuple_list(demod(input))
