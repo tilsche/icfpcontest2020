@@ -3,10 +3,10 @@ from logging import INFO, Formatter, LogRecord, getLogger
 import click
 
 import click_log
-from ..api import ApiClient
-from ..modem import demod, mod_node
-from ..node import Ap, Number
-from ..operators import Cons, Nil
+from .api import ApiClient
+from .modem import demod, mod_node
+from .node import Ap, Number
+from .operators import Cons, Nil
 
 
 class LogFormatter(Formatter):
