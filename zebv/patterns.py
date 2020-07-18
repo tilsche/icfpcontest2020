@@ -34,8 +34,8 @@ def parse_patterns(text: str):
 
 _default_pattern_str = """
 ap ap ap s x0 x1 x2   =   ap ap x0 x2 ap x1 x2
-ap ap ap c x0 x1 x2   =   ap ap x0 x2 x1
-ap ap ap b x0 x1 x2   =   ap x0 ap x1 x2
+# ap ap ap c x0 x1 x2   =   ap ap x0 x2 x1
+# ap ap ap b x0 x1 x2   =   ap x0 ap x1 x2
 # ap ap t x0 x1   =   x0
 # ap ap f x0 x1   =   x1
 pwr2   =   ap ap s ap ap c ap eq 0 1 ap ap b ap mul 2 ap ap b pwr2 ap add -1
@@ -57,9 +57,9 @@ checkerboard = ap ap s ap ap b s ap ap c ap ap b c ap ap b ap c ap c ap ap s ap 
 """.strip()
 
 pattern_operators = (
-    "s",
-    "c",
-    "b",
+    # "s",
+    # "c",
+    # "b",
     # "t",
     # "f",
     "pwr2",

@@ -14,8 +14,7 @@ class Img:
         self._img.save(filename, format="png")
 
 
-
-def draw(nodes=[], filename="", size = (1,1)):
+def draw(nodes=[], filename="", size=(1, 1)):
     points = []
     max_x = size[0]
     max_y = size[1]
@@ -23,14 +22,14 @@ def draw(nodes=[], filename="", size = (1,1)):
         assert n.op.op.name == "cons"
         y = n.op.arg
         x = n.arg
-        points.append((x.value,y.value))
-        max_x = max(x.value + 1,max_x)
-        max_y = max(y.value + 1,max_y)
+        points.append((x.value, y.value))
+        max_x = max(x.value + 1, max_x)
+        max_y = max(y.value + 1, max_y)
 
     new_size = (max_x, max_y)
-    im = Img(new_size)        
+    im = Img(new_size)
 
-    for point in points: 
+    for point in points:
         im.pixels[point] = 255
 
     if filename:

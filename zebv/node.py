@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from functools import cached_property
 from typing import Callable, Iterable, Iterator, List, Optional, Union
 
 from .var_map import VarMap
@@ -15,7 +16,11 @@ class Node(ABC):
         return type(self) == type(other) and self.children == other.children
 
     def __len__(self):
-        return 1 + sum((len(c) for c in self.children))
+        return self.__len
+
+    @cached_property
+    def __len(self):
+        return 1 + sum((c.__len for c in self.children))
 
     def copy(self, vm: Optional[VarMap] = None):
         return type(self)(*(c.copy(vm) for c in self.children))
