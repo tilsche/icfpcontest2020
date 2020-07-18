@@ -96,7 +96,7 @@ class AlienScreen(Thread):
         self.console = tcod.Console(self._max_x, self._max_y)
 
     def save(self, filename, interact_point):
-        im = ColorImg(size=(self._max_x, self._max_y))
+        im = ColorImg(size=(self._max_x + 1, self._max_y + 1))
 
         for generation, points in enumerate(self.generations):
             for (x, y) in points:
