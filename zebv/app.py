@@ -40,23 +40,21 @@ logger.setLevel(INFO)
 @click.command()
 @click.argument("server_url")
 @click.argument("player_key")
+@click.option("-k", "--api-key", default=None)
 @click_log.simple_verbosity_option(logger)
-def main(server_url, player_key):
+def main(server_url, player_key, api_key):
     logger.info("ServerUrl: %s; PlayerKey: %s" % (server_url, player_key))
 
-    client = ApiClient(server_url, player_key)
+    client = ApiClient(server_url, api_key)
     request = Ap(Ap(Cons(), Number(0)), Nil())
     modulated = mod_node(request)
 
     logger.info(f"=> {request} -> (modulate) {modulated} ~~~~~> (send)")
 
-    try:
-        response = client.aliens_send(modulated)
-        demodulated = demod(response)
+    response = client.aliens_send(modulated)
+    demodulated = demod(response)
 
-        logger.info(f"<= {demodulated} <- (demodulate) {response} <~~~~~ (recv)")
-    except Exception as e:
-        logger.error(f"Send failed: {e}")
+    logger.info(f"<= {demodulated} <- (demodulate) {response} <~~~~~ (recv)")
 
 
 if __name__ == "__main__":
