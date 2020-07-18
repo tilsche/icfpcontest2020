@@ -1,6 +1,6 @@
 #!/bin/sh
 
-pip install --no-index --find-links ./wheels zebv
+pip install --force-reinstall --no-index --find-links ./wheels .
 echo "HI!"
 pwd
 ls -lha
