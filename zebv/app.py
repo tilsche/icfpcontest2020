@@ -50,10 +50,13 @@ def main(server_url, player_key):
 
     logger.info(f"=> {request} -> (modulate) {modulated} ~~~~~> (send)")
 
-    response = client.aliens_send(modulated)
-    demodulated = demod(response)
+    try:
+        response = client.aliens_send(modulated)
+        demodulated = demod(response)
 
-    logger.info(f"<= {demodulated} <- (demodulate) {response} <~~~~~ (recv)")
+        logger.info(f"<= {demodulated} <- (demodulate) {response} <~~~~~ (recv)")
+    except Exception as e:
+        logger.error(f"Send failed: {e}")
 
 
 if __name__ == "__main__":
