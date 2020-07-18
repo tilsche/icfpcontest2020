@@ -7,7 +7,7 @@ from .node import Ap, Integer, Node
 from .operators import Cons, Nil
 from .parsing import build_expression
 from .patterns import parse_patterns
-from .screen import AlienScreen
+from .screen import AlienScreen, Coord
 
 logger = getLogger(__name__)
 
@@ -32,9 +32,14 @@ class Interaction:
             self.iteration = 0
             self.protocol_name = protocol
 
-            def callback(x, y):
+            def callback(point):
+                if self.screen:
+                    self.screen.save(
+                        f"{self.protocol_name}-{self.iteration}.png", point
+                    )
+                    self.iteration += 1
                 self.screen.clear()
-                self(x, y)
+                self(point.x, point.y)
 
             self.screen.on_mouse_click = callback
 
@@ -56,8 +61,6 @@ class Interaction:
         if self.screen:
             for list in data.as_list:
                 self.screen.draw(list.as_list)
-            self.screen.save(f"{self.protocol_name}-{self.iteration}.png")
-            self.iteration += 1
 
     def send(self, data: Node) -> Node:
         logger.warning(f"Should send {data}...")
