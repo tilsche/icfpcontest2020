@@ -11,6 +11,6 @@ setup(
       [console_scripts]
       py-zebra=app:main
       """,
-    install_requires=["requests", "pillow"],
+    install_requires=["requests", "pillow", "click", "click_log"],
     tests_requires=["pytest"],
 )
