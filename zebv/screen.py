@@ -15,12 +15,8 @@ class AlienScreen(Thread):
         self.tileset = tcod.tileset.load_tilesheet(
             "dejavu10x10_gs_tc.png", 32, 8, tcod.tileset.CHARMAP_TCOD,
         )
-        self._max_x = WIDTH
-        self._max_y = HEIGHT
+        self.clear()
         self.console = tcod.Console(self._max_x, self._max_y)
-        self.generations = []
-        self.offset_x = 0
-        self.offset_y = 0
 
     def run(self):
         with tcod.context.new_terminal(
@@ -110,6 +106,10 @@ class AlienScreen(Thread):
 
     def clear(self):
         self.generations = []
+        self.offset_x = 0
+        self.offset_y = 0
+        self._max_x = WIDTH
+        self._max_y = HEIGHT
 
     def on_mouse_click(self, x, y):
         print(f"mouse click on ({x}, {y})")
