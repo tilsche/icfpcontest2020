@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from functools import cached_property, reduce
+from functools import reduce
 from typing import Callable, Dict, Iterable, Iterator, List, Optional, Set, Tuple, Union
 
 from .var_map import VarMap
