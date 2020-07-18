@@ -22,6 +22,11 @@ class Interaction:
         self.screen = AlienScreen()
         self.screen.start()
 
+        def callback(x, y):
+            self(x, y)
+
+        self.screen.on_mouse_click = callback
+
         # self.draw_pattern = build_expression(
         #     #         newState                      draw_list
         #     "ap ap cons x1 ap ap cons ap multipledraw x2 nil"
