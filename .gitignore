@@ -4,3 +4,4 @@ build/
 Dockerfile
 *.egg-info
 venv*
+galaxy-*.png

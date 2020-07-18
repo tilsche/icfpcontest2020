@@ -1,7 +1,7 @@
 from logging import getLogger
+from urllib.parse import urljoin
 
 import requests
-from urllib.parse import urljoin
 
 logger = getLogger(__name__)
 

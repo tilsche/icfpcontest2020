@@ -9,8 +9,28 @@ class Img:
         self._size = size
         self.pixels = np.zeros(self._size, np.uint8)
 
+    def add_point(self, x, y, color=255):
+        self.pixels[(x, y)] = color
+
     def save(self, filename):
-        self._img = Image.fromarray(self.pixels, mode="L")
+        self._img = Image.fromarray(np.transpose(self.pixels), mode="L")
+        self._img.save(filename, format="png")
+
+
+class ColorImg:
+    def __init__(self, size):
+        self._size = size
+        self.pixels = np.full(self._size, 0xFF << 24, np.uint32)
+
+    def add_point(self, x, y, color=255):
+        if isinstance(color, int):
+            color = (color, color, color)
+
+        color = (color[0] << 0) | (color[1] << 8) | (color[2] << 16) | (0xFF << 24)
+        self.pixels[(x, y)] = color
+
+    def save(self, filename):
+        self._img = Image.fromarray(np.transpose(self.pixels), mode="RGBA")
         self._img.save(filename, format="png")
 
 
@@ -30,12 +50,16 @@ def draw(nodes=[], filename="", size=(1, 1)):
     im = Img(new_size)
 
     for point in points:
-        im.pixels[point] = 255
+        im.add_point(*point)
 
     if filename:
         im.save(filename)
 
     return im.pixels
+
+
+def draw_sub_image(*args, **kwargs):
+    return draw(*args, **kwargs)
 
 
 def multipledraw(nodes, filename=""):
@@ -77,4 +101,3 @@ class Picture:
         self._img = Image.fromarray(np.transpose(self._pixels), mode="L")
         print(filename)
         self._img.save(filename, format="png")
-

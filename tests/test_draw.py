@@ -3,7 +3,7 @@ import pytest
 import zebv.draw as draw
 from zebv import patterns
 from zebv.eval import Evaluator
-from zebv.node import Ap, Number
+from zebv.node import Ap, Integer
 from zebv.operators import Cons, Nil
 from zebv.parsing import build_expression, tokenize
 
@@ -88,7 +88,7 @@ def np_checkboard(size):
 def test_checkerboard_1():
     e = Evaluator()
     data_list = e.simplify(
-        build_expression(tokenize("ap ap checkerboard 7 0")), (Cons, Nil, Ap, Number)
+        build_expression(tokenize("ap ap checkerboard 7 0")), (Cons, Nil, Ap, Integer)
     ).as_list
     ret = draw.draw_sub_image(data_list, "checkerboard_1.png")
     exp = np_checkboard((7, 7))
@@ -99,7 +99,7 @@ def test_checkerboard_2():
     # s = (13,17)
     e = Evaluator()
     data_list = e.simplify(
-        build_expression(tokenize("ap ap checkerboard 13 0")), (Cons, Nil, Ap, Number)
+        build_expression(tokenize("ap ap checkerboard 13 0")), (Cons, Nil, Ap, Integer)
     ).as_list
     ret = draw.draw_sub_image(data_list, "checkerboard_2.png")
     exp = np_checkboard((13, 13))
@@ -110,10 +110,10 @@ if __name__ == "__main__":
 
     e = Evaluator()
     data_list_1 = e.simplify(
-        build_expression(tokenize("ap ap checkerboard 7 0")), (Cons, Nil, Ap, Number)
+        build_expression(tokenize("ap ap checkerboard 7 0")), (Cons, Nil, Ap, Integer)
     ).as_list
     data_list_2 = e.simplify(
-        build_expression(tokenize("ap ap checkerboard 7 0")), (Cons, Nil, Ap, Number)
+        build_expression(tokenize("ap ap checkerboard 7 0")), (Cons, Nil, Ap, Integer)
     ).as_list
     pic = draw.Picture()
     pic.draw(t_list("ap ap vec 1 1"), size=(17, 13))

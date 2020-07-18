@@ -1,9 +1,8 @@
-import random
 import time
 from functools import reduce
 from typing import Optional
 
-from .node import Ap, Name, Node, NoEvalError, Number, Operator, Variable
+from .node import Ap, Integer, Name, Node, NoEvalError, Operator, Placeholder
 from .operators import Bool, EvaluatableOperator, max_operator_arity
 from .patterns import (
     default_direct_patterns,
@@ -14,8 +13,8 @@ from .var_map import VarMap
 
 
 def match(node: Node, pattern: Node):
-    if isinstance(pattern, Variable):
-        return VarMap({pattern.id: node})
+    if isinstance(pattern, Placeholder):
+        return VarMap({pattern.value: node})
 
     if type(node) != type(pattern):
         return False
@@ -48,7 +47,7 @@ def try_apply_operator(node, args=None):
 
     if isinstance(op, EvaluatableOperator):
         # <= ?
-        if op.arity == len(args):
+        if op._arity == len(args):
             return op(*args)
 
     if isinstance(op, Ap):
@@ -97,46 +96,54 @@ class Evaluator:
         self.direct_patterns = default_direct_patterns
         self.direct_patterns.update(direct_patterns)
 
-    def shrink_once(self, node: Node) -> Optional[Node]:
+    def shrink_again(self, node: Node, recursive) -> Node:
+        # next_node = self.shrink_once(node, recursive=recursive)
+        # if next_node:
+        #     return next_node
+        return node
+
+    def shrink_once(self, node: Node, recursive=True) -> Optional[Node]:
+        # node_was_dirty = node.dirty
+        if not node.dirty:
+            return None
         if isinstance(node, Ap):
             try:
-                return try_apply_operator(node)
+                new_node = try_apply_operator(node)
+                return self.shrink_again(new_node, recursive=True)
             except NoEvalError:
                 pass
 
-        shrinked = None
-        for pattern, replacement in self.shrink_patterns:
-            vm = match(node, pattern)
-            if not vm:
-                continue
-            assert shrinked is None
-            # keep going just to see that no two patterns ever match. Then we must try more ways...
-            shrinked = replacement.copy(vm)
+        assert not self.shrink_patterns
+        # This won't work any more I think
+        # for pattern, replacement in self.shrink_patterns:
+        #     vm = match(node, pattern)
+        #     if not vm:
+        #         continue
+        #     return self.shrink_again(replacement.instantiate(vm))
 
-        if shrinked is not None:
-            return shrinked
-
-        if not node.children:
-            # Nothing more to simplify
+        if not node.children or not recursive:
+            # Nothing to simplify here
+            node.dirty = False
             return None
 
-        shrinked_children = False
-        children = []
-        for child in node.children:
-            simple_child = self.shrink_once(child)
-            if simple_child is not None:
-                children.append(simple_child)
-                shrinked_children = True
-            else:
-                children.append(child)
+        has_shrinked_child = False
+        for idx, child in enumerate(node.children):
+            shrinked_child = self.shrink_once(child)
+            if shrinked_child is not None:
+                node.swap_child(idx, shrinked_child)
+                has_shrinked_child = True
 
-        if shrinked_children:
-            return type(node)(*children)
+        if has_shrinked_child:
+            node.dirty = True
+            return self.shrink_again(node, recursive=False)
 
+        # We looked and saw nothing
+        node.dirty = False
         return None
 
     def shrink(self, node: Node) -> Node:
         while True:
+            node.dirty
             next_node = self.shrink_once(node)
             if next_node is None:
                 return node
@@ -168,103 +175,59 @@ class Evaluator:
         if not node.children:
             if isinstance(node, (Operator, Name)):
                 try:
-                    yield self.direct_patterns[node]
+                    node = self.direct_patterns[node]
+                    node.dirty  # check only
+                    return node
                 except KeyError:
-                    pass
+                    return None
         else:
             for index, child in enumerate(node.children):
-                for expanded_child in self.expand_once_direct(child):
-                    new_children = list(node.children)
-                    new_children[index] = expanded_child
-                    copy = type(node)(*new_children)
-                    yield copy
+                expanded_child = self.expand_once_direct(child)
+                if expanded_child is not None:
+                    node.swap_child(index, expanded_child)
+                    return node
+        return None
 
     def expand_once_pattern(self, node: Node):
-        if not node.children:
-            return
-        for index, child in enumerate(node.children):
-            for expanded_child in self.expand_once_pattern(child):
-                new_children = list(node.children)
-                new_children[index] = expanded_child
-                copy = type(node)(*new_children)
-                yield copy
+        raise NotImplementedError()
+        # if not node.children:
+        #     return
+        # for index, child in enumerate(node.children):
+        #     for expanded_child in self.expand_once_pattern(child):
+        #         new_children = list(node.children)
+        #         new_children[index] = expanded_child
+        #         copy = type(node)(*new_children)
+        #         yield copy
 
         for pattern, replacement in self.expand_patterns:
-            vm = match(node, pattern)
-            if not vm:
-                continue
-            yield replacement.copy(vm)
+            raise RuntimeError("not implemented for new instatiate")
+            # vm = match(node, pattern)
+            # if not vm:
+            #     continue
+            # yield replacement.instantiate(vm)
 
     def expand_once(self, node: Node):
-        for n in self.expand_once_direct(node):
-            yield n
+        return self.expand_once_direct(node)
         if self.expand_patterns:
-            for n in self.expand_once_pattern(node):
-                yield n
+            return self.expand_once_pattern(node)
 
-    def simplify(self, expression: Node, stop_types=(Number, Variable, Bool)) -> Node:
-        start = time.time()
-
-        expression = self.shrink(expression)
-        if contains_only(expression, stop_types):
-            return expression
-
-        todo_exprs = [expression]
-        todo_strs = set((str(expression),))
-
-        visited_exprs = []
-        visited_strs = set()
-
-        for i in range(10000):
-            if not todo_exprs:
-                raise RuntimeError("not found")
-                # return sorted(visited_exprs, key=len)[0]
-
-            todo_exprs = list(sorted(todo_exprs, key=len))
-            current = todo_exprs[0]
-            todo_exprs = todo_exprs[1:]
-            todo_strs.remove(str(current))
-
-            if i % 10 == 0:
-                rate = i / (time.time() - start)
-                print(
-                    f"BFS [{i} | {1+len(todo_exprs)} | {rate:.1f} 1/s] ({len(current)}): {current}"
-                )
-
-            for candidate in self.expand_once(current):
-                # print(f"Candidate: {candidate}")
-                candidate = self.shrink(candidate)
-                s = str(candidate)
-                if s in visited_strs or s in todo_strs:
-                    continue
-
-                if contains_only(candidate, stop_types):
-                    return candidate
-
-                visited_strs.add(s)
-                todo_strs.add(s)
-
-                todo_exprs.append(candidate)
-                visited_exprs.append(candidate)
-
-        print("giving up")
-        raise RuntimeError("Timeout")
-        # return sorted(visited_exprs, key=len)[0]
-
-    def simplify_linear(
-        self, expression: Node, stop_types=(Number, Variable, Bool)
+    def simplify(
+        self, expression: Node, stop_types=(Integer, Placeholder, Bool)
     ) -> Node:
         start = time.time()
-        for step in range(10000):
+        for step in range(10000000):
             expression = self.shrink(expression)
 
-            if step % 10 == 0:
-                rate = step / (time.time() - start)
-                print(f"[{step} | {rate:.1f} 1/s] ({len(expression)}): {expression}")
+            if step % 1000 == 0:
+                rate = step / (time.time() - start + 0.0000001)
+                # print(f"[{step} | {rate:.1f} 1/s] ({len(expression)}): {expression}")
+                # print(f"[{step} | {rate:.1f} 1/s] ({len(expression)})")
+                print(f"[{step} | {rate:.1f} 1/s]")  # ({len(expression)})")
             if contains_only(expression, stop_types):
                 return expression
 
-            expression = next(self.expand_once(expression))
+            expression = self.expand_once(expression)
+            assert expression is not None
 
         print("giving up")
         raise RuntimeError("Timeout")

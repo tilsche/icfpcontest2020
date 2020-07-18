@@ -1,17 +1,17 @@
 import pytest
-from zebv.modem import _to_tuple_list, demod, mod, mod_node, mod_num, demod_node
+from zebv.modem import _to_tuple_list, demod, demod_node, mod, mod_node, mod_num
 from zebv.node import Ap
-from zebv.operators import Cons, Nil, Number
+from zebv.operators import Cons, Integer, Nil
 
 TEST_NODES = [
-    (Number(0), 0, "010"),
-    (Number(1), 1, "01100001"),
+    (Integer(0), 0, "010"),
+    (Integer(1), 1, "01100001"),
     (Nil(), (), "00"),
     (Ap(Ap(Cons(), Nil()), Nil()), ((), ()), "110000"),
-    (Ap(Ap(Cons(), Number(0)), Nil()), (0, ()), "1101000"),
-    (Ap(Ap(Cons(), Number(1)), Number(2)), (1, 2), "110110000101100010"),
+    (Ap(Ap(Cons(), Integer(0)), Nil()), (0, ()), "1101000"),
+    (Ap(Ap(Cons(), Integer(1)), Integer(2)), (1, 2), "110110000101100010"),
     (
-        Ap(Ap(Cons(), Number(1)), Ap(Ap(Cons(), Number(2)), Nil())),
+        Ap(Ap(Cons(), Integer(1)), Ap(Ap(Cons(), Integer(2)), Nil())),
         (1, (2, ())),
         "1101100001110110001000",
     ),
@@ -78,7 +78,7 @@ def test_mod_num(caplog, input, expected):
 
 
 @pytest.mark.parametrize(
-    "number_node, expected", [(Number(n), expected) for n, expected in TEST_NUMBERS]
+    "number_node, expected", [(Integer(n), expected) for n, expected in TEST_NUMBERS]
 )
 def test_mod_node_number(number_node, expected):
     assert mod_node(number_node) == expected

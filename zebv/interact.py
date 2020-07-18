@@ -1,22 +1,42 @@
+import time
 from logging import getLogger
 from typing import Callable
 
 from .eval import Evaluator
-from .node import Ap, Node, Number
+from .node import Ap, Integer, Node
 from .operators import Cons, Nil
 from .parsing import build_expression
 from .patterns import parse_patterns
+from .screen import AlienScreen
 
 logger = getLogger(__name__)
 
 
 class Interaction:
-    def __init__(self, text, protocol, send_function: Callable[[Node], Node] = Node):
+    def __init__(
+        self,
+        text,
+        protocol,
+        send_function: Callable[[Node], Node] = None,
+        interactive=False,
+    ):
         patterns = parse_patterns(text)
         self.evaluator = Evaluator(*patterns)
         self.protocol = build_expression(protocol)
         self.state = Nil()
         self.send_function = send_function
+        self.screen = None
+        if interactive:
+            self.screen = AlienScreen()
+            self.screen.start()
+            self.iteration = 0
+            self.protocol_name = protocol
+
+            def callback(x, y):
+                self.screen.clear()
+                self(x, y)
+
+            self.screen.on_mouse_click = callback
 
         # self.draw_pattern = build_expression(
         #     #         newState                      draw_list
@@ -33,6 +53,9 @@ class Interaction:
 
     def draw(self, data):
         logger.warning(f"should draw: {data}")
+        if self.screen:
+            for list in data.as_list:
+                self.screen.draw(list.as_list)
 
     def send(self, data: Node) -> Node:
         logger.warning(f"Should send {data}...")
@@ -50,14 +73,15 @@ class Interaction:
         # assert f38_map
         # print(f38_map.map)
         proto_expr = Ap(Ap(self.protocol, self.state), vector)
-        proto_result = self.evaluator.simplify_linear(
-            proto_expr, (Ap, Cons, Nil, Number)
-        )
+        start_simplify = time.time()
+        proto_result = self.evaluator.simplify(proto_expr, (Ap, Cons, Nil, Integer))
+        duration = time.time() - start_simplify
+
         # This will probably crash, sorry
         flag, new_state, data = proto_result.as_list.children
 
         logger.debug(
-            f"{__name__}: flag={flag!r}, new_state={new_state!r}, data={data.sugar}"
+            f"[{duration} s] {__name__}: flag={flag!r}, new_state={new_state!r}, data={data.sugar}"
         )
 
         self.state = new_state
@@ -68,3 +92,6 @@ class Interaction:
 
     def __call__(self, x: int, y: int):
         self.step(build_expression(f"ap ap vec {x} {y}"))
+        if self.screen:
+            self.screen.save(f"{self.protocol_name}-{self.iteration}.png", (x, y))
+            self.iteration += 1

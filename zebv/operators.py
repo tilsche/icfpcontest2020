@@ -1,93 +1,93 @@
 from abc import abstractmethod
 from typing import Union
 
-from .node import Ap, NoEvalError, Number, Operator, SugarList, Variable
+from .node import (
+    Ap,
+    EvaluatableOperator,
+    HardcodedOperator,
+    Integer,
+    Node,
+    NoEvalError,
+    Operator,
+    SugarList,
+)
 
-OperatorArgument = Union[Number, Variable]
-
-
-class HardcodedOperator(Operator):
-    def __eq__(self, other):
-        return type(other) == type(self)
-
-    def __hash__(self):
-        return hash(type(self))
-
-    @classmethod
-    def operators(cls):
-        for c in cls.__subclasses__():
-            if hasattr(c, "name"):
-                yield c
-            for cc in c.operators():
-                yield cc
-
-
-class EvaluatableOperator(HardcodedOperator):
-    arity: int
-
-    @abstractmethod
-    def __call__(self, *args):
-        raise NoEvalError()
+# OperatorArgument = Union[Integer, Variable]
+OperatorArgument = Node
 
 
 class UnaryOperator(EvaluatableOperator):
-    arity = 1
+    _arity = 1
+
+    @abstractmethod
+    def __call__(self, x0: OperatorArgument):
+        raise NoEvalError()
 
 
 class BinaryOperator(EvaluatableOperator):
-    arity = 2
+    _arity = 2
+
+    @abstractmethod
+    def __call__(self, x0: OperatorArgument, x1: OperatorArgument):
+        raise NoEvalError()
 
 
 class TenaryOperator(EvaluatableOperator):
-    arity = 3
+    _arity = 3
+
+    @abstractmethod
+    def __call__(
+        self, x0: OperatorArgument, x1: OperatorArgument, x2: OperatorArgument
+    ):
+        raise NoEvalError()
 
 
 class Inc(UnaryOperator):
-    name = "inc"
+    _value = "inc"
 
     def __call__(self, argument: OperatorArgument):
-        if isinstance(argument, Number):
-            return Number(argument.value + 1)
+        if isinstance(argument, Integer):
+            return Integer(argument.value + 1)
         else:
             raise NoEvalError()
 
 
 class Dec(UnaryOperator):
-    name = "dec"
+    _value = "dec"
 
     def __call__(self, argument: OperatorArgument):
-        if isinstance(argument, Number):
-            return Number(argument.value - 1)
+        if isinstance(argument, Integer):
+            return Integer(argument.value - 1)
         else:
             raise NoEvalError()
 
 
 class Add(BinaryOperator):
-    name = "add"
+    _value = "add"
 
     def __call__(self, a1: OperatorArgument, a2: OperatorArgument):
-        if isinstance(a1, Number) and isinstance(a2, Number):
-            return Number(a1.value + a2.value)
+        if isinstance(a1, Integer) and isinstance(a2, Integer):
+            return Integer(a1.value + a2.value)
         else:
             raise NoEvalError()
 
 
 class Mul(BinaryOperator):
-    name = "mul"
+    _value = "mul"
 
     def __call__(self, a1: OperatorArgument, a2: OperatorArgument):
-        if isinstance(a1, Number) and isinstance(a2, Number):
-            return Number(a1.value * a2.value)
+        if isinstance(a1, Integer) and isinstance(a2, Integer):
+            return Integer(a1.value * a2.value)
         else:
             raise NoEvalError()
 
 
 class Div(BinaryOperator):
-    name = "div"
+    _value = "div"
 
     def __call__(self, a1: OperatorArgument, a2: OperatorArgument):
-        if isinstance(a1, Number) and isinstance(a2, Number):
-            return Number(int(a1.value / a2.value))
+        if isinstance(a1, Integer) and isinstance(a2, Integer):
+            return Integer(int(a1.value / a2.value))
         else:
             raise NoEvalError()
 
@@ -97,24 +97,24 @@ class Bool(BinaryOperator):
 
 
 class T(Bool):
-    name = "t"
+    _value = "t"
 
     def __call__(self, x0: OperatorArgument, x1: OperatorArgument):
         return x0
 
 
 class F(Bool):
-    name = "f"
+    _value = "f"
 
     def __call__(self, x0: OperatorArgument, x1: OperatorArgument):
         return x1
 
 
 class Eq(BinaryOperator):
-    name = "eq"
+    _value = "eq"
 
     def __call__(self, a1: OperatorArgument, a2: OperatorArgument):
-        if isinstance(a1, Number) and isinstance(a2, Number):
+        if isinstance(a1, Integer) and isinstance(a2, Integer):
             if a1.value == a2.value:
                 return T()
             else:
@@ -128,10 +128,10 @@ class Eq(BinaryOperator):
 
 
 class Lt(BinaryOperator):
-    name = "lt"
+    _value = "lt"
 
     def __call__(self, a1: OperatorArgument, a2: OperatorArgument):
-        if isinstance(a1, Number) and isinstance(a2, Number):
+        if isinstance(a1, Integer) and isinstance(a2, Integer):
             if a1.value < a2.value:
                 return T()
             else:
@@ -141,22 +141,27 @@ class Lt(BinaryOperator):
 
 
 class Neg(UnaryOperator):
-    name = "neg"
+    _value = "neg"
 
     def __call__(self, a1: OperatorArgument):
-        if isinstance(a1, Number):
-            return Number(-a1.value)
+        if isinstance(a1, Integer):
+            return Integer(-a1.value)
         else:
             raise NoEvalError()
 
 
 # for good checking, but no execution
-class Cons(HardcodedOperator):
-    name = "cons"
+class Cons(TenaryOperator):
+    _value = "cons"
+
+    def __call__(
+        self, x0: OperatorArgument, x1: OperatorArgument, x2: OperatorArgument
+    ):
+        return Ap(Ap(x2, x0), x1)
 
 
 class Nil(UnaryOperator):
-    name = "nil"
+    _value = "nil"
 
     @property
     def as_list(self):
@@ -167,7 +172,7 @@ class Nil(UnaryOperator):
 
 
 class IsNil(UnaryOperator):
-    name = "isnil"
+    _value = "isnil"
 
     @property
     def as_list(self):
@@ -182,25 +187,23 @@ class IsNil(UnaryOperator):
 
 
 class I(UnaryOperator):
-    name = "i"
+    _value = "i"
 
     def __call__(self, a1: OperatorArgument):
         return a1
 
 
-#
-# class S(TenaryOperator):
-#     name = "s"
-#
-#     def __call__(
-#         self, x0: OperatorArgument, x1: OperatorArgument, x2: OperatorArgument
-#     ):
-#         return Ap(Ap(x0, x2), Ap(x1, x2))
-#
+class S(TenaryOperator):
+    _value = "s"
+
+    def __call__(
+        self, x0: OperatorArgument, x1: OperatorArgument, x2: OperatorArgument
+    ):
+        return Ap(Ap(x0, x2), Ap(x1, x2))
 
 
 class C(TenaryOperator):
-    name = "c"
+    _value = "c"
 
     def __call__(
         self, x0: OperatorArgument, x1: OperatorArgument, x2: OperatorArgument
@@ -209,7 +212,7 @@ class C(TenaryOperator):
 
 
 class B(TenaryOperator):
-    name = "b"
+    _value = "b"
 
     def __call__(
         self, x0: OperatorArgument, x1: OperatorArgument, x2: OperatorArgument
@@ -217,6 +220,24 @@ class B(TenaryOperator):
         return Ap(x0, Ap(x1, x2))
 
 
+class Car(UnaryOperator):
+    _value = "car"
+
+    def __call__(self, x0: OperatorArgument):
+        if isinstance(x0, Ap) and isinstance(x0.op, Ap) and isinstance(x0.op.op, Cons):
+            return x0.op.arg
+        raise NoEvalError()
+
+
+class Cdr(UnaryOperator):
+    _value = "cdr"
+
+    def __call__(self, x0: OperatorArgument):
+        if isinstance(x0, Ap) and isinstance(x0.op, Ap) and isinstance(x0.op.op, Cons):
+            return x0.arg
+        raise NoEvalError()
+
+
 operators = {op().name: op() for op in HardcodedOperator.operators()}
 
-max_operator_arity = 3
+max_operator_arity = EvaluatableOperator.max_arity
