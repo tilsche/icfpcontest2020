@@ -41,7 +41,17 @@ logger.setLevel(INFO)
 @click_log.simple_verbosity_option(logger)
 def main(server_url, player_key):
     logger.info("ServerUrl: %s; PlayerKey: %s" % (server_url, player_key))
-    return
+
+    client = ApiClient(server_url, player_key)
+    request = (0, ())
+    modulated = mod(request)
+
+    logger.info(f"=> {request} -> (modulate) {modulated} ~~~~~> (send)")
+
+    response = client.aliens_send(modulated)
+    demodulated = demod(response)
+
+    logger.info(f"<= {demodulated} <- (demodulate) {response} <~~~~~ (recv)")
 
 
 if __name__ == "__main__":
