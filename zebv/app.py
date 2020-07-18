@@ -1,4 +1,4 @@
-from logging import INFO, Formatter, LogRecord, getLogger
+import logging
 
 import click
 
@@ -9,7 +9,7 @@ from .node import Ap, Number
 from .operators import Cons, Nil
 
 
-class LogFormatter(Formatter):
+class LogFormatter(logging.Formatter):
     colors = {
         "error": dict(fg="red"),
         "exception": dict(fg="red"),
@@ -18,7 +18,7 @@ class LogFormatter(Formatter):
         "warning": dict(fg="yellow"),
     }
 
-    def format(self, record: LogRecord):
+    def format(self, record: logging.LogRecord):
         if not record.exc_info:
             level = record.levelname.lower()
             msg = record.getMessage()
@@ -27,14 +27,15 @@ class LogFormatter(Formatter):
                 prefix = click.style(f"{level}:{name_suffix} ", **self.colors[level])
                 msg = "\n".join(prefix + x for x in msg.splitlines())
             return msg
-        return Formatter.format(self, record)
+        return logging.Formatter.format(self, record)
 
 
-logger = getLogger(__name__)
 handler = click_log.ClickHandler()
 handler.formatter = LogFormatter()
-logger.addHandler(handler)
-logger.setLevel(INFO)
+
+logging.basicConfig(level=logging.DEBUG, handlers=[handler])
+
+logger = logging.getLogger(__name__)
 
 
 class Command:
@@ -72,6 +73,9 @@ def main(server_url, player_key, api_key):
     logger.info("ServerUrl: %s; PlayerKey: %s" % (server_url, player_key))
 
     client = ApiClient(server_url, api_key)
+    resp = client.aliens_send("data")
+    print(resp)
+
     # request = Ap(Ap(Cons(), Number(2)), Ap(Ap(Cons(), Number(int(player_key))), Nil()))
 
     command = Command(player_key, client)

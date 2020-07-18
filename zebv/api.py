@@ -14,9 +14,9 @@ class ApiClient:
 
     def _post(self, endpoint: str, data) -> str:
         params = {"apiKey": self.api_key} if self.api_key else None
-        response: requests.Response = self.session.post(
-            urljoin(self.base_url, endpoint), data=data, params=params
-        )
+        url = urljoin(self.base_url, endpoint)
+        logger.debug("url: {url}")
+        response: requests.Response = self.session.post(url, data=data, params=params)
         response.raise_for_status()
         return response.text
 
