@@ -10,7 +10,7 @@ from zebv.parsing import build_expression, tokenize
 import numpy as np
 
 def t(exp):
-    return parsing.build_expression(parsing.tokenize(exp))
+    return build_expression(tokenize(exp))
 
 
 def t_list(vecs):

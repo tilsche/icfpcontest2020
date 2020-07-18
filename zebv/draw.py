@@ -24,10 +24,10 @@ def draw(nodes=[], filename="", size = (1,1)):
         y = n.op.arg
         x = n.arg
         points.append((x.value,y.value))
-        max_x = max(x.value,max_x)
-        max_y = max(y.value,max_y)
+        max_x = max(x.value + 1,max_x)
+        max_y = max(y.value + 1,max_y)
 
-    new_size = (max_x+1, max_y+1)
+    new_size = (max_x, max_y)
     im = Img(new_size)        
 
     for point in points: 
