@@ -20,16 +20,12 @@ class Node(ABC):
     def copy(self, vm: Optional[VarMap] = None):
         return type(self)(*(c.copy(vm) for c in self.children))
 
-    # def __str__(self):
-    #     cstr = ", ".join((str(c) for c in self.children))
-    #     return f"[{type(self).__name__}: {cstr}]"
-
     def __str__(self):
         cstr = " ".join((str(c) for c in self.children))
         return f"{type(self).__name__.lower()} {cstr}"
 
     def __repr__(self):
-        return str(self)
+        return f"Node(children={self.children!r})"
 
     def apply(self, f):
         f(self)
@@ -70,6 +66,9 @@ class Number(Node):
     def __str__(self):
         return str(self.value)
 
+    def __repr__(self):
+        return f"Number({self.value!r})"
+
 
 class Variable(Node):
     id: int
@@ -87,6 +86,9 @@ class Variable(Node):
 
     def __str__(self):
         return f"x{self.id}"
+
+    def __repr__(self):
+        return f"Variable(id={self.id!r})"
 
 
 class Equals(Node):
@@ -109,6 +111,9 @@ class Operator(Node):
     def __str__(self):
         return f"{self.name}"
 
+    def __repr__(self):
+        return f"Operator(id={self.name!r})"
+
 
 class SugarList(Node):
     def __init__(self, *children):
@@ -117,6 +122,10 @@ class SugarList(Node):
     def __str__(self):
         inner = ", ".join((str(c) for c in self.children))
         return f"({inner})"
+
+    def __repr__(self):
+        inner_reps = ", ".join(repr(i) for i in self.inner)
+        return f"SugarList({inner_reps})"
 
 
 class SugarVector(Node):
@@ -127,6 +136,10 @@ class SugarVector(Node):
         assert len(self.children) == 2
         c1, c2 = self.children
         return f"<{c1}, {c2}>"
+
+    def __repr__(self):
+        c1, c2 = self.children
+        return f"SugarVector<{c1!r}, {c2!r}>"
 
 
 class Ap(Node):
@@ -151,7 +164,7 @@ class Ap(Node):
         return f"ap {self.children[0]} {self.children[1]}"
 
     def __repr__(self):
-        return "Ap" + str((self.children[0], self.children[1]))
+        return f"Ap(op={self.op!r}, arg={self.arg!r})"
 
     @property
     def as_list(self):
@@ -206,6 +219,9 @@ class Name(Node):
 
     def __str__(self):
         return f":{self.id}"
+
+    def __repr__(self):
+        return f"Name({self.id!r})"
 
     def __hash__(self):
         return hash((208, self.id))
