@@ -166,8 +166,8 @@ class Nil(UnaryOperator):
         return T()
 
 
-class Nil(UnaryOperator):
-    name = "nil"
+class IsNil(UnaryOperator):
+    name = "isnil"
 
     @property
     def as_list(self):
