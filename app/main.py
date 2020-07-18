@@ -3,8 +3,10 @@ from logging import INFO, Formatter, LogRecord, getLogger
 import click
 
 import click_log
+from zebv.node import Ap, Number
+from zebv.operators import Cons, Nil
 from zebv.api import ApiClient
-from zebv.modem import demod, mod
+from zebv.modem import demod, mod_node
 
 
 class LogFormatter(Formatter):
@@ -43,8 +45,8 @@ def main(server_url, player_key):
     logger.info("ServerUrl: %s; PlayerKey: %s" % (server_url, player_key))
 
     client = ApiClient(server_url, player_key)
-    request = (0, ())
-    modulated = mod(request)
+    request = Ap(Ap(Cons(), Number(0)), Nil())
+    modulated = mod_node(request)
 
     logger.info(f"=> {request} -> (modulate) {modulated} ~~~~~> (send)")
 
