@@ -17,6 +17,7 @@ def parse_patterns(text: str):
             )
             if not k
         ]
+        print(len(left), len(right))
         ex_left = parsing.build_expression(left)
         ex_right = parsing.build_expression(right)
         if len(ex_left) >= len(ex_right):
@@ -47,6 +48,7 @@ ap ap ap if0 1 x0 x1   =   x1
 ap modem x0 = x0
 # ap ap f38 x2 x0 = ap ap ap if0 ap car x0 ap ap cons ap modem ap car ap cdr x0 ap ap cons ap multipledraw ap car ap cdr ap cdr x0 nil ap ap ap interact x2 ap modem ap car ap cdr x0 ap send ap car ap cdr ap cdr x0
 # ap ap ap interact x2 x4 x3 = ap ap f38 x2 ap ap x2 x4 x3
+checkerboard = ap ap s ap ap b s ap ap c ap ap b c ap ap b ap c ap c ap ap s ap ap b s ap ap b ap b ap ap s i i lt eq ap ap s mul i nil ap ap s ap ap b s ap ap b ap b cons ap ap s ap ap b s ap ap b ap b cons ap c div ap c ap ap s ap ap b b ap ap c ap ap b b add neg ap ap b ap s mul div ap ap c ap ap b b checkerboard ap ap c add 2
 """.strip()
 
 pattern_operators = (

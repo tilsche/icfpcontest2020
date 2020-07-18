@@ -139,7 +139,7 @@ class Evaluator:
             if next_node is None:
                 return node
             node = next_node
-            print(f"[Shrink] {node}")
+            # print(f"[Shrink] {node}")
 
     def expand_once(self, node: Node):
         for pattern, replacement in self.expand_patterns:
@@ -166,6 +166,42 @@ class Evaluator:
         visited_strs = set()
 
         for _ in range(10000):
+            if not todo_exprs:
+                raise RuntimeError("not found")
+                # return sorted(visited_exprs, key=len)[0]
+
+            todo_exprs = list(sorted(todo_exprs, key=len))
+            print(f"bfs candidates: {len(todo_exprs)}")
+            current = todo_exprs[0]
+            todo_exprs = todo_exprs[1:]
+            todo_strs.remove(str(current))
+            print(f"looking at: {current}")
+
+            for candidate in self.expand_once(current):
+                print(f"Candidate: {candidate}")
+                candidate = self.shrink(candidate)
+                s = str(candidate)
+                if s in visited_strs or s in todo_strs:
+                    continue
+
+                if contains_only(candidate, stop_types):
+                    return candidate
+
+                visited_strs.add(s)
+                todo_strs.add(s)
+
+                todo_exprs.append(candidate)
+                visited_exprs.append(candidate)
+
+        print("giving up")
+        raise RuntimeError("Timeout")
+        # return sorted(visited_exprs, key=len)[0]
+
+    def simplify2(self, expression: Node, stop_types=(Number, Variable, Bool)) -> Node:
+        for _ in range(10000):
+            expression = self.shrink(expression)
+
+            expression
             if not todo_exprs:
                 raise RuntimeError("not found")
                 # return sorted(visited_exprs, key=len)[0]
