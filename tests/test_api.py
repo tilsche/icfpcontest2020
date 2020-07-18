@@ -1,7 +1,7 @@
-import pytest
 import os
-from logging import getLogger, DEBUG
+from logging import DEBUG, getLogger
 
+import pytest
 from zebv.api import ApiClient
 from zebv.interact import Interaction
 

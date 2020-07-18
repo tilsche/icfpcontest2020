@@ -3,10 +3,10 @@ from logging import INFO, Formatter, LogRecord, getLogger
 import click
 
 import click_log
-from zebv.node import Ap, Number
-from zebv.operators import Cons, Nil
 from zebv.api import ApiClient
 from zebv.modem import demod, mod_node
+from zebv.node import Ap, Number
+from zebv.operators import Cons, Nil
 
 
 class LogFormatter(Formatter):

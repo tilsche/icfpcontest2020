@@ -2,12 +2,10 @@ from logging import getLogger
 from typing import Callable
 
 from .eval import Evaluator
-from .node import Ap, Number
+from .node import Ap, Node, Number
 from .operators import Cons, Nil
 from .parsing import build_expression
 from .patterns import parse_patterns
-from .node import Node
-
 
 logger = getLogger(__name__)
 

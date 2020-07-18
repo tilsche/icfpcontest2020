@@ -141,7 +141,7 @@ class Evaluator:
             if next_node is None:
                 return node
             node = next_node
-            print(f"[Shrink] {node}")
+            # print(f"[Shrink] {node}")
 
     def expand_once(self, node: Node):
         if not node.children:
@@ -187,7 +187,7 @@ class Evaluator:
             todo_exprs = todo_exprs[1:]
             todo_strs.remove(str(current))
 
-            if i % 1 == 0:
+            if i % 10 == 0:
                 rate = i / (time.time() - start)
                 print(
                     f"BFS [{i} | {1+len(todo_exprs)} | {rate:.1f} 1/s] ({len(current)}): {current}"
