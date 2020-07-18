@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from typing import Union
 
-from .node import NoEvalError, Number, Operator, Variable
+from .node import NoEvalError, Number, Operator, SugarList, Variable
 
 OperatorArgument = Union[Number, Variable]
 
@@ -142,7 +142,7 @@ class Nil(HardcodedOperator):
 
     @property
     def as_list(self):
-        return []
+        return SugarList()
 
 
 operators = {

@@ -15,10 +15,9 @@ statelessdraw = ap ap c ap ap b b ap ap b ap b ap cons 0 ap ap c ap ap b b cons 
 
 e = Evaluator(extra_patterns)
 
-print(
-    e.simplify(
-        # build_expression(tokenize("ap ap statelessdraw nil ap ap cons 3 7"))
-        build_expression(tokenize("ap ap ap interact statelessdraw nil ap ap vec 3 7")),
-        (Ap, Cons, Nil, Number, "multipledraw"),
-    )
-)
+l = e.simplify(
+    # build_expression(tokenize("ap ap statelessdraw nil ap ap cons 3 7"))
+    build_expression(tokenize("ap ap ap interact statelessdraw nil ap ap vec 3 7")),
+    (Ap, Cons, Nil, Number, "multipledraw"),
+).sugar
+print(l)

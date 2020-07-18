@@ -45,6 +45,23 @@ class Node(ABC):
         for c in self.children:
             c.apply(f)
 
+    @property
+    def sugar(self):
+        this = self
+        try:
+            this = self.as_list
+        except:
+            pass
+            try:
+                this = self.as_vector
+            except:
+                pass
+
+        if not this.children:
+            return this
+        else:
+            return type(this)(*(c.sugar for c in this.children))
+
 
 class Number(Node):
     value: int
@@ -99,6 +116,25 @@ class Operator(Node):
         return f"{self.name}"
 
 
+class SugarList(Node):
+    def __init__(self, *children):
+        self.children = children
+
+    def __str__(self):
+        inner = ", ".join((str(c) for c in self.children))
+        return f"({inner})"
+
+
+class SugarVector(Node):
+    def __init__(self, *children):
+        self.children = children
+
+    def __str__(self):
+        assert len(self.children) == 2
+        c1, c2 = self.children
+        return f"<{c1}, {c2}>"
+
+
 class Ap(Node):
     def __init__(self, op: Union[Operator, Callable, "Variable", "Name"], arg: Node):
         self.children = [op, arg]
@@ -136,7 +172,7 @@ class Ap(Node):
 
         head = self.op.arg
         tail = self.arg
-        return head, *tail.as_list
+        return SugarList(head, *tail.as_list.children)
 
     @property
     def as_vector(self):
@@ -151,7 +187,7 @@ class Ap(Node):
 
         first = self.op.arg
         second = self.arg
-        return first, second
+        return SugarVector(first, second)
 
 
 class GenericOperator(Operator):
