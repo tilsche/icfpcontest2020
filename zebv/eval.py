@@ -13,7 +13,7 @@ from .patterns import (
 from .var_map import VarMap
 
 
-@lru_cache(4096)
+# @lru_cache(4096)
 def match(node: Node, pattern: Node):
     if isinstance(pattern, Placeholder):
         return VarMap({pattern.value: node})
@@ -98,7 +98,7 @@ class Evaluator:
         self.direct_patterns = default_direct_patterns
         self.direct_patterns.update(direct_patterns)
 
-    @lru_cache(4096)
+    # @lru_cache(4096)
     def shrink_once(self, node: Node) -> Optional[Node]:
         if isinstance(node, Ap):
             try:
@@ -106,34 +106,21 @@ class Evaluator:
             except NoEvalError:
                 pass
 
-        shrinked = None
         for pattern, replacement in self.shrink_patterns:
             vm = match(node, pattern)
             if not vm:
                 continue
-            assert shrinked is None
-            # keep going just to see that no two patterns ever match. Then we must try more ways...
-            shrinked = replacement.instantiate(vm)
-
-        if shrinked is not None:
-            return shrinked
+            return replacement.instantiate(vm)
 
         if not node.children:
-            # Nothing more to simplify
+            # Nothing to simplify here
             return None
 
-        shrinked_children = False
-        children = []
-        for child in node.children:
-            simple_child = self.shrink_once(child)
-            if simple_child is not None:
-                children.append(simple_child)
-                shrinked_children = True
-            else:
-                children.append(child)
-
-        if shrinked_children:
-            return type(node)(*children)
+        for idx, child in enumerate(node.children):
+            shrinked_child = self.shrink_once(child)
+            if shrinked_child is not None:
+                node._children[idx] = shrinked_child
+                return node
 
         return None
 
@@ -170,92 +157,41 @@ class Evaluator:
         if not node.children:
             if isinstance(node, (Operator, Name)):
                 try:
-                    yield self.direct_patterns[node]
+                    return self.direct_patterns[node]
                 except KeyError:
-                    pass
+                    return None
         else:
             for index, child in enumerate(node.children):
-                for expanded_child in self.expand_once_direct(child):
-                    new_children = list(node.children)
-                    new_children[index] = expanded_child
-                    copy = type(node)(*new_children)
-                    yield copy
+                expanded_child = self.expand_once_direct(child)
+                if expanded_child:
+                    node._children[index] = expanded_child
+                    return node
+        return None
 
     def expand_once_pattern(self, node: Node):
-        if not node.children:
-            return
-        for index, child in enumerate(node.children):
-            for expanded_child in self.expand_once_pattern(child):
-                new_children = list(node.children)
-                new_children[index] = expanded_child
-                copy = type(node)(*new_children)
-                yield copy
+        raise NotImplementedError()
+        # if not node.children:
+        #     return
+        # for index, child in enumerate(node.children):
+        #     for expanded_child in self.expand_once_pattern(child):
+        #         new_children = list(node.children)
+        #         new_children[index] = expanded_child
+        #         copy = type(node)(*new_children)
+        #         yield copy
 
         for pattern, replacement in self.expand_patterns:
-            vm = match(node, pattern)
-            if not vm:
-                continue
-            yield replacement.instantiate(vm)
+            raise RuntimeError("not implemented for new instatiate")
+            # vm = match(node, pattern)
+            # if not vm:
+            #     continue
+            # yield replacement.instantiate(vm)
 
     def expand_once(self, node: Node):
-        for n in self.expand_once_direct(node):
-            yield n
+        return self.expand_once_direct(node)
         if self.expand_patterns:
-            for n in self.expand_once_pattern(node):
-                yield n
+            return self.expand_once_pattern(node)
 
     def simplify(
-        self, expression: Node, stop_types=(Integer, Placeholder, Bool)
-    ) -> Node:
-        start = time.time()
-
-        expression = self.shrink(expression)
-        if contains_only(expression, stop_types):
-            return expression
-
-        todo_exprs = [expression]
-        todo_strs = set((str(expression),))
-
-        visited_exprs = []
-        visited_strs = set()
-
-        for i in range(10000):
-            if not todo_exprs:
-                raise RuntimeError("not found")
-                # return sorted(visited_exprs, key=len)[0]
-
-            todo_exprs = list(sorted(todo_exprs, key=len))
-            current = todo_exprs[0]
-            todo_exprs = todo_exprs[1:]
-            todo_strs.remove(str(current))
-
-            if i % 100 == 0:
-                rate = i / (time.time() - start)
-                print(
-                    f"BFS [{i} | {1+len(todo_exprs)} | {rate:.1f} 1/s] ({len(current)}): {current}"
-                )
-
-            for candidate in self.expand_once(current):
-                # print(f"Candidate: {candidate}")
-                candidate = self.shrink(candidate)
-                s = str(candidate)
-                if s in visited_strs or s in todo_strs:
-                    continue
-
-                if contains_only(candidate, stop_types):
-                    return candidate
-
-                visited_strs.add(s)
-                todo_strs.add(s)
-
-                todo_exprs.append(candidate)
-                visited_exprs.append(candidate)
-
-        print("giving up")
-        raise RuntimeError("Timeout")
-        # return sorted(visited_exprs, key=len)[0]
-
-    def simplify_linear(
         self, expression: Node, stop_types=(Integer, Placeholder, Bool)
     ) -> Node:
         start = time.time()
@@ -268,7 +204,8 @@ class Evaluator:
             if contains_only(expression, stop_types):
                 return expression
 
-            expression = next(self.expand_once(expression))
+            expression = self.expand_once(expression)
+            assert expression is not None
 
         print("giving up")
         raise RuntimeError("Timeout")

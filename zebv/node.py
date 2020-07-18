@@ -10,10 +10,10 @@ class NoEvalError(RuntimeError):
 
 
 class Node(ABC):
-    _children: Tuple["Node"]
+    _children: List["Node"]
 
     def __init__(self, *children):
-        self._children = children
+        self._children = list(children)
 
     @property
     def children(self) -> Tuple["Node"]:
@@ -22,11 +22,13 @@ class Node(ABC):
     def __eq__(self, other):
         return type(self) == type(other) and self.children == other.children
 
-    @cached_property
+    # @cached_property
+    @property
     def __hash(self):
-        return hash((type(self), self.children))
+        return hash((type(self), tuple(self.children)))
 
-    @cached_property
+    # @cached_property
+    @property
     def __len(self):
         return 1 + sum((c.__len for c in self.children))
 
@@ -36,16 +38,17 @@ class Node(ABC):
     def __len__(self):
         return self.__len
 
-    @cached_property
+    # @cached_property
     def __placeholders(self):
         return set.union(*(c.__placeholders for c in self.children))
 
-    def instantiate(self, vm: Optional[VarMap] = None):
+    def instantiate(self, vm: VarMap) -> "Node":
         if not vm:
             return self
-        if not self.__placeholders:
-            return self
-        assert self.__placeholders.issubset(vm)
+        # if not self.__placeholders:
+        #     return self
+        # assert self.__placeholders.issubset(vm)
+
         return type(self)(*(c.instantiate(vm) for c in self.children))
 
     def __str__(self):
@@ -113,10 +116,8 @@ class Integer(LeafNode):
 
 
 class Placeholder(LeafNode):
-    def instantiate(self, vm: Optional[VarMap] = None):
-        if vm:
-            return vm[self._value]
-        return self
+    def instantiate(self, vm: VarMap):
+        return vm[self._value]
 
     def __str__(self):
         return f"x{self._value}"
