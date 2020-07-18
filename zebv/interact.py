@@ -7,7 +7,7 @@ from .node import Ap, Integer, Node
 from .operators import Cons, Nil
 from .parsing import build_expression
 from .patterns import parse_patterns
-from .screen import AlienScreen
+from .screen import AlienScreen, Coord
 
 logger = getLogger(__name__)
 
@@ -32,9 +32,9 @@ class Interaction:
             self.iteration = 0
             self.protocol_name = protocol
 
-            def callback(x, y):
+            def callback(point):
                 self.screen.clear()
-                self(x, y)
+                self(point.x, point.y)
 
             self.screen.on_mouse_click = callback
 
@@ -93,5 +93,5 @@ class Interaction:
     def __call__(self, x: int, y: int):
         self.step(build_expression(f"ap ap vec {x} {y}"))
         if self.screen:
-            self.screen.save(f"{self.protocol_name}-{self.iteration}.png", (x, y))
+            self.screen.save(f"{self.protocol_name}-{self.iteration}.png", Coord(x, y))
             self.iteration += 1

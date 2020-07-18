@@ -9,6 +9,68 @@ WIDTH, HEIGHT = 1, 1  # Console width and height in tiles.
 PIXEL = 9565
 
 
+class Coord(object):
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+    @property
+    def as_galaxy(self):
+        return (x, y)
+
+    def as_tcod(self, offset: "Coord"):
+        return (self.x + offset.x, self.y + offset.y)
+
+    def __eq__(self, o):
+        return self.x == o.x and self.y == o.y
+
+
+class BoundingBox(object):
+    def __init__(self):
+        self.upper_left = None
+        self.lower_right = None
+
+    def add_point(self, point: Coord):
+        if self.upper_left is None:
+            self.upper_left = point
+            self.lower_right = point
+        else:
+            self.upper_left = Coord(
+                min(point.x, self.upper_left.x), min(point.y, self.upper_left.y)
+            )
+            self.lower_right = Coord(
+                max(point.x, self.lower_right.x), max(point.y, self.lower_right.y)
+            )
+
+    def add_box(self, o: "BoundingBox"):
+        self.add_point(o.lower_right)
+        self.add_point(o.upper_left)
+
+    @property
+    def offset(self):
+        return Coord(max(0, -self.upper_left.x), max(0, -self.upper_left.y))
+
+    @property
+    def size(self):
+        return Coord(
+            self.lower_right.x - self.upper_left.x,
+            self.lower_right.y - self.upper_left.y,
+        )
+
+
+class Generation(object):
+    def __init__(self):
+        self.points = []
+        self.bounding_box = BoundingBox()
+
+    def add_point(self, point: Coord):
+        self.points.append(point)
+        self.bounding_box.add_point(point)
+
+    def __iter__(self):
+        return iter(self.points)
+
+
 class AlienScreen(Thread):
     def __init__(self):
         super().__init__()
@@ -16,7 +78,7 @@ class AlienScreen(Thread):
             "dejavu10x10_gs_tc.png", 32, 8, tcod.tileset.CHARMAP_TCOD,
         )
         self.clear()
-        self.console = tcod.Console(self._max_x, self._max_y)
+        self.console = tcod.Console(WIDTH, HEIGHT)
 
     def run(self):
         with tcod.context.new_terminal(
@@ -30,7 +92,8 @@ class AlienScreen(Thread):
                 self.console.clear()
 
                 for generation, points in enumerate(self.generations):
-                    for (x, y) in points:
+                    for point in points:
+                        (x, y) = point.as_tcod(self.offset)
                         self.console.draw_rect(
                             x, y, 1, 1, fg=self.fg_color(generation), ch=PIXEL
                         )
@@ -41,7 +104,7 @@ class AlienScreen(Thread):
                     context.convert_event(event)
                     if event.type == "MOUSEBUTTONDOWN":
                         x, y = event.tile
-                        self.on_mouse_click(x - self.offset_x, y - self.offset_y)
+                        self.on_mouse_click(x - self.offset.x, y - self.offset.y)
                     if event.type == "QUIT":
                         raise SystemExit()
 
@@ -53,63 +116,45 @@ class AlienScreen(Thread):
         step = (255 // self.num_generations) * (generation + 1)
         return (step, step, step)
 
-    def update_offset(self, offset_x, offset_y):
-        new_generations = []
-        for points in self.generations:
-            new_points = []
-            for (x, y) in points:
-                new_points.append(
-                    (x - self.offset_x + offset_x, y - self.offset_y + offset_y)
-                )
-                self._max_x = max(x - self.offset_x + offset_x + 1, self._max_x)
-                self._max_y = max(y - self.offset_y + offset_y + 1, self._max_y)
+    @property
+    def size(self):
+        return self.bounding_box.size
 
-            new_generations.append(new_points)
-        self.generations = new_generations
-        self.offset_x = offset_x
-        self.offset_y = offset_y
+    @property
+    def offset(self):
+        return self.bounding_box.offset
 
     def draw(self, nodes=[]):
-        points = []
-        offset_x = 0
-        offset_y = 0
+        generation = Generation()
 
         for n in nodes:
             assert n.op.op.name == "cons"
             x = n.op.arg
             y = n.arg
-            points.append((x.value + self.offset_x, y.value + self.offset_y))
-            offset_x = min(x.value, offset_x)
-            offset_y = min(y.value, offset_y)
+            generation.add_point(Coord(x.value, y.value))
 
-        self.generations.append(points)
+        self.generations.append(generation)
+        self.bounding_box.add_box(generation.bounding_box)
 
-        offset_x = -offset_x
-        offset_y = -offset_y
-        if offset_x > self.offset_x or offset_y > self.offset_y:
-            self.update_offset(offset_x, offset_y)
+        self.console = tcod.Console(self.size.x + 1, self.size.y + 1)
 
-        self.console = tcod.Console(self._max_x, self._max_y)
-
-    def save(self, filename, interact_point):
-        im = ColorImg(size=(self._max_x + 1, self._max_y + 1))
+    def save(self, filename, interact_point: Coord):
+        im = ColorImg(size=(self.size.x + 1, self.size.y + 1))
 
         for generation, points in enumerate(self.generations):
-            for (x, y) in points:
+            for point in points:
+                (x, y) = point.as_tcod(self.offset)
                 im.add_point(x, y, color=self.fg_color(generation)[0])
 
-        (x, y) = interact_point
+        (x, y) = interact_point.as_tcod(self.offset)
 
-        im.add_point(x + self.offset_x, y + self.offset_y, (255, 0, 0))
+        im.add_point(x, y, (255, 0, 0))
 
         im.save(filename)
 
     def clear(self):
         self.generations = []
-        self.offset_x = 0
-        self.offset_y = 0
-        self._max_x = WIDTH
-        self._max_y = HEIGHT
+        self.bounding_box = BoundingBox()
 
-    def on_mouse_click(self, x, y):
-        print(f"mouse click on ({x}, {y})")
+    def on_mouse_click(self, point: Coord):
+        print(f"mouse click on ({point.x}, {point.y})")
