@@ -1,16 +1,24 @@
-from .eval import Evaluator, match
+from logging import getLogger
+from typing import Callable
+
+from .eval import Evaluator
 from .node import Ap, Number
 from .operators import Cons, Nil
 from .parsing import build_expression
 from .patterns import parse_patterns
+from .node import Node
+
+
+logger = getLogger(__name__)
 
 
 class Interaction:
-    def __init__(self, text, protocol):
+    def __init__(self, text, protocol, send_function: Callable[[Node], Node] = Node):
         patterns = parse_patterns(text)
         self.evaluator = Evaluator(*patterns)
         self.protocol = build_expression(protocol)
         self.state = Nil()
+        self.send_function = send_function
 
         # self.draw_pattern = build_expression(
         #     #         newState                      draw_list
@@ -26,12 +34,14 @@ class Interaction:
         # )
 
     def draw(self, data):
-        print(f"should draw: {data}")
+        logger.warning(f"should draw: {data}")
 
-    def send(self, data):
-        print(f"should send {data}")
-        raise RuntimeError("send not implemented")
-        pass
+    def send(self, data: Node) -> Node:
+        logger.warning(f"Should send {data}...")
+        if self.send_function:
+            self.send_function(data)
+        else:
+            raise RuntimeError("No send_function function supplied")
 
     def step(self, vector):
         # expr = Ap(Ap(Ap(self.interact, self.protocol), self.state), vector)
@@ -48,9 +58,9 @@ class Interaction:
         # This will probably crash, sorry
         flag, new_state, data = proto_result.as_list.children
 
-        print(f"flag: {flag}")
-        print(f"new_state: {new_state.sugar}")
-        print(f"data: {data.sugar}")
+        logger.debug(
+            f"{__name__}: flag={flag!r}, new_state={new_state!r}, data={data.sugar}"
+        )
 
         self.state = new_state
         if flag.value == 0:
