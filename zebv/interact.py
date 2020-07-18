@@ -6,6 +6,7 @@ from .node import Ap, Integer, Node
 from .operators import Cons, Nil
 from .parsing import build_expression
 from .patterns import parse_patterns
+from .screen import AlienScreen
 
 logger = getLogger(__name__)
 
@@ -17,6 +18,8 @@ class Interaction:
         self.protocol = build_expression(protocol)
         self.state = Nil()
         self.send_function = send_function
+        self.screen = AlienScreen()
+        self.screen.start()
 
         # self.draw_pattern = build_expression(
         #     #         newState                      draw_list
@@ -33,6 +36,8 @@ class Interaction:
 
     def draw(self, data):
         logger.warning(f"should draw: {data}")
+        for list in data.as_list:
+            self.screen.draw(list.as_list)
 
     def send(self, data: Node) -> Node:
         logger.warning(f"Should send {data}...")
