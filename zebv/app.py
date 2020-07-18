@@ -46,7 +46,7 @@ def main(server_url, player_key, api_key):
     logger.info("ServerUrl: %s; PlayerKey: %s" % (server_url, player_key))
 
     client = ApiClient(server_url, api_key)
-    request = Ap(Ap(Cons(), Number(0)), Nil())
+    request = Ap(Ap(Cons(), Number(2)), Ap(Ap(Cons(), Number(int(player_key))), Nil()))
     modulated = mod_node(request)
 
     logger.info(f"=> {request} -> (modulate) {modulated} ~~~~~> (send)")
