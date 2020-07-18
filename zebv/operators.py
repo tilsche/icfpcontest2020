@@ -10,6 +10,9 @@ class HardcodedOperator(Operator):
     def __eq__(self, other):
         return type(other) == type(self)
 
+    def __hash__(self):
+        return hash(type(self))
+
 
 class EvaluatableOperator(HardcodedOperator):
     arity: int

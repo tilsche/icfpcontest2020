@@ -1,6 +1,7 @@
 import itertools
 
 from . import parsing
+from .node import Name, Operator
 
 
 def parse_patterns(text: str):
@@ -9,6 +10,7 @@ def parse_patterns(text: str):
     ]
     shrink_patterns = []
     expand_patterns = []
+    direct_patterns = {}
     for tokens in token_lists:
         left, right = [
             list(group)
@@ -17,14 +19,17 @@ def parse_patterns(text: str):
             )
             if not k
         ]
-        print(len(left), len(right))
         ex_left = parsing.build_expression(left)
         ex_right = parsing.build_expression(right)
-        if len(ex_left) >= len(ex_right):
+        if not ex_left.children:
+            assert isinstance(ex_left, (Operator, Name))
+            assert ex_left not in direct_patterns
+            direct_patterns[ex_left] = ex_right
+        elif len(ex_left) >= len(ex_right):
             shrink_patterns.append((ex_left, ex_right))
         else:
             expand_patterns.append((ex_left, ex_right))
-    return shrink_patterns, expand_patterns
+    return shrink_patterns, expand_patterns, direct_patterns
 
 
 _default_pattern_str = """
@@ -71,4 +76,8 @@ pattern_operators = (
     "interact",
 )
 
-default_shrink_patterns, default_expand_patterns = parse_patterns(_default_pattern_str)
+(
+    default_shrink_patterns,
+    default_expand_patterns,
+    default_direct_patterns,
+) = parse_patterns(_default_pattern_str)

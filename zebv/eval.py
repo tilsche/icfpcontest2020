@@ -1,9 +1,13 @@
 from functools import reduce
 from typing import Optional
 
-from .node import Ap, Node, NoEvalError, Number, Operator, Variable
+from .node import Ap, Name, Node, NoEvalError, Number, Operator, Variable
 from .operators import Bool, EvaluatableOperator, max_operator_arity
-from .patterns import default_expand_patterns, default_shrink_patterns
+from .patterns import (
+    default_direct_patterns,
+    default_expand_patterns,
+    default_shrink_patterns,
+)
 from .var_map import VarMap
 
 
@@ -91,9 +95,11 @@ def contains_only(node, allowed_nodes):
 
 
 class Evaluator:
-    def __init__(self, shrink_patterns=(), expand_patterns=()):
+    def __init__(self, shrink_patterns=(), expand_patterns=(), direct_patterns={}):
         self.shrink_patterns = default_shrink_patterns + list(shrink_patterns)
         self.expand_patterns = default_expand_patterns + list(expand_patterns)
+        self.direct_patterns = default_direct_patterns
+        self.direct_patterns.update(direct_patterns)
 
     def shrink_once(self, node: Node) -> Optional[Node]:
         if isinstance(node, Ap):
@@ -142,11 +148,18 @@ class Evaluator:
             # print(f"[Shrink] {node}")
 
     def expand_once(self, node: Node):
-        for pattern, replacement in self.expand_patterns:
-            vm = match(node, pattern)
-            if not vm:
-                continue
-            yield replacement.copy(vm)
+        if not node.children:
+            if isinstance(node, (Operator, Name)):
+                try:
+                    yield self.direct_patterns[node]
+                except KeyError:
+                    pass
+        else:
+            for pattern, replacement in self.expand_patterns:
+                vm = match(node, pattern)
+                if not vm:
+                    continue
+                yield replacement.copy(vm)
 
         for index, child in enumerate(node.children):
             for simple_child in self.expand_once(child):
@@ -197,37 +210,17 @@ class Evaluator:
         raise RuntimeError("Timeout")
         # return sorted(visited_exprs, key=len)[0]
 
-    def simplify2(self, expression: Node, stop_types=(Number, Variable, Bool)) -> Node:
+    def simplify_linear(
+        self, expression: Node, stop_types=(Number, Variable, Bool)
+    ) -> Node:
         for _ in range(10000):
             expression = self.shrink(expression)
 
-            expression
-            if not todo_exprs:
-                raise RuntimeError("not found")
-                # return sorted(visited_exprs, key=len)[0]
+            print(f"next ({len(expression)}): {expression}")
+            if contains_only(expression, stop_types):
+                return expression
 
-            todo_exprs = list(sorted(todo_exprs, key=len))
-            print(f"bfs candidates: {len(todo_exprs)}")
-            current = todo_exprs[0]
-            todo_exprs = todo_exprs[1:]
-            todo_strs.remove(str(current))
-            print(f"looking at: {current}")
-
-            for candidate in self.expand_once(current):
-                print(f"Candidate: {candidate}")
-                candidate = self.shrink(candidate)
-                s = str(candidate)
-                if s in visited_strs or s in todo_strs:
-                    continue
-
-                if contains_only(candidate, stop_types):
-                    return candidate
-
-                visited_strs.add(s)
-                todo_strs.add(s)
-
-                todo_exprs.append(candidate)
-                visited_exprs.append(candidate)
+            expression = next(self.expand_once(expression))
 
         print("giving up")
         raise RuntimeError("Timeout")

@@ -100,6 +100,9 @@ class Operator(Node):
     def __eq__(self, other):
         return isinstance(other, Operator) and self.name == other.name
 
+    def __hash__(self):
+        return hash((104, self.name))
+
     def copy(self, vm: Optional[VarMap] = None):
         return self
 
@@ -203,3 +206,6 @@ class Name(Node):
 
     def __str__(self):
         return f":{self.id}"
+
+    def __hash__(self):
+        return hash((208, self.id))
