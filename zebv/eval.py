@@ -172,7 +172,7 @@ class Evaluator:
         else:
             for index, child in enumerate(node.children):
                 expanded_child = self.expand_once_direct(child)
-                if expanded_child:
+                if expanded_child is not None:
                     node._children[index] = expanded_child
                     return node
         return None
