@@ -75,12 +75,26 @@ def test_draw_6():
     )
     assert (exp == ret).all()
 
+def np_checkboard(size):
+    exp = np.zeros(size)
+    for i in range(size[0]):
+        for j in range(size[1]):
+            field = (((i+1)%2) + j%2)%2
+            exp[i,j] = field * 255
+    return exp
+
+
+
 def test_checkerboard_1():
     e = Evaluator()
     data_list = e.simplify(
         build_expression(tokenize("ap ap checkerboard 7 0")), (Cons, Nil, Ap, Number)
     ).as_list
-    draw.draw(data_list.get(), "checkerboard_1.png")
+    ret = draw.draw(data_list.get(), "checkerboard_1.png")
+    exp = np_checkboard((7,7))
+    assert (exp == ret).all()
+
+
     
 def test_checkerboard_2():
     #s = (13,17)    
@@ -88,8 +102,11 @@ def test_checkerboard_2():
     data_list = e.simplify(
         build_expression(tokenize("ap ap checkerboard 13 0")), (Cons, Nil, Ap, Number)
     ).as_list
-    draw.draw(data_list.get(), "checkerboard_2.png")
+    ret = draw.draw(data_list.get(), "checkerboard_2.png")
+    exp = np_checkboard((13,13))
+    assert (exp == ret).all()
+
 
 
 if __name__ == "__main__":
-    test_checkerboard_1()
+    test_checkerboard_2()
