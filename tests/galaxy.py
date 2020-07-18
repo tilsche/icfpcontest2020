@@ -5,8 +5,6 @@ from zebv.operators import Cons, Nil
 from zebv.parsing import build_expression, tokenize
 from zebv.patterns import parse_patterns
 
-print(patterns.default_patterns)
-
 extra_patterns = parse_patterns(
     """
 statelessdraw = ap ap c ap ap b b ap ap b ap b ap cons 0 ap ap c ap ap b b cons ap ap c cons nil ap ap c ap ap b cons ap ap c cons nil nil

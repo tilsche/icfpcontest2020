@@ -1,8 +1,9 @@
 from functools import reduce
+from typing import Optional
 
 from .node import Ap, Node, NoEvalError, Number, Operator, Variable
 from .operators import Bool, EvaluatableOperator, max_operator_arity
-from .patterns import default_patterns
+from .patterns import default_expand_patterns, default_shrink_patterns
 from .var_map import VarMap
 
 
@@ -90,34 +91,74 @@ def contains_only(node, allowed_nodes):
 
 
 class Evaluator:
-    patterns = []
+    def __init__(self, shrink_patterns=(), expand_patterns=()):
+        self.shrink_patterns = default_shrink_patterns + list(shrink_patterns)
+        self.expand_patterns = default_expand_patterns + list(expand_patterns)
 
-    def __init__(self, extra_patterns=None):
-        self.patterns = default_patterns
-        if extra_patterns:
-            self.patterns = self.patterns + extra_patterns
-
-    def simplify_once(self, node: Node):
+    def shrink_once(self, node: Node) -> Optional[Node]:
         if isinstance(node, Ap):
             try:
-                yield try_apply_operator(node)
-                return
+                return try_apply_operator(node)
             except NoEvalError:
                 pass
 
-        for pattern, replacement in self.patterns:
+        shrinked = None
+        for pattern, replacement in self.shrink_patterns:
+            vm = match(node, pattern)
+            if not vm:
+                continue
+            assert shrinked is None
+            # keep going just to see that no two patterns ever match. Then we must try more ways...
+            shrinked = replacement.copy(vm)
+
+        if shrinked is not None:
+            return shrinked
+
+        if not node.children:
+            # Nothing more to simplify
+            return None
+
+        shrinked_children = False
+        children = []
+        for child in node.children:
+            simple_child = self.shrink_once(child)
+            if simple_child is not None:
+                children.append(simple_child)
+                shrinked_children = True
+            else:
+                children.append(child)
+
+        if shrinked_children:
+            return type(node)(*children)
+
+        return None
+
+    def shrink(self, node: Node) -> Node:
+        while True:
+            next_node = self.shrink_once(node)
+            if next_node is None:
+                return node
+            node = next_node
+            print(f"[Shrink] {node}")
+
+    def expand_once(self, node: Node):
+        for pattern, replacement in self.expand_patterns:
             vm = match(node, pattern)
             if not vm:
                 continue
             yield replacement.copy(vm)
 
         for index, child in enumerate(node.children):
-            for simple_child in self.simplify_once(child):
+            for simple_child in self.expand_once(child):
                 copy = node.copy()
                 copy.children[index] = simple_child
                 yield copy
 
     def simplify(self, expression: Node, stop_types=(Number, Variable, Bool)):
+        expression = self.shrink(expression)
+        if contains_only(expression, stop_types):
+            return expression
+
         todo_exprs = [expression]
         todo_strs = set((str(expression),))
 
@@ -129,12 +170,15 @@ class Evaluator:
                 return sorted(visited_exprs, key=len)[0]
 
             todo_exprs = list(sorted(todo_exprs, key=len))
+            print(f"bfs candidates: {len(todo_exprs)}")
             current = todo_exprs[0]
             todo_exprs = todo_exprs[1:]
             todo_strs.remove(str(current))
             print(f"looking at: {current}")
 
-            for candidate in self.simplify_once(current):
+            for candidate in self.expand_once(current):
+                print(f"Candidate: {candidate}")
+                candidate = self.shrink(candidate)
                 s = str(candidate)
                 if s in visited_strs or s in todo_strs:
                     continue

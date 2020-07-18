@@ -7,7 +7,8 @@ def parse_patterns(text: str):
     token_lists = [
         parsing.tokenize(line) for line in text.splitlines() if not line.startswith("#")
     ]
-    patterns = []
+    shrink_patterns = []
+    expand_patterns = []
     for tokens in token_lists:
         left, right = [
             list(group)
@@ -16,10 +17,13 @@ def parse_patterns(text: str):
             )
             if not k
         ]
-        patterns.append(
-            (parsing.build_expression(left), parsing.build_expression(right))
-        )
-    return patterns
+        ex_left = parsing.build_expression(left)
+        ex_right = parsing.build_expression(right)
+        if len(ex_left) > len(ex_right):
+            shrink_patterns.append((ex_left, ex_right))
+        else:
+            expand_patterns.append((ex_left, ex_right))
+    return shrink_patterns, expand_patterns
 
 
 _default_pattern_str = """
@@ -65,4 +69,4 @@ pattern_operators = (
     "interact",
 )
 
-default_patterns = parse_patterns(_default_pattern_str)
+default_shrink_patterns, default_expand_patterns = parse_patterns(_default_pattern_str)
