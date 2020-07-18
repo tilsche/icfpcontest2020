@@ -27,7 +27,6 @@ class ColorImg:
             color = (color, color, color)
 
         color = (color[0] << 0) | (color[1] << 8) | (color[2] << 16) | (0xFF << 24)
-        print(color)
         self.pixels[(x, y)] = color
 
     def save(self, filename):
