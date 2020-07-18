@@ -1,5 +1,5 @@
 import re
-from typing import Iterable, Iterator
+from typing import Iterable, Iterator, Union
 
 from . import node
 from .operators import operators
@@ -118,7 +118,9 @@ def _build_expression(tokens: Iterator[Token]):
     raise TypeError(f"unknown token type: {type(tok)} {tok}")
 
 
-def build_expression(tokens: Iterable[Token]):
+def build_expression(tokens: Union[Iterable[Token], str]):
+    if isinstance(tokens, str):
+        tokens = tokenize(tokens)
     it = iter(tokens)
     expression = _build_expression(it)
     rest = list(it)

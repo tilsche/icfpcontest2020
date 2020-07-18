@@ -1,9 +1,13 @@
 from functools import reduce
 from typing import Optional
 
-from .node import Ap, Node, NoEvalError, Number, Operator, Variable
+from .node import Ap, Name, Node, NoEvalError, Number, Operator, Variable
 from .operators import Bool, EvaluatableOperator, max_operator_arity
-from .patterns import default_expand_patterns, default_shrink_patterns
+from .patterns import (
+    default_direct_patterns,
+    default_expand_patterns,
+    default_shrink_patterns,
+)
 from .var_map import VarMap
 
 
@@ -91,9 +95,11 @@ def contains_only(node, allowed_nodes):
 
 
 class Evaluator:
-    def __init__(self, shrink_patterns=(), expand_patterns=()):
+    def __init__(self, shrink_patterns=(), expand_patterns=(), direct_patterns={}):
         self.shrink_patterns = default_shrink_patterns + list(shrink_patterns)
         self.expand_patterns = default_expand_patterns + list(expand_patterns)
+        self.direct_patterns = default_direct_patterns
+        self.direct_patterns.update(direct_patterns)
 
     def shrink_once(self, node: Node) -> Optional[Node]:
         if isinstance(node, Ap):
@@ -139,14 +145,21 @@ class Evaluator:
             if next_node is None:
                 return node
             node = next_node
-            print(f"[Shrink] {node}")
+            # print(f"[Shrink] {node}")
 
     def expand_once(self, node: Node):
-        for pattern, replacement in self.expand_patterns:
-            vm = match(node, pattern)
-            if not vm:
-                continue
-            yield replacement.copy(vm)
+        if not node.children:
+            if isinstance(node, (Operator, Name)):
+                try:
+                    yield self.direct_patterns[node]
+                except KeyError:
+                    pass
+        else:
+            for pattern, replacement in self.expand_patterns:
+                vm = match(node, pattern)
+                if not vm:
+                    continue
+                yield replacement.copy(vm)
 
         for index, child in enumerate(node.children):
             for simple_child in self.expand_once(child):
@@ -154,7 +167,7 @@ class Evaluator:
                 copy.children[index] = simple_child
                 yield copy
 
-    def simplify(self, expression: Node, stop_types=(Number, Variable, Bool)):
+    def simplify(self, expression: Node, stop_types=(Number, Variable, Bool)) -> Node:
         expression = self.shrink(expression)
         if contains_only(expression, stop_types):
             return expression
@@ -167,7 +180,8 @@ class Evaluator:
 
         for _ in range(10000):
             if not todo_exprs:
-                return sorted(visited_exprs, key=len)[0]
+                raise RuntimeError("not found")
+                # return sorted(visited_exprs, key=len)[0]
 
             todo_exprs = list(sorted(todo_exprs, key=len))
             print(f"bfs candidates: {len(todo_exprs)}")
@@ -193,4 +207,22 @@ class Evaluator:
                 visited_exprs.append(candidate)
 
         print("giving up")
-        return sorted(visited_exprs, key=len)[0]
+        raise RuntimeError("Timeout")
+        # return sorted(visited_exprs, key=len)[0]
+
+    def simplify_linear(
+        self, expression: Node, stop_types=(Number, Variable, Bool)
+    ) -> Node:
+        for step in range(10000):
+            expression = self.shrink(expression)
+
+            if step % 100 == 0:
+                print(f"[{step}] ({len(expression)}): {expression}")
+            if contains_only(expression, stop_types):
+                return expression
+
+            expression = next(self.expand_once(expression))
+
+        print("giving up")
+        raise RuntimeError("Timeout")
+        # return sorted(visited_exprs, key=len)[0]

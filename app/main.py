@@ -1,30 +1,47 @@
-import sys
+from logging import INFO, Formatter, LogRecord, getLogger
 
 import click
-import requests
 
-import numpy
-import pandas
-import scipy
-
-print("click", click.__version__)
-print("np", numpy.__version__)
-print("scipy", scipy.__version__)
-print("pandas", pandas.__version__)
+import click_log
+from zebv.api import ApiClient
+from zebv.modem import demod, mod
 
 
-def main():
-    server_url = sys.argv[1]
-    player_key = sys.argv[2]
-    print("ServerUrl: %s; PlayerKey: %s" % (server_url, player_key))
+class LogFormatter(Formatter):
+    colors = {
+        "error": dict(fg="red"),
+        "exception": dict(fg="red"),
+        "critical": dict(fg="red"),
+        "debug": dict(fg="blue"),
+        "warning": dict(fg="yellow"),
+    }
 
-    res = requests.post(server_url, data=player_key)
-    if res.status_code != 200:
-        print("Unexpected server response:")
-        print("HTTP code:", res.status_code)
-        print("Response body:", res.text)
-        exit(2)
-    print("Server response:", res.text)
+    def format(self, record: LogRecord):
+        if not record.exc_info:
+            level = record.levelname.lower()
+            msg = record.getMessage()
+            if level in self.colors:
+                name_suffix = f"{record.name}:" if record.name != "root" else ""
+                prefix = click.style(f"{level}:{name_suffix} ", **self.colors[level])
+                msg = "\n".join(prefix + x for x in msg.splitlines())
+            return msg
+        return Formatter.format(self, record)
+
+
+logger = getLogger(__name__)
+handler = click_log.ClickHandler()
+handler.formatter = LogFormatter()
+logger.addHandler(handler)
+logger.setLevel(INFO)
+
+
+@click.command()
+@click.argument("server_url")
+@click.argument("player_key")
+@click_log.simple_verbosity_option(logger)
+def main(server_url, player_key):
+    logger.info("ServerUrl: %s; PlayerKey: %s" % (server_url, player_key))
+    return
 
 
 if __name__ == "__main__":

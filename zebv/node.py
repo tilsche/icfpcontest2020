@@ -11,15 +11,6 @@ class NoEvalError(RuntimeError):
 class Node(ABC):
     children: List["Node"] = []
 
-    def match(self, pattern: "Node"):
-        if not self.children:
-            if self == pattern:
-                return {}
-            else:
-                return False
-
-        return
-
     def __eq__(self, other):
         return type(self) == type(other) and self.children == other.children
 
@@ -109,6 +100,9 @@ class Operator(Node):
     def __eq__(self, other):
         return isinstance(other, Operator) and self.name == other.name
 
+    def __hash__(self):
+        return hash((104, self.name))
+
     def copy(self, vm: Optional[VarMap] = None):
         return self
 
@@ -124,6 +118,12 @@ class SugarList(Node):
         inner = ", ".join((str(c) for c in self.children))
         return f"({inner})"
 
+    def get(self):
+        for c in self.children:
+            yield c
+
+
+
 
 class SugarVector(Node):
     def __init__(self, *children):
@@ -133,6 +133,8 @@ class SugarVector(Node):
         assert len(self.children) == 2
         c1, c2 = self.children
         return f"<{c1}, {c2}>"
+
+
 
 
 class Ap(Node):
@@ -154,7 +156,7 @@ class Ap(Node):
         return self.children[1]
 
     def __str__(self):
-        return "ap {self.children[0]} {self.children[1]}".format(self=self)
+        return f"ap {self.children[0]} {self.children[1]}"
 
     def __repr__(self):
         return "Ap" + str((self.children[0], self.children[1]))
@@ -212,3 +214,6 @@ class Name(Node):
 
     def __str__(self):
         return f":{self.id}"
+
+    def __hash__(self):
+        return hash((208, self.id))
