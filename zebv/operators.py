@@ -13,6 +13,14 @@ class HardcodedOperator(Operator):
     def __hash__(self):
         return hash(type(self))
 
+    @classmethod
+    def operators(cls):
+        for c in cls.__subclasses__():
+            if hasattr(c, "name"):
+                yield c
+            for cc in c.operators():
+                yield cc
+
 
 class EvaluatableOperator(HardcodedOperator):
     arity: int
@@ -148,8 +156,6 @@ class Nil(HardcodedOperator):
         return SugarList()
 
 
-operators = {
-    op().name: op() for op in (Inc, Dec, Add, Mul, Div, T, F, Eq, Lt, Neg, Cons, Nil)
-}
+operators = {op().name: op() for op in HardcodedOperator.operators()}
 
 max_operator_arity = 2
