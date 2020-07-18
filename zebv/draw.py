@@ -9,8 +9,11 @@ class Img:
         self._size = size
         self.pixels = np.zeros(self._size, np.uint8)
 
+    def add_point(self, x, y, color=255):
+        self.pixels[(x, y)] = color
+
     def save(self, filename):
-        self._img = Image.fromarray(self.pixels, mode="L")
+        self._img = Image.fromarray(np.transpose(self.pixels), mode="L")
         self._img.save(filename, format="png")
 
 
@@ -30,7 +33,7 @@ def draw(nodes=[], filename="", size=(1, 1)):
     im = Img(new_size)
 
     for point in points:
-        im.pixels[point] = 255
+        im.add_point(*point)
 
     if filename:
         im.save(filename)

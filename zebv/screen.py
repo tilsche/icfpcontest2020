@@ -1,3 +1,5 @@
+from zebv.draw import Img
+
 from threading import Thread
 
 import tcod
@@ -31,10 +33,10 @@ class AlienScreen(Thread):
             while True:
                 self.console.clear()
 
-                for age, generation in enumerate(self.generations):
-                    for (x, y) in generation:
+                for generation, points in enumerate(self.generations):
+                    for (x, y) in points:
                         self.console.draw_rect(
-                            x, y, 1, 1, fg=self.fg_color(age), ch=PIXEL
+                            x, y, 1, 1, fg=self.fg_color(generation), ch=PIXEL
                         )
 
                 context.present(self.console, keep_aspect=True)
@@ -92,6 +94,15 @@ class AlienScreen(Thread):
             self.update_offset(offset_x, offset_y)
 
         self.console = tcod.Console(self._max_x, self._max_y)
+
+    def save(self, filename):
+        im = Img(size=(self._max_x, self._max_y))
+
+        for generation, points in enumerate(self.generations):
+            for (x, y) in points:
+                im.add_point(x, y, color=self.fg_color(generation)[0])
+
+        im.save(filename)
 
     def clear(self):
         self.generations = []

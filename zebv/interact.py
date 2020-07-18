@@ -21,8 +21,11 @@ class Interaction:
         self.send_function = send_function
         self.screen = AlienScreen()
         self.screen.start()
+        self.iteration = 0
+        self.protocol_name = protocol
 
         def callback(x, y):
+            self.screen.clear()
             self(x, y)
 
         self.screen.on_mouse_click = callback
@@ -44,6 +47,8 @@ class Interaction:
         logger.warning(f"should draw: {data}")
         for list in data.as_list:
             self.screen.draw(list.as_list)
+        self.screen.save(f"{self.protocol_name}-{self.iteration}.png")
+        self.iteration += 1
 
     def send(self, data: Node) -> Node:
         logger.warning(f"Should send {data}...")
