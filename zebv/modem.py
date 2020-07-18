@@ -2,6 +2,9 @@ from logging import getLogger
 from math import ceil
 from typing import Tuple, Union
 
+from .node import Ap, Number
+from .operators import Cons, Nil
+
 logger = getLogger(__name__)
 
 
@@ -35,6 +38,26 @@ def mod(input) -> str:
             raise ValueError(f"Expected tuple of length 0 or 2, got {arity}")
     else:
         raise TypeError(f"The fuck is this? input={input}")
+
+
+def _to_tuple_list(node: Union[Ap, Number, Nil]):
+    if isinstance(node, Number):
+        return int(node.value)
+    elif isinstance(node, Nil):
+        return ()
+    elif isinstance(node, Ap):
+        first_ap = node.op
+        arg = node.arg
+        if isinstance(first_ap, Ap) and isinstance(first_ap.op, Cons):
+            return (_to_tuple_list(first_ap.arg), _to_tuple_list(arg))
+        else:
+            raise ValueError(f'Node {node!r} is not in the form of "ap ap cons _"')
+    else:
+        raise ValueError(f'Node {node!r} is neither a number, "nil" nor an "ap cons"')
+
+
+def mod_node(node: Union[Ap, Number, Nil]) -> str:
+    return mod(_to_tuple_list(node))
 
 
 def demod_num(input: str) -> (int, str):
