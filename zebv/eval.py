@@ -219,7 +219,7 @@ class Evaluator:
             expression = self.shrink(expression)
 
             if step % 100 == 0:
-                rate = step / (time.time() - start)
+                rate = step / (time.time() - start + 0.0000001)
                 # print(f"[{step} | {rate:.1f} 1/s] ({len(expression)}): {expression}")
                 # print(f"[{step} | {rate:.1f} 1/s] ({len(expression)})")
                 print(f"[{step} | {rate:.1f} 1/s]")  # ({len(expression)})")

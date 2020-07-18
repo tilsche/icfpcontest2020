@@ -1,3 +1,4 @@
+from zebv.draw import ColorImg
 from threading import Thread
 
 import tcod
@@ -94,12 +95,16 @@ class AlienScreen(Thread):
 
         self.console = tcod.Console(self._max_x, self._max_y)
 
-    def save(self, filename):
-        im = Img(size=(self._max_x, self._max_y))
+    def save(self, filename, interact_point):
+        im = ColorImg(size=(self._max_x + 1, self._max_y + 1))
 
         for generation, points in enumerate(self.generations):
             for (x, y) in points:
                 im.add_point(x, y, color=self.fg_color(generation)[0])
+
+        (x, y) = interact_point
+
+        im.add_point(x + self.offset_x, y + self.offset_y, (255, 0, 0))
 
         im.save(filename)
 
