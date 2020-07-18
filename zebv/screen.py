@@ -14,7 +14,7 @@ class AlienScreen(Thread):
             "dejavu10x10_gs_tc.png", 32, 8, tcod.tileset.CHARMAP_TCOD,
         )
         # Create the main console.
-        self.console = tcod.Console(WIDTH, HEIGHT)
+        self.console = tcod.Console(self._max_x, self._max_y)
         self.points = []
         self._max_x = 20
         self._max_y = 20
