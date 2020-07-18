@@ -14,10 +14,10 @@ class AlienScreen(Thread):
             "dejavu10x10_gs_tc.png", 32, 8, tcod.tileset.CHARMAP_TCOD,
         )
         # Create the main console.
+        self._max_x = WIDTH
+        self._max_y = HEIGHT
         self.console = tcod.Console(self._max_x, self._max_y)
-        self.points = []
-        self._max_x = 20
-        self._max_y = 20
+        self.generations = []
 
     def run(self):
         with tcod.context.new_terminal(
@@ -29,8 +29,11 @@ class AlienScreen(Thread):
             while True:
                 self.console.clear()
 
-                for (x, y) in self.points:
-                    self.console.draw_rect(x, y, 1, 1, ch=PIXEL)
+                for age, generation in enumerate(self.generations):
+                    for (x, y) in generation:
+                        self.console.draw_rect(
+                            x, y, 1, 1, fg=self.fg_color(age), ch=PIXEL
+                        )
 
                 context.present(self.console, keep_aspect=True)
 
@@ -41,6 +44,14 @@ class AlienScreen(Thread):
                     if event.type == "QUIT":
                         raise SystemExit()
 
+    @property
+    def num_generations(self):
+        return len(self.generations)
+
+    def fg_color(self, generation):
+        step = (255 // self.num_generations) * (generation + 1)
+        return (step, step, step)
+
     def draw(self, nodes=[]):
         points = []
         for n in nodes:
@@ -50,6 +61,9 @@ class AlienScreen(Thread):
             points.append((x.value, y.value))
             self._max_x = max(x.value + 1, self._max_x)
             self._max_y = max(y.value + 1, self._max_y)
+
+        self.console = tcod.Console(self._max_x, self._max_y)
+        self.generations.append(points)
 
     def clear(self):
         self.points = []
