@@ -1,7 +1,7 @@
 from functools import reduce
 
-from .node import Ap, Node, NoEvalError, Variable
-from .operators import EvaluatableOperator, max_operator_arity
+from .node import Ap, Node, NoEvalError, Number, Operator, Variable
+from .operators import Bool, EvaluatableOperator, max_operator_arity
 from .patterns import default_patterns
 from .var_map import VarMap
 
@@ -61,6 +61,34 @@ def try_apply_operator(node, args=None):
     raise NoEvalError()
 
 
+def contains_only(node, allowed_nodes):
+    allowed_node_types = []
+    allowed_operator_names = []
+    for n in allowed_nodes:
+        if isinstance(n, type):
+            allowed_node_types.append(n)
+        elif isinstance(n, str):
+            allowed_operator_names.append(n)
+        else:
+            raise ValueError(f"Unknown contain check {n} (type {type(n)})")
+    allowed_node_types = tuple(allowed_node_types)
+
+    def test(node):
+        if isinstance(node, allowed_node_types):
+            return
+        elif isinstance(node, Operator):
+            if node.name in allowed_operator_names:
+                return
+
+        raise StopIteration()
+
+    try:
+        node.apply(test)
+        return True
+    except StopIteration:
+        return False
+
+
 class Evaluator:
     patterns = []
 
@@ -89,7 +117,7 @@ class Evaluator:
                 copy.children[index] = simple_child
                 yield copy
 
-    def simplify(self, expression: Node):
+    def simplify(self, expression: Node, stop_types=(Number, Variable, Bool)):
         todo_exprs = [expression]
         todo_strs = set((str(expression),))
 
@@ -111,7 +139,7 @@ class Evaluator:
                 if s in visited_strs or s in todo_strs:
                     continue
 
-                if not isinstance(candidate, Ap):
+                if contains_only(candidate, stop_types):
                     return candidate
 
                 visited_strs.add(s)

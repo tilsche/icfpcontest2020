@@ -77,18 +77,19 @@ class Div(BinaryOperator):
             raise NoEvalError()
 
 
-class T(HardcodedOperator):
+class Bool(HardcodedOperator):
+    pass
+
+    def __call__(self, a1: OperatorArgument):
+        raise NoEvalError()
+
+
+class T(Bool):
     name = "t"
 
-    def __call__(self, a1: OperatorArgument):
-        raise NoEvalError()
 
-
-class F(HardcodedOperator):
+class F(Bool):
     name = "f"
-
-    def __call__(self, a1: OperatorArgument):
-        raise NoEvalError()
 
 
 class Eq(BinaryOperator):
@@ -131,6 +132,21 @@ class Neg(UnaryOperator):
             raise NoEvalError()
 
 
-operators = {op().name: op() for op in (Inc, Dec, Add, Mul, Div, T, F, Eq, Lt, Neg)}
+# for good checking, but no execution
+class Cons(HardcodedOperator):
+    name = "cons"
+
+
+class Nil(HardcodedOperator):
+    name = "nil"
+
+    @property
+    def as_list(self):
+        return []
+
+
+operators = {
+    op().name: op() for op in (Inc, Dec, Add, Mul, Div, T, F, Eq, Lt, Neg, Cons, Nil)
+}
 
 max_operator_arity = 2

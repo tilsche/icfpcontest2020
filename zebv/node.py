@@ -40,6 +40,11 @@ class Node(ABC):
     def __repr__(self):
         return str(self)
 
+    def apply(self, f):
+        f(self)
+        for c in self.children:
+            c.apply(f)
+
 
 class Number(Node):
     value: int
@@ -117,6 +122,36 @@ class Ap(Node):
 
     def __repr__(self):
         return "Ap" + str((self.children[0], self.children[1]))
+
+    @property
+    def as_list(self):
+        #         self    op          arg
+        # must be (ap (ap cons head) tail)
+        if (
+            not isinstance(self.op, Ap)
+            and isinstance(self.op.op, Operator)
+            and self.op.op.name == "cons"
+        ):
+            raise TypeError(f"Not in list format: {self}")
+
+        head = self.op.arg
+        tail = self.arg
+        return head, *tail.as_list
+
+    @property
+    def as_vector(self):
+        #         self    op          arg
+        # must be (ap (ap cons first) second)
+        if (
+            not isinstance(self.op, Ap)
+            and isinstance(self.op.op, Operator)
+            and self.op.op.name == "cons"
+        ):
+            raise TypeError(f"Not in list format: {self}")
+
+        first = self.op.arg
+        second = self.arg
+        return first, second
 
 
 class GenericOperator(Operator):

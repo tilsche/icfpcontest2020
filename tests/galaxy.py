@@ -1,5 +1,7 @@
 from zebv import patterns
 from zebv.eval import Evaluator
+from zebv.node import Ap, Number
+from zebv.operators import Cons, Nil
 from zebv.parsing import build_expression, tokenize
 from zebv.patterns import parse_patterns
 
@@ -16,6 +18,7 @@ e = Evaluator(extra_patterns)
 print(
     e.simplify(
         # build_expression(tokenize("ap ap statelessdraw nil ap ap cons 3 7"))
-        build_expression(tokenize("ap ap ap interact statelessdraw nil ap ap vec 3 7"))
+        build_expression(tokenize("ap ap ap interact statelessdraw nil ap ap vec 3 7")),
+        (Ap, Cons, Nil, Number, "multipledraw"),
     )
 )
