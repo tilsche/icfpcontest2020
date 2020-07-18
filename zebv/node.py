@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from functools import cached_property, reduce
-from typing import Callable, Iterable, Iterator, List, Optional, Tuple, Union
+from typing import Callable, Dict, Iterable, Iterator, List, Optional, Set, Tuple, Union
 
 from .var_map import VarMap
 
@@ -11,16 +11,60 @@ class NoEvalError(RuntimeError):
 
 class Node(ABC):
     _children: List["Node"]
+    _dirty: bool = True
+    # This is so gonna leak lol
+    _parents: Dict[Tuple[int, int], "Node"]
 
     def __init__(self, *children):
+        self._parents = {}
+        for index, c in enumerate(children):
+            c.add_parent(self, index)
         self._children = list(children)
 
     @property
     def children(self) -> Tuple["Node"]:
         return self._children
 
+    def swap_child(self, index: int, new_child: "Node"):
+        self._children[index].remove_parent(self, index)
+        new_child.add_parent(self, index)
+        self._children[index] = new_child
+        self.dirty = True
+
+    def add_parent(self, parent, index):
+        assert id(self) != id(parent)
+        key = id(parent), index
+        assert key not in self._parents
+        self._parents[key] = parent
+
+    def remove_parent(self, parent, index):
+        key = id(parent), index
+        assert key in self._parents
+        del self._parents[key]
+
     def __eq__(self, other):
         return type(self) == type(other) and self.children == other.children
+
+    @property
+    def check_dirty_consistency(self):
+        clean_children = True
+        for c in self.children:
+            clean_children = clean_children and not c.dirty
+        if not self._dirty:
+            assert clean_children
+
+    @property
+    def dirty(self):
+        # self.check_dirty_consistency
+        return self._dirty
+
+    @dirty.setter
+    def dirty(self, value):
+        was_dirty = self._dirty
+        self._dirty = value
+        if not was_dirty and value:
+            for parent in self._parents.values():
+                parent.dirty = True
 
     # @cached_property
     @property
@@ -86,12 +130,13 @@ class LeafNode(Node):
     _value: Union[int, str]
 
     def __init__(self, value: Union[int, str]):
+        self._parents = {}
         self._value = value
 
     def __hash__(self):
         return hash((type(self), self._value))
 
-    def instantiate(self, vm: Optional[VarMap] = None):
+    def instantiate(self, vm: VarMap):
         return self
 
     @property
@@ -148,6 +193,7 @@ class Operator(LeafNode):
 
 class HardcodedOperator(Operator):
     def __init__(self):
+        self._parents = {}
         assert self._value
 
     @classmethod
