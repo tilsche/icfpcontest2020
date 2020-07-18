@@ -1,8 +1,8 @@
 from zebv.draw import ColorImg
-
 from threading import Thread
 
 import tcod
+from zebv.draw import Img
 
 WIDTH, HEIGHT = 1, 1  # Console width and height in tiles.
 
