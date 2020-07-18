@@ -12,5 +12,6 @@ setup(
       py-zebra=app:main
       """,
     install_requires=["requests", "pillow"],
-    tests_requires=["pytest"],
+    tests_requires=["pytest", "tcod"],
+    extras_require={"tests": ["pytest", "tcod"]},
 )
