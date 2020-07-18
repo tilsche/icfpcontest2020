@@ -97,7 +97,7 @@ def main(server_url, player_key, api_key):
     command.join()
     command.start()
 
-    com_1 = (1, ())
+    com_1 = (1)
     command.command(com_1)
 
 
