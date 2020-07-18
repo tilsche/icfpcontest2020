@@ -14,7 +14,7 @@ class Img:
         self._img.save(filename, format="png")
 
 
-def draw_sub_image(nodes=[], filename="", size=(1, 1)):
+def draw(nodes=[], filename="", size=(1, 1)):
     points = []
     max_x = size[0]
     max_y = size[1]
@@ -38,6 +38,14 @@ def draw_sub_image(nodes=[], filename="", size=(1, 1)):
     return im.pixels
 
 
+def multipledraw(nodes, filename=""):
+    pic = Picture
+    for node in nodes:
+        pic.draw(node.as_list)
+    if filename:
+        pic.save(filename)
+
+
 class Picture:
     def __init__(self, size=(1, 1)):
         self._size_x = size[0]
@@ -49,7 +57,7 @@ class Picture:
         self._border = 2
 
     def draw(self, nodes=[], size=(1, 1)):
-        sub_pixels = draw_sub_image(nodes, size=size)
+        sub_pixels = draw(nodes, size=size)
         (sub_x, sub_y) = sub_pixels.shape
 
         self._size_x = max(sub_x + self._current_x + self._border, self._size_x)
