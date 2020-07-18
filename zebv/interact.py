@@ -13,22 +13,30 @@ logger = getLogger(__name__)
 
 
 class Interaction:
-    def __init__(self, text, protocol, send_function: Callable[[Node], Node] = Node):
+    def __init__(
+        self,
+        text,
+        protocol,
+        send_function: Callable[[Node], Node] = None,
+        interactive=False,
+    ):
         patterns = parse_patterns(text)
         self.evaluator = Evaluator(*patterns)
         self.protocol = build_expression(protocol)
         self.state = Nil()
         self.send_function = send_function
-        self.screen = AlienScreen()
-        self.screen.start()
-        self.iteration = 0
-        self.protocol_name = protocol
+        self.screen = None
+        if interactive:
+            self.screen = AlienScreen()
+            self.screen.start()
+            self.iteration = 0
+            self.protocol_name = protocol
 
-        def callback(x, y):
-            self.screen.clear()
-            self(x, y)
+            def callback(x, y):
+                self.screen.clear()
+                self(x, y)
 
-        self.screen.on_mouse_click = callback
+            self.screen.on_mouse_click = callback
 
         # self.draw_pattern = build_expression(
         #     #         newState                      draw_list
@@ -45,10 +53,11 @@ class Interaction:
 
     def draw(self, data):
         logger.warning(f"should draw: {data}")
-        for list in data.as_list:
-            self.screen.draw(list.as_list)
-        self.screen.save(f"{self.protocol_name}-{self.iteration}.png")
-        self.iteration += 1
+        if self.screen:
+            for list in data.as_list:
+                self.screen.draw(list.as_list)
+            self.screen.save(f"{self.protocol_name}-{self.iteration}.png")
+            self.iteration += 1
 
     def send(self, data: Node) -> Node:
         logger.warning(f"Should send {data}...")
