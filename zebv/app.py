@@ -80,7 +80,7 @@ def main(server_url, player_key, api_key):
 
     command = Command(player_key, client)
 
-    command.init()
+    # command.init()
     command.join()
 
 
