@@ -236,6 +236,24 @@ class B(TenaryOperator):
         return Ap(x0, Ap(x1, x2))
 
 
+class Car(UnaryOperator):
+    _value = "car"
+
+    def __call__(self, x0: OperatorArgument):
+        if isinstance(x0, Ap) and isinstance(x0.op, Ap) and isinstance(x0.op.op, Cons):
+            return x0.op.arg
+        raise NoEvalError()
+
+
+class Cdr(UnaryOperator):
+    _value = "cdr"
+
+    def __call__(self, x0: OperatorArgument):
+        if isinstance(x0, Ap) and isinstance(x0.op, Ap) and isinstance(x0.op.op, Cons):
+            return x0.arg
+        raise NoEvalError()
+
+
 operators = {op().name: op() for op in HardcodedOperator.operators()}
 
 max_operator_arity = 3
