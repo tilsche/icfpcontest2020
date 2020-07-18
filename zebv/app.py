@@ -36,6 +36,7 @@ handler.formatter = LogFormatter()
 logging.basicConfig(level=logging.DEBUG, handlers=[handler])
 
 logger = logging.getLogger(__name__)
+# logger.setLevel(logging.DEBUG)
 
 
 class Command:
@@ -58,10 +59,16 @@ class Command:
         return self._send((0, ()))
 
     def join(self):
-        return self._send((2, (self.player_key, ())))
+        # return self._send((2, (self.player_key, ())))
+        # (2, playerKey, (...unknown list...))
+        req = (2, (self.player_key, (())))
+        return self._send(req)
 
     def start(self):
-        return self._send((3, (self.player_key, ())))
+        # (3, playerKey, (<number1>, <number2>, <number3>, <number4>))
+        numbers = (1, (2, (3, (4, ()))))
+        req = (3, (self.player_key, (numbers, ())))
+        return self._send(req)
 
 
 @click.command()
@@ -82,6 +89,7 @@ def main(server_url, player_key, api_key):
 
     # command.init()
     command.join()
+    command.start()
 
 
 if __name__ == "__main__":
