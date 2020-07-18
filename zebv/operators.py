@@ -167,8 +167,13 @@ class Neg(UnaryOperator):
 
 
 # for good checking, but no execution
-class Cons(HardcodedOperator):
+class Cons(TenaryOperator):
     _value = "cons"
+
+    def __call__(
+        self, x0: OperatorArgument, x1: OperatorArgument, x2: OperatorArgument
+    ):
+        return Ap(Ap(x2, x0), x1)
 
 
 class Nil(UnaryOperator):
@@ -204,15 +209,13 @@ class I(UnaryOperator):
         return a1
 
 
-#
-# class S(TenaryOperator):
-#     _value = "s"
-#
-#     def __call__(
-#         self, x0: OperatorArgument, x1: OperatorArgument, x2: OperatorArgument
-#     ):
-#         return Ap(Ap(x0, x2), Ap(x1, x2))
-#
+class S(TenaryOperator):
+    _value = "s"
+
+    def __call__(
+        self, x0: OperatorArgument, x1: OperatorArgument, x2: OperatorArgument
+    ):
+        return Ap(Ap(x0, x2), Ap(x1, x2))
 
 
 class C(TenaryOperator):

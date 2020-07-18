@@ -1,6 +1,6 @@
 import random
 import time
-from functools import reduce
+from functools import lru_cache, reduce
 from typing import Optional
 
 from .node import Ap, Integer, Name, Node, NoEvalError, Operator, Placeholder
@@ -13,6 +13,7 @@ from .patterns import (
 from .var_map import VarMap
 
 
+@lru_cache(4096)
 def match(node: Node, pattern: Node):
     if isinstance(pattern, Placeholder):
         return VarMap({pattern.value: node})
@@ -97,6 +98,7 @@ class Evaluator:
         self.direct_patterns = default_direct_patterns
         self.direct_patterns.update(direct_patterns)
 
+    @lru_cache(4096)
     def shrink_once(self, node: Node) -> Optional[Node]:
         if isinstance(node, Ap):
             try:
@@ -227,7 +229,7 @@ class Evaluator:
             todo_exprs = todo_exprs[1:]
             todo_strs.remove(str(current))
 
-            if i % 10 == 0:
+            if i % 100 == 0:
                 rate = i / (time.time() - start)
                 print(
                     f"BFS [{i} | {1+len(todo_exprs)} | {rate:.1f} 1/s] ({len(current)}): {current}"
@@ -257,10 +259,10 @@ class Evaluator:
         self, expression: Node, stop_types=(Integer, Placeholder, Bool)
     ) -> Node:
         start = time.time()
-        for step in range(10000):
+        for step in range(100000):
             expression = self.shrink(expression)
 
-            if step % 10 == 0:
+            if step % 100 == 0:
                 rate = step / (time.time() - start)
                 print(f"[{step} | {rate:.1f} 1/s] ({len(expression)}): {expression}")
             if contains_only(expression, stop_types):

@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from functools import cached_property
+from functools import cached_property, reduce
 from typing import Callable, Iterable, Iterator, List, Optional, Tuple, Union
 
 from .var_map import VarMap
@@ -22,17 +22,30 @@ class Node(ABC):
     def __eq__(self, other):
         return type(self) == type(other) and self.children == other.children
 
-    def __hash__(self):
+    @cached_property
+    def __hash(self):
         return hash((type(self), self.children))
-
-    def __len__(self):
-        return self.__len
 
     @cached_property
     def __len(self):
         return 1 + sum((c.__len for c in self.children))
 
+    def __hash__(self):
+        return self.__hash
+
+    def __len__(self):
+        return self.__len
+
+    @cached_property
+    def __placeholders(self):
+        return set.union(*(c.__placeholders for c in self.children))
+
     def instantiate(self, vm: Optional[VarMap] = None):
+        if not vm:
+            return self
+        if not self.__placeholders:
+            return self
+        assert self.__placeholders.issubset(vm)
         return type(self)(*(c.instantiate(vm) for c in self.children))
 
     def __str__(self):
@@ -91,6 +104,9 @@ class LeafNode(Node):
     def __repr__(self):
         return f"{type(self)}({self.value!r})"
 
+    def __placeholders(self):
+        return set()
+
 
 class Integer(LeafNode):
     pass
@@ -107,6 +123,9 @@ class Placeholder(LeafNode):
 
     def __repr__(self):
         return f"Variable(x{self._value})"
+
+    def __placeholders(self):
+        return set((self._value,))
 
 
 class Equals(Node):
