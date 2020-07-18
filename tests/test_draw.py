@@ -1,13 +1,11 @@
+import numpy as np
 import pytest
-
 import zebv.draw as draw
 from zebv import patterns
 from zebv.eval import Evaluator
 from zebv.node import Ap, Number
 from zebv.operators import Cons, Nil
 from zebv.parsing import build_expression, tokenize
-
-import numpy as np
 
 
 def t(exp):

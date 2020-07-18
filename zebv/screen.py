@@ -1,6 +1,6 @@
-import tcod
-
 from threading import Thread
+
+import tcod
 
 WIDTH, HEIGHT = 80, 60  # Console width and height in tiles.
 

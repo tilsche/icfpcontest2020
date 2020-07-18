@@ -1,3 +1,5 @@
+import random
+import time
 from functools import reduce
 from typing import Optional
 
@@ -13,12 +15,6 @@ from .var_map import VarMap
 
 def match(node: Node, pattern: Node):
     if isinstance(pattern, Variable):
-        # if isinstance(right, Variable):
-        #     if left.id == right.id:
-        #         return VarMap()
-        #     else:
-        #         # Oh shit
-        #         raise RuntimeError("I don't know what to do here.")
         return VarMap({pattern.id: node})
 
     if type(node) != type(pattern):
@@ -162,12 +158,15 @@ class Evaluator:
                 yield replacement.copy(vm)
 
         for index, child in enumerate(node.children):
-            for simple_child in self.expand_once(child):
-                copy = node.copy()
-                copy.children[index] = simple_child
+            for expanded_child in self.expand_once(child):
+                new_children = list(node.children)
+                new_children[index] = expanded_child
+                copy = type(node)(*new_children)
                 yield copy
 
     def simplify(self, expression: Node, stop_types=(Number, Variable, Bool)) -> Node:
+        start = time.time()
+
         expression = self.shrink(expression)
         if contains_only(expression, stop_types):
             return expression
@@ -178,20 +177,24 @@ class Evaluator:
         visited_exprs = []
         visited_strs = set()
 
-        for _ in range(10000):
+        for i in range(10000):
             if not todo_exprs:
                 raise RuntimeError("not found")
                 # return sorted(visited_exprs, key=len)[0]
 
             todo_exprs = list(sorted(todo_exprs, key=len))
-            print(f"bfs candidates: {len(todo_exprs)}")
             current = todo_exprs[0]
             todo_exprs = todo_exprs[1:]
             todo_strs.remove(str(current))
-            print(f"looking at: {current}")
+
+            if i % 10 == 0:
+                rate = i / (time.time() - start)
+                print(
+                    f"BFS [{i} | {1+len(todo_exprs)} | {rate:.1f} 1/s] ({len(current)}): {current}"
+                )
 
             for candidate in self.expand_once(current):
-                print(f"Candidate: {candidate}")
+                # print(f"Candidate: {candidate}")
                 candidate = self.shrink(candidate)
                 s = str(candidate)
                 if s in visited_strs or s in todo_strs:
@@ -213,15 +216,17 @@ class Evaluator:
     def simplify_linear(
         self, expression: Node, stop_types=(Number, Variable, Bool)
     ) -> Node:
+        start = time.time()
         for step in range(10000):
             expression = self.shrink(expression)
 
-            if step % 100 == 0:
-                print(f"[{step}] ({len(expression)}): {expression}")
+            if step % 10 == 0:
+                rate = step / (time.time() - start)
+                print(f"[{step} | {rate:.1f} 1/s] ({len(expression)}): {expression}")
             if contains_only(expression, stop_types):
                 return expression
 
-            expression = next(self.expand_once(expression))
+            expression = random.choice(list(self.expand_once(expression)))
 
         print("giving up")
         raise RuntimeError("Timeout")

@@ -25,7 +25,7 @@ def parse_patterns(text: str):
             assert isinstance(ex_left, (Operator, Name))
             assert ex_left not in direct_patterns
             direct_patterns[ex_left] = ex_right
-        elif len(ex_left) >= len(ex_right):
+        elif len(ex_left) > len(ex_right):
             shrink_patterns.append((ex_left, ex_right))
         else:
             expand_patterns.append((ex_left, ex_right))
@@ -34,8 +34,8 @@ def parse_patterns(text: str):
 
 _default_pattern_str = """
 ap ap ap s x0 x1 x2   =   ap ap x0 x2 ap x1 x2
-ap ap ap c x0 x1 x2   =   ap ap x0 x2 x1
-ap ap ap b x0 x1 x2   =   ap x0 ap x1 x2
+# ap ap ap c x0 x1 x2   =   ap ap x0 x2 x1
+# ap ap ap b x0 x1 x2   =   ap x0 ap x1 x2
 # ap ap t x0 x1   =   x0
 # ap ap f x0 x1   =   x1
 pwr2   =   ap ap s ap ap c ap eq 0 1 ap ap b ap mul 2 ap ap b pwr2 ap add -1
@@ -44,8 +44,8 @@ ap ap ap cons x0 x1 x2   =   ap ap x2 x0 x1
 ap car ap ap cons x0 x1   =   x0
 ap cdr ap ap cons x0 x1   =   x1
 # ap nil x0   =   t
-ap isnil nil   =   t
-ap isnil ap ap cons x0 x1   =   f
+# ap isnil nil   =   t
+# ap isnil ap ap cons x0 x1   =   f
 #vec   =   cons
 # ap ap ap if0 0 x0 x1   =   x0
 # ap ap ap if0 1 x0 x1   =   x1
@@ -57,9 +57,9 @@ checkerboard = ap ap s ap ap b s ap ap c ap ap b c ap ap b ap c ap c ap ap s ap 
 """.strip()
 
 pattern_operators = (
-    "s",
-    "c",
-    "b",
+    # "s",
+    # "c",
+    # "b",
     # "t",
     # "f",
     "pwr2",
@@ -68,7 +68,7 @@ pattern_operators = (
     "car",
     "cdr",
     # "nil",
-    "isnil",
+    # "isnil",
     # "vec",
     # "if0",
     # "modem",

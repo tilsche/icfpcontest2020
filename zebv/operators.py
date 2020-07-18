@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from typing import Union
 
-from .node import NoEvalError, Number, Operator, SugarList, Variable
+from .node import Ap, NoEvalError, Number, Operator, SugarList, Variable
 
 OperatorArgument = Union[Number, Variable]
 
@@ -36,6 +36,10 @@ class UnaryOperator(EvaluatableOperator):
 
 class BinaryOperator(EvaluatableOperator):
     arity = 2
+
+
+class TenaryOperator(EvaluatableOperator):
+    arity = 3
 
 
 class Inc(UnaryOperator):
@@ -162,6 +166,21 @@ class Nil(UnaryOperator):
         return T()
 
 
+class IsNil(UnaryOperator):
+    name = "isnil"
+
+    @property
+    def as_list(self):
+        return SugarList()
+
+    def __call__(self, x0: OperatorArgument):
+        if isinstance(x0, Nil):
+            return T()
+        if isinstance(x0, Ap) and isinstance(x0.op, Ap) and isinstance(x0.op.op, Cons):
+            return F()
+        raise NoEvalError()
+
+
 class I(UnaryOperator):
     name = "i"
 
@@ -169,6 +188,35 @@ class I(UnaryOperator):
         return a1
 
 
+#
+# class S(TenaryOperator):
+#     name = "s"
+#
+#     def __call__(
+#         self, x0: OperatorArgument, x1: OperatorArgument, x2: OperatorArgument
+#     ):
+#         return Ap(Ap(x0, x2), Ap(x1, x2))
+#
+
+
+class C(TenaryOperator):
+    name = "c"
+
+    def __call__(
+        self, x0: OperatorArgument, x1: OperatorArgument, x2: OperatorArgument
+    ):
+        return Ap(Ap(x0, x2), x1)
+
+
+class B(TenaryOperator):
+    name = "b"
+
+    def __call__(
+        self, x0: OperatorArgument, x1: OperatorArgument, x2: OperatorArgument
+    ):
+        return Ap(x0, Ap(x1, x2))
+
+
 operators = {op().name: op() for op in HardcodedOperator.operators()}
 
-max_operator_arity = 2
+max_operator_arity = 3
