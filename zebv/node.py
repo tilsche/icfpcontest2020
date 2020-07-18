@@ -146,6 +146,32 @@ class Operator(LeafNode):
         return self._value
 
 
+class HardcodedOperator(Operator):
+    def __init__(self):
+        assert self._value
+
+    @classmethod
+    def operators(cls):
+        for c in cls.__subclasses__():
+            if hasattr(c, "_value"):
+                yield c
+            for cc in c.operators():
+                yield cc
+
+
+class EvaluatableOperator(HardcodedOperator):
+    _arity: int
+    max_arity = 3
+
+    @abstractmethod
+    def __call__(self, *args):
+        raise NoEvalError()
+
+    @property
+    def arity(self):
+        return self._arity
+
+
 class SugarList(Node):
     def __str__(self):
         inner = ", ".join((str(c) for c in self.children))
@@ -174,6 +200,19 @@ class SugarVector(Node):
 
 class Ap(Node):
     def __init__(self, op: Union[Operator, "Placeholder", "Name"], arg: Node):
+        # # Try to evaluate right now!
+        # eval_op = op
+        # assert EvaluatableOperator.max_arity == 3
+        # # some premature optimization
+        # if isinstance(op, EvaluatableOperator) and op.arity == 1:
+        #     try:
+        #         arg =
+        #
+        # remaining_arity = None
+        # if isinstance(op, EvaluatableOperator):
+        #     remaining_arity = op.arity - 1
+        # elif isinstance(op, Ap) and op._remaining_arity is not None:
+        #     remaining_arity = op._remaining_arity
         super().__init__(op, arg)
 
     @property

@@ -98,11 +98,16 @@ class Evaluator:
         self.direct_patterns = default_direct_patterns
         self.direct_patterns.update(direct_patterns)
 
-    # @lru_cache(4096)
-    def shrink_once(self, node: Node) -> Optional[Node]:
+    def shrink_again(self, node: Node, recursive) -> Node:
+        next_node = self.shrink_once(node, recursive=recursive)
+        if next_node:
+            return next_node
+        return node
+
+    def shrink_once(self, node: Node, recursive=True) -> Optional[Node]:
         if isinstance(node, Ap):
             try:
-                return try_apply_operator(node)
+                return self.shrink_again(try_apply_operator(node), recursive=True)
             except NoEvalError:
                 pass
 
@@ -110,17 +115,21 @@ class Evaluator:
             vm = match(node, pattern)
             if not vm:
                 continue
-            return replacement.instantiate(vm)
+            return self.shrink_again(replacement.instantiate(vm))
 
-        if not node.children:
+        if not node.children or not recursive:
             # Nothing to simplify here
             return None
 
+        has_shrinked_child = False
         for idx, child in enumerate(node.children):
             shrinked_child = self.shrink_once(child)
             if shrinked_child is not None:
                 node._children[idx] = shrinked_child
-                return node
+                has_shrinked_child = True
+
+        if has_shrinked_child:
+            return self.shrink_again(node, recursive=False)
 
         return None
 
