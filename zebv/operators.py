@@ -166,6 +166,21 @@ class Nil(UnaryOperator):
         return T()
 
 
+class Nil(UnaryOperator):
+    name = "nil"
+
+    @property
+    def as_list(self):
+        return SugarList()
+
+    def __call__(self, x0: OperatorArgument):
+        if isinstance(x0, Nil):
+            return T()
+        if isinstance(x0, Ap) and isinstance(x0.op, Ap) and isinstance(x0.op.op, Cons):
+            return F()
+        raise NoEvalError()
+
+
 class I(UnaryOperator):
     name = "i"
 
@@ -190,7 +205,7 @@ class C(TenaryOperator):
     def __call__(
         self, x0: OperatorArgument, x1: OperatorArgument, x2: OperatorArgument
     ):
-        return Ap(Ap(x2, x0), x1)
+        return Ap(Ap(x0, x2), x1)
 
 
 class B(TenaryOperator):

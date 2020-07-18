@@ -44,8 +44,8 @@ ap ap ap cons x0 x1 x2   =   ap ap x2 x0 x1
 ap car ap ap cons x0 x1   =   x0
 ap cdr ap ap cons x0 x1   =   x1
 # ap nil x0   =   t
-ap isnil nil   =   t
-ap isnil ap ap cons x0 x1   =   f
+# ap isnil nil   =   t
+# ap isnil ap ap cons x0 x1   =   f
 #vec   =   cons
 # ap ap ap if0 0 x0 x1   =   x0
 # ap ap ap if0 1 x0 x1   =   x1
@@ -68,7 +68,7 @@ pattern_operators = (
     "car",
     "cdr",
     # "nil",
-    "isnil",
+    # "isnil",
     # "vec",
     # "if0",
     # "modem",

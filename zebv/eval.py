@@ -15,12 +15,6 @@ from .var_map import VarMap
 
 def match(node: Node, pattern: Node):
     if isinstance(pattern, Variable):
-        # if isinstance(right, Variable):
-        #     if left.id == right.id:
-        #         return VarMap()
-        #     else:
-        #         # Oh shit
-        #         raise RuntimeError("I don't know what to do here.")
         return VarMap({pattern.id: node})
 
     if type(node) != type(pattern):
@@ -147,7 +141,7 @@ class Evaluator:
             if next_node is None:
                 return node
             node = next_node
-            # print(f"[Shrink] {node}")
+            print(f"[Shrink] {node}")
 
     def expand_once(self, node: Node):
         if not node.children:
@@ -193,7 +187,7 @@ class Evaluator:
             todo_exprs = todo_exprs[1:]
             todo_strs.remove(str(current))
 
-            if i % 10 == 0:
+            if i % 1 == 0:
                 rate = i / (time.time() - start)
                 print(
                     f"BFS [{i} | {1+len(todo_exprs)} | {rate:.1f} 1/s] ({len(current)}): {current}"
