@@ -198,8 +198,9 @@ class Evaluator:
     def expand_once(self, node: Node):
         for n in self.expand_once_direct(node):
             yield n
-        for n in self.expand_once_pattern(node):
-            yield n
+        if self.expand_patterns:
+            for n in self.expand_once_pattern(node):
+                yield n
 
     def simplify(self, expression: Node, stop_types=(Number, Variable, Bool)) -> Node:
         start = time.time()
