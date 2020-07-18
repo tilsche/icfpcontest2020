@@ -61,7 +61,7 @@ class Command:
     def join(self):
         # return self._send((2, (self.player_key, ())))
         # (2, playerKey, (...unknown list...))
-        req = (2, (self.player_key, (())))
+        req = (2, (self.player_key, ((), ())))
         return self._send(req)
 
     def start(self):
