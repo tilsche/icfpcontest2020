@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
-from functools import cached_property, reduce
-from typing import Callable, Dict, Iterable, Iterator, List, Optional, Set, Tuple, Union
+from functools import cached_property, lru_cache, reduce
+from typing import Callable, Iterable, Iterator, List, Optional, Tuple, Union
 
 from .var_map import VarMap
 
@@ -10,69 +10,24 @@ class NoEvalError(RuntimeError):
 
 
 class Node(ABC):
-    _children: List["Node"]
-    _dirty: bool = True
-    # This is so gonna leak lol
-    _parents: Dict[Tuple[int, int], "Node"]
+    _children: Tuple["Node"]
+    evaluated: Optional["Node"] = None
 
     def __init__(self, *children):
-        self._parents = {}
-        for index, c in enumerate(children):
-            c.add_parent(self, index)
-        self._children = list(children)
+        self._children = children
 
     @property
     def children(self) -> Tuple["Node"]:
         return self._children
 
-    def swap_child(self, index: int, new_child: "Node"):
-        self._children[index].remove_parent(self, index)
-        new_child.add_parent(self, index)
-        self._children[index] = new_child
-        self.dirty = True
-
-    def add_parent(self, parent, index):
-        assert id(self) != id(parent)
-        key = id(parent), index
-        assert key not in self._parents
-        self._parents[key] = parent
-
-    def remove_parent(self, parent, index):
-        key = id(parent), index
-        assert key in self._parents
-        del self._parents[key]
-
     def __eq__(self, other):
         return type(self) == type(other) and self.children == other.children
 
-    @property
-    def check_dirty_consistency(self):
-        clean_children = True
-        for c in self.children:
-            clean_children = clean_children and not c.dirty
-        if not self._dirty:
-            assert clean_children
-
-    @property
-    def dirty(self):
-        # self.check_dirty_consistency
-        return self._dirty
-
-    @dirty.setter
-    def dirty(self, value):
-        was_dirty = self._dirty
-        self._dirty = value
-        if not was_dirty and value:
-            for parent in self._parents.values():
-                parent.dirty = True
-
-    # @cached_property
-    @property
+    @cached_property
     def __hash(self):
-        return hash((type(self), tuple(self.children)))
+        return hash((type(self), self.children))
 
-    # @cached_property
-    @property
+    @cached_property
     def __len(self):
         return 1 + sum((c.__len for c in self.children))
 
@@ -81,19 +36,6 @@ class Node(ABC):
 
     def __len__(self):
         return self.__len
-
-    # @cached_property
-    def __placeholders(self):
-        return set.union(*(c.__placeholders for c in self.children))
-
-    def instantiate(self, vm: VarMap) -> "Node":
-        if not vm:
-            return self
-        # if not self.__placeholders:
-        #     return self
-        # assert self.__placeholders.issubset(vm)
-
-        return type(self)(*(c.instantiate(vm) for c in self.children))
 
     def __str__(self):
         cstr = " ".join((str(c) for c in self.children))
@@ -130,13 +72,12 @@ class LeafNode(Node):
     _value: Union[int, str]
 
     def __init__(self, value: Union[int, str]):
-        self._parents = {}
         self._value = value
 
     def __hash__(self):
         return hash((type(self), self._value))
 
-    def instantiate(self, vm: VarMap):
+    def instantiate(self, vm: Optional[VarMap] = None):
         return self
 
     @property
@@ -161,8 +102,10 @@ class Integer(LeafNode):
 
 
 class Placeholder(LeafNode):
-    def instantiate(self, vm: VarMap):
-        return vm[self._value]
+    def instantiate(self, vm: Optional[VarMap] = None):
+        if vm:
+            return vm[self._value]
+        return self
 
     def __str__(self):
         return f"x{self._value}"
@@ -189,33 +132,6 @@ class Operator(LeafNode):
     @property
     def name(self):
         return self._value
-
-
-class HardcodedOperator(Operator):
-    def __init__(self):
-        self._parents = {}
-        assert self._value
-
-    @classmethod
-    def operators(cls):
-        for c in cls.__subclasses__():
-            if hasattr(c, "_value"):
-                yield c
-            for cc in c.operators():
-                yield cc
-
-
-class EvaluatableOperator(HardcodedOperator):
-    _arity: int
-    max_arity = 3
-
-    @abstractmethod
-    def __call__(self, *args):
-        raise NoEvalError()
-
-    @property
-    def arity(self):
-        return self._arity
 
 
 class SugarList(Node):
@@ -246,19 +162,6 @@ class SugarVector(Node):
 
 class Ap(Node):
     def __init__(self, op: Union[Operator, "Placeholder", "Name"], arg: Node):
-        # # Try to evaluate right now!
-        # eval_op = op
-        # assert EvaluatableOperator.max_arity == 3
-        # # some premature optimization
-        # if isinstance(op, EvaluatableOperator) and op.arity == 1:
-        #     try:
-        #         arg =
-        #
-        # remaining_arity = None
-        # if isinstance(op, EvaluatableOperator):
-        #     remaining_arity = op.arity - 1
-        # elif isinstance(op, Ap) and op._remaining_arity is not None:
-        #     remaining_arity = op._remaining_arity
         super().__init__(op, arg)
 
     @property

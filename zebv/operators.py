@@ -1,19 +1,35 @@
 from abc import abstractmethod
 from typing import Union
 
-from .node import (
-    Ap,
-    EvaluatableOperator,
-    HardcodedOperator,
-    Integer,
-    Node,
-    NoEvalError,
-    Operator,
-    SugarList,
-)
+from .node import Ap, Integer, Node, NoEvalError, Operator, Placeholder, SugarList
 
 # OperatorArgument = Union[Integer, Variable]
 OperatorArgument = Node
+
+
+class HardcodedOperator(Operator):
+    def __init__(self):
+        assert self._value
+
+    @classmethod
+    def operators(cls):
+        for c in cls.__subclasses__():
+            if hasattr(c, "_value"):
+                yield c
+            for cc in c.operators():
+                yield cc
+
+
+class EvaluatableOperator(HardcodedOperator):
+    _arity: int
+
+    @abstractmethod
+    def __call__(self, *args):
+        raise NoEvalError()
+
+    @property
+    def arity(self):
+        return self._arity
 
 
 class UnaryOperator(EvaluatableOperator):
@@ -240,4 +256,4 @@ class Cdr(UnaryOperator):
 
 operators = {op().name: op() for op in HardcodedOperator.operators()}
 
-max_operator_arity = EvaluatableOperator.max_arity
+max_operator_arity = 3
