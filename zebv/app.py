@@ -4,7 +4,7 @@ import click
 
 import click_log
 from .api import ApiClient
-from .modem import demod, mod_node
+from .modem import demod, mod
 from .node import Ap, Number
 from .operators import Cons, Nil
 
@@ -37,6 +37,32 @@ logger.addHandler(handler)
 logger.setLevel(INFO)
 
 
+class Command:
+    def __init__(self, player_key, client):
+        self.player_key = int(player_key)
+        self.client = client
+
+    def _send(self, request):
+        modulated = mod(request)
+        logger.info(f"=> {request} -> (modulate) {modulated} ~~~~~> (send)")
+
+        response = self.client.aliens_send(modulated)
+        demodulated = demod(response)
+
+        logger.info(f"<= {demodulated} <- (demodulate) {response} <~~~~~ (recv)")
+
+        return demodulated
+
+    def init(self):
+        return self._send((0, ()))
+
+    def join(self):
+        return self._send((2, (self.player_key, ())))
+
+    def start(self):
+        return self._send((3, (self.player_key, ())))
+
+
 @click.command()
 @click.argument("server_url")
 @click.argument("player_key")
@@ -46,15 +72,12 @@ def main(server_url, player_key, api_key):
     logger.info("ServerUrl: %s; PlayerKey: %s" % (server_url, player_key))
 
     client = ApiClient(server_url, api_key)
-    request = Ap(Ap(Cons(), Number(2)), Ap(Ap(Cons(), Number(int(player_key))), Nil()))
-    modulated = mod_node(request)
+    # request = Ap(Ap(Cons(), Number(2)), Ap(Ap(Cons(), Number(int(player_key))), Nil()))
 
-    logger.info(f"=> {request} -> (modulate) {modulated} ~~~~~> (send)")
+    command = Command(player_key, client)
 
-    response = client.aliens_send(modulated)
-    demodulated = demod(response)
-
-    logger.info(f"<= {demodulated} <- (demodulate) {response} <~~~~~ (recv)")
+    command.init()
+    command.join()
 
 
 if __name__ == "__main__":
