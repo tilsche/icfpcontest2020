@@ -149,7 +149,7 @@ class Evaluator:
                         return y
                     if fun2.name == "f":
                         return x
-                    if fun2.name in ("add", "mul", "div", "lt"):
+                    if fun2.name in ("add", "mul", "div", "lt", "eq"):
                         xn = self.eval(x)
                         assert isinstance(xn, Integer)
                         yn = self.eval(y)
@@ -162,9 +162,10 @@ class Evaluator:
                             return Integer(int(yn.value / xn.value))
                         if fun2.name == "lt":
                             return t if yn.value < xn.value else f
+                        if fun2.name == "eq":
+                            return t if xn.value == yn.value else f
                         raise RuntimeError(fun2.name)
-                    if fun2.name == "eq":
-                        return t if self.eval(x) == self.eval(y) else f
+
                     if fun2.name == "cons":
                         return self.eval_cons(y, x)
                 if isinstance(fun2, Ap):
