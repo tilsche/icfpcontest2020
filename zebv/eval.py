@@ -143,7 +143,28 @@ class Evaluator:
             node = next_node
             # print(f"[Shrink] {node}")
 
-    def expand_once(self, node: Node):
+    # def expand_once(self, node: Node):
+    #     if not node.children:
+    #         if isinstance(node, (Operator, Name)):
+    #             try:
+    #                 yield self.direct_patterns[node]
+    #             except KeyError:
+    #                 pass
+    #     else:
+    #         for index, child in enumerate(node.children):
+    #             for expanded_child in self.expand_once(child):
+    #                 new_children = list(node.children)
+    #                 new_children[index] = expanded_child
+    #                 copy = type(node)(*new_children)
+    #                 yield copy
+    #
+    #         for pattern, replacement in self.expand_patterns:
+    #             vm = match(node, pattern)
+    #             if not vm:
+    #                 continue
+    #             yield replacement.copy(vm)
+
+    def expand_once_direct(self, node: Node):
         if not node.children:
             if isinstance(node, (Operator, Name)):
                 try:
@@ -151,18 +172,34 @@ class Evaluator:
                 except KeyError:
                     pass
         else:
-            for pattern, replacement in self.expand_patterns:
-                vm = match(node, pattern)
-                if not vm:
-                    continue
-                yield replacement.copy(vm)
+            for index, child in enumerate(node.children):
+                for expanded_child in self.expand_once_direct(child):
+                    new_children = list(node.children)
+                    new_children[index] = expanded_child
+                    copy = type(node)(*new_children)
+                    yield copy
 
+    def expand_once_pattern(self, node: Node):
+        if not node.children:
+            return
         for index, child in enumerate(node.children):
-            for expanded_child in self.expand_once(child):
+            for expanded_child in self.expand_once_pattern(child):
                 new_children = list(node.children)
                 new_children[index] = expanded_child
                 copy = type(node)(*new_children)
                 yield copy
+
+        for pattern, replacement in self.expand_patterns:
+            vm = match(node, pattern)
+            if not vm:
+                continue
+            yield replacement.copy(vm)
+
+    def expand_once(self, node: Node):
+        for n in self.expand_once_direct(node):
+            yield n
+        for n in self.expand_once_pattern(node):
+            yield n
 
     def simplify(self, expression: Node, stop_types=(Number, Variable, Bool)) -> Node:
         start = time.time()
@@ -226,7 +263,7 @@ class Evaluator:
             if contains_only(expression, stop_types):
                 return expression
 
-            expression = random.choice(list(self.expand_once(expression)))
+            expression = next(self.expand_once(expression))
 
         print("giving up")
         raise RuntimeError("Timeout")

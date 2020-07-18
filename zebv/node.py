@@ -86,7 +86,8 @@ class Variable(Node):
 
     def copy(self, vm: Optional[VarMap] = None):
         if vm:
-            return vm[self.id].copy()
+            # return vm[self.id].copy()
+            return vm[self.id]
         return Variable(self.id)
 
     def __str__(self):

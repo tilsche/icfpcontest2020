@@ -50,7 +50,9 @@ class Interaction:
         # assert f38_map
         # print(f38_map.map)
         proto_expr = Ap(Ap(self.protocol, self.state), vector)
-        proto_result = self.evaluator.simplify(proto_expr, (Ap, Cons, Nil, Number))
+        proto_result = self.evaluator.simplify_linear(
+            proto_expr, (Ap, Cons, Nil, Number)
+        )
         # This will probably crash, sorry
         flag, new_state, data = proto_result.as_list.children
 

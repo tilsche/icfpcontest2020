@@ -25,7 +25,7 @@ def parse_patterns(text: str):
             assert isinstance(ex_left, (Operator, Name))
             assert ex_left not in direct_patterns
             direct_patterns[ex_left] = ex_right
-        elif len(ex_left) > len(ex_right):
+        elif len(ex_left) >= len(ex_right):
             shrink_patterns.append((ex_left, ex_right))
         else:
             expand_patterns.append((ex_left, ex_right))
