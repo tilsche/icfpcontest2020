@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
-from functools import cached_property
-from typing import Callable, Iterable, Iterator, List, Optional, Union
+from functools import cached_property, reduce
+from typing import Callable, Iterable, Iterator, List, Optional, Tuple, Union
 
 from .var_map import VarMap
 
@@ -10,20 +10,43 @@ class NoEvalError(RuntimeError):
 
 
 class Node(ABC):
-    children: List["Node"] = []
+    _children: Tuple["Node"]
+
+    def __init__(self, *children):
+        self._children = children
+
+    @property
+    def children(self) -> Tuple["Node"]:
+        return self._children
 
     def __eq__(self, other):
         return type(self) == type(other) and self.children == other.children
 
-    def __len__(self):
-        return self.__len
+    @cached_property
+    def __hash(self):
+        return hash((type(self), self.children))
 
     @cached_property
     def __len(self):
         return 1 + sum((c.__len for c in self.children))
 
-    def copy(self, vm: Optional[VarMap] = None):
-        return type(self)(*(c.copy(vm) for c in self.children))
+    def __hash__(self):
+        return self.__hash
+
+    def __len__(self):
+        return self.__len
+
+    @cached_property
+    def __placeholders(self):
+        return set.union(*(c.__placeholders for c in self.children))
+
+    def instantiate(self, vm: Optional[VarMap] = None):
+        if not vm:
+            return self
+        if not self.__placeholders:
+            return self
+        assert self.__placeholders.issubset(vm)
+        return type(self)(*(c.instantiate(vm) for c in self.children))
 
     def __str__(self):
         cstr = " ".join((str(c) for c in self.children))
@@ -55,82 +78,80 @@ class Node(ABC):
             return type(this)(*(c.sugar for c in this.children))
 
 
-class Number(Node):
-    value: int
+class LeafNode(Node):
+    _children = ()
+    _value: Union[int, str]
 
-    def __init__(self, value: int):
-        assert type(value) == int
-        self.value = value
+    def __init__(self, value: Union[int, str]):
+        self._value = value
+
+    def __hash__(self):
+        return hash((type(self), self._value))
+
+    def instantiate(self, vm: Optional[VarMap] = None):
+        return self
+
+    @property
+    def value(self):
+        return self._value
 
     def __eq__(self, other):
-        return isinstance(other, Number) and self.value == other.value
-
-    def copy(self, vm: Optional[VarMap] = None):
-        return Number(self.value)
+        return type(self) == type(other) and self._value == other.value
 
     def __str__(self):
         return str(self.value)
 
     def __repr__(self):
-        return f"Number({self.value!r})"
+        return f"{type(self)}({self.value!r})"
+
+    def __placeholders(self):
+        return set()
 
 
-class Variable(Node):
-    id: int
+class Integer(LeafNode):
+    pass
 
-    def __init__(self, id: int):
-        self.id = id
 
-    def __eq__(self, other):
-        return isinstance(other, Variable) and self.id == other.id
-
-    def copy(self, vm: Optional[VarMap] = None):
+class Placeholder(LeafNode):
+    def instantiate(self, vm: Optional[VarMap] = None):
         if vm:
-            # return vm[self.id].copy()
-            return vm[self.id]
-        return Variable(self.id)
+            return vm[self._value]
+        return self
 
     def __str__(self):
-        return f"x{self.id}"
+        return f"x{self._value}"
 
     def __repr__(self):
-        return f"Variable(id={self.id!r})"
+        return f"Variable(x{self._value})"
+
+    def __placeholders(self):
+        return set((self._value,))
 
 
 class Equals(Node):
     def __init__(self, left: Node, right: Node):
-        self.children = [left, right]
+        super.__init__(left, right)
 
 
-class Operator(Node):
-    name: str
-
+class Operator(LeafNode):
     def __eq__(self, other):
-        return isinstance(other, Operator) and self.name == other.name
+        return isinstance(other, Operator) and self._value == other._value
 
     def __hash__(self):
-        return hash((104, self.name))
+        return hash((42, self._value))
 
-    def copy(self, vm: Optional[VarMap] = None):
-        return self
-
-    def __str__(self):
-        return f"{self.name}"
-
-    def __repr__(self):
-        return f"Operator(id={self.name!r})"
+    @property
+    def name(self):
+        return self._value
 
 
 class SugarList(Node):
-    def __init__(self, *children):
-        self.children = children
-
     def __str__(self):
         inner = ", ".join((str(c) for c in self.children))
         return f"({inner})"
 
     def __repr__(self):
-        inner_reps = ", ".join(repr(i) for i in self.inner)
+        inner_reps = ", ".join(repr(i) for i in self.children)
         return f"SugarList({inner_reps})"
 
     def __iter__(self):
@@ -138,11 +159,10 @@ class SugarList(Node):
 
 
 class SugarVector(Node):
-    def __init__(self, *children):
-        self.children = children
+    def __init__(self, left: Node, right: Node):
+        super().__init__(left, right)
 
     def __str__(self):
-        assert len(self.children) == 2
         c1, c2 = self.children
         return f"<{c1}, {c2}>"
 
@@ -152,14 +172,8 @@ class SugarVector(Node):
 
 
 class Ap(Node):
-    def __init__(self, op: Union[Operator, Callable, "Variable", "Name"], arg: Node):
-        self.children = [op, arg]
-
-    def eval(self):
-        op, arg = self.children
-        if isinstance(op, (Callable, Operator)):
-            return op(arg)
-        raise NoEvalError()
+    def __init__(self, op: Union[Operator, "Placeholder", "Name"], arg: Node):
+        super().__init__(op, arg)
 
     @property
     def op(self):
@@ -170,7 +184,7 @@ class Ap(Node):
         return self.children[1]
 
     def __str__(self):
-        return f"ap {self.children[0]} {self.children[1]}"
+        return f"ap {self.op} {self.arg}"
 
     def __repr__(self):
         return f"Ap(op={self.op!r}, arg={self.arg!r})"
@@ -207,30 +221,8 @@ class Ap(Node):
 
 
 class GenericOperator(Operator):
-    def __init__(self, name: str):
-        self.name = name
+    pass
 
 
-class Name(Node):
-    id: int
-
-    def __init__(self, id: int):
-        self.id = id
-
-    def __eq__(self, other):
-        return type(other) == Name and self.id == other.id
-
-    def copy(self, vm: Optional[VarMap] = None):
-        return self
-
-    def __call__(self, *args, **kwargs):
-        raise NoEvalError()
-
-    def __str__(self):
-        return f":{self.id}"
-
-    def __repr__(self):
-        return f"Name({self.id!r})"
-
-    def __hash__(self):
-        return hash((208, self.id))
+class Name(LeafNode):
+    pass

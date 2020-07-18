@@ -1,8 +1,8 @@
 from logging import INFO, Formatter, LogRecord, getLogger
 
 import click
-
 import click_log
+
 from .api import ApiClient
 from .modem import demod, mod
 from .node import Ap, Number

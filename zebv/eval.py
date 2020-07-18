@@ -1,9 +1,9 @@
 import random
 import time
-from functools import reduce
+from functools import lru_cache, reduce
 from typing import Optional
 
-from .node import Ap, Name, Node, NoEvalError, Number, Operator, Variable
+from .node import Ap, Integer, Name, Node, NoEvalError, Operator, Placeholder
 from .operators import Bool, EvaluatableOperator, max_operator_arity
 from .patterns import (
     default_direct_patterns,
@@ -13,9 +13,10 @@ from .patterns import (
 from .var_map import VarMap
 
 
+@lru_cache(4096)
 def match(node: Node, pattern: Node):
-    if isinstance(pattern, Variable):
-        return VarMap({pattern.id: node})
+    if isinstance(pattern, Placeholder):
+        return VarMap({pattern.value: node})
 
     if type(node) != type(pattern):
         return False
@@ -48,7 +49,7 @@ def try_apply_operator(node, args=None):
 
     if isinstance(op, EvaluatableOperator):
         # <= ?
-        if op.arity == len(args):
+        if op._arity == len(args):
             return op(*args)
 
     if isinstance(op, Ap):
@@ -97,6 +98,7 @@ class Evaluator:
         self.direct_patterns = default_direct_patterns
         self.direct_patterns.update(direct_patterns)
 
+    @lru_cache(4096)
     def shrink_once(self, node: Node) -> Optional[Node]:
         if isinstance(node, Ap):
             try:
@@ -111,7 +113,7 @@ class Evaluator:
                 continue
             assert shrinked is None
             # keep going just to see that no two patterns ever match. Then we must try more ways...
-            shrinked = replacement.copy(vm)
+            shrinked = replacement.instantiate(vm)
 
         if shrinked is not None:
             return shrinked
@@ -193,7 +195,7 @@ class Evaluator:
             vm = match(node, pattern)
             if not vm:
                 continue
-            yield replacement.copy(vm)
+            yield replacement.instantiate(vm)
 
     def expand_once(self, node: Node):
         for n in self.expand_once_direct(node):
@@ -202,7 +204,9 @@ class Evaluator:
             for n in self.expand_once_pattern(node):
                 yield n
 
-    def simplify(self, expression: Node, stop_types=(Number, Variable, Bool)) -> Node:
+    def simplify(
+        self, expression: Node, stop_types=(Integer, Placeholder, Bool)
+    ) -> Node:
         start = time.time()
 
         expression = self.shrink(expression)
@@ -225,7 +229,7 @@ class Evaluator:
             todo_exprs = todo_exprs[1:]
             todo_strs.remove(str(current))
 
-            if i % 10 == 0:
+            if i % 100 == 0:
                 rate = i / (time.time() - start)
                 print(
                     f"BFS [{i} | {1+len(todo_exprs)} | {rate:.1f} 1/s] ({len(current)}): {current}"
@@ -252,13 +256,13 @@ class Evaluator:
         # return sorted(visited_exprs, key=len)[0]
 
     def simplify_linear(
-        self, expression: Node, stop_types=(Number, Variable, Bool)
+        self, expression: Node, stop_types=(Integer, Placeholder, Bool)
     ) -> Node:
         start = time.time()
-        for step in range(10000):
+        for step in range(100000):
             expression = self.shrink(expression)
 
-            if step % 10 == 0:
+            if step % 100 == 0:
                 rate = step / (time.time() - start)
                 print(f"[{step} | {rate:.1f} 1/s] ({len(expression)}): {expression}")
             if contains_only(expression, stop_types):

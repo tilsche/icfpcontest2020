@@ -101,7 +101,7 @@ def _build_expression(tokens: Iterator[Token]):
 
         m = re.match(r"x(\d+)", tok.name)
         if m:
-            return node.Variable(int(m[1]))
+            return node.Placeholder(int(m[1]))
 
         if tok.name in operators:
             return operators[tok.name]
@@ -113,7 +113,7 @@ def _build_expression(tokens: Iterator[Token]):
         return node.Name(tok._id)
 
     if isinstance(tok, IntLiteral):
-        return node.Number(tok.value)
+        return node.Integer(tok.value)
 
     raise TypeError(f"unknown token type: {type(tok)} {tok}")
 

@@ -2,19 +2,22 @@ from threading import Thread
 
 import tcod
 
-WIDTH, HEIGHT = 80, 60  # Console width and height in tiles.
+WIDTH, HEIGHT = 1, 1  # Console width and height in tiles.
+
+PIXEL = 9565
 
 
 class AlienScreen(Thread):
     def __init__(self):
         super().__init__()
-        # Load the font, a 64 by 8 tile font with libtcod's old character layout.
         self.tileset = tcod.tileset.load_tilesheet(
-            "dejavu10x10_gs_tc.png", 64, 8, tcod.tileset.CHARMAP_TCOD,
+            "dejavu10x10_gs_tc.png", 32, 8, tcod.tileset.CHARMAP_TCOD,
         )
         # Create the main console.
-        self.console = tcod.Console(WIDTH, HEIGHT)
-        self.points = []
+        self._max_x = WIDTH
+        self._max_y = HEIGHT
+        self.console = tcod.Console(self._max_x, self._max_y)
+        self.generations = []
 
     def run(self):
         with tcod.context.new_terminal(
@@ -26,19 +29,44 @@ class AlienScreen(Thread):
             while True:
                 self.console.clear()
 
-                for (x, y) in self.points:
-                    self.console.put_char(x, y, ch=75)
+                for age, generation in enumerate(self.generations):
+                    for (x, y) in generation:
+                        self.console.draw_rect(
+                            x, y, 1, 1, fg=self.fg_color(age), ch=PIXEL
+                        )
 
-                context.present(self.console)
+                context.present(self.console, keep_aspect=True)
 
                 for event in tcod.event.wait():
                     context.convert_event(event)
-                    # print(event)
+                    if event.type == "MOUSEBUTTONDOWN":
+                        self.on_mouse_click(*event.tile)
                     if event.type == "QUIT":
                         raise SystemExit()
 
-    def draw(self, points):
-        self.points += points
+    @property
+    def num_generations(self):
+        return len(self.generations)
 
-    def clean(self):
-        self.points = []
+    def fg_color(self, generation):
+        step = (255 // self.num_generations) * (generation + 1)
+        return (step, step, step)
+
+    def draw(self, nodes=[]):
+        points = []
+        for n in nodes:
+            assert n.op.op.name == "cons"
+            x = n.op.arg
+            y = n.arg
+            points.append((x.value, y.value))
+            self._max_x = max(x.value + 1, self._max_x)
+            self._max_y = max(y.value + 1, self._max_y)
+
+        self.console = tcod.Console(self._max_x, self._max_y)
+        self.generations.append(points)
+
+    def clear(self):
+        self.generations = []
+
+    def on_mouse_click(self, x, y):
+        print(f"mouse click on ({x}, {y})")
