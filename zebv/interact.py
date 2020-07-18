@@ -1,3 +1,4 @@
+import time
 from logging import getLogger
 from typing import Callable
 
@@ -55,12 +56,15 @@ class Interaction:
         # assert f38_map
         # print(f38_map.map)
         proto_expr = Ap(Ap(self.protocol, self.state), vector)
+        start_simplify = time.time()
         proto_result = self.evaluator.simplify(proto_expr, (Ap, Cons, Nil, Integer))
+        duration = time.time() - start_simplify
+
         # This will probably crash, sorry
         flag, new_state, data = proto_result.as_list.children
 
         logger.debug(
-            f"{__name__}: flag={flag!r}, new_state={new_state!r}, data={data.sugar}"
+            f"[{duration} s] {__name__}: flag={flag!r}, new_state={new_state!r}, data={data.sugar}"
         )
 
         self.state = new_state
