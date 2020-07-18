@@ -1,6 +1,7 @@
 from logging import getLogger
 
 import requests
+from urllib.parse import urljoin
 
 logger = getLogger(__name__)
 
@@ -13,13 +14,13 @@ class ApiClient:
 
     def _post(self, endpoint: str, data) -> str:
         response: requests.Response = self.session.post(
-            self.base_url + endpoint, data=data, params={"apiKey": self.api_key}
+            urljoin(self.base_url, endpoint), data=data, params={"apiKey": self.api_key}
         )
         response.raise_for_status()
         return response.text
 
     def aliens_send(self, data: str) -> str:
         logger.debug(f"aliens_send({data!r}) ~~~>")
-        response = self._post("aliens/send", data)
+        response = self._post("/aliens/send", data)
         logger.debug(f"{response!r} <~~~~")
         return response
