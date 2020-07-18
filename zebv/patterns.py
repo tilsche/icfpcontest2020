@@ -10,7 +10,8 @@ def parse_patterns(text: str):
     ]
     shrink_patterns = []
     expand_patterns = []
-    direct_patterns = {}
+    direct_shrink_patterns = {}
+    direct_expand_patterns = {}
     for tokens in token_lists:
         left, right = [
             list(group)
@@ -23,13 +24,23 @@ def parse_patterns(text: str):
         ex_right = parsing.build_expression(right)
         if not ex_left.children:
             assert isinstance(ex_left, (Operator, Name))
-            assert ex_left not in direct_patterns
-            direct_patterns[ex_left] = ex_right
+            if len(ex_right) == 1:
+                assert ex_left not in direct_shrink_patterns
+                direct_shrink_patterns[ex_left] = ex_right
+            else:
+                assert ex_left not in direct_expand_patterns
+                direct_expand_patterns[ex_left] = ex_right
+
         elif len(ex_left) >= len(ex_right):
             shrink_patterns.append((ex_left, ex_right))
         else:
             expand_patterns.append((ex_left, ex_right))
-    return shrink_patterns, expand_patterns, direct_patterns
+    return (
+        shrink_patterns,
+        expand_patterns,
+        direct_shrink_patterns,
+        direct_expand_patterns,
+    )
 
 
 _default_pattern_str = """
@@ -80,5 +91,8 @@ pattern_operators = (
 (
     default_shrink_patterns,
     default_expand_patterns,
-    default_direct_patterns,
+    default_direct_shrink_patterns,
+    default_direct_expand_patterns,
 ) = parse_patterns(_default_pattern_str)
+
+assert not default_direct_shrink_patterns

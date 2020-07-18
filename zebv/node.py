@@ -225,4 +225,5 @@ class GenericOperator(Operator):
 
 
 class Name(LeafNode):
-    pass
+    def __str__(self):
+        return f":{self.value}"

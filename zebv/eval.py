@@ -6,14 +6,14 @@ from typing import Optional
 from .node import Ap, Integer, Name, Node, NoEvalError, Operator, Placeholder
 from .operators import Bool, EvaluatableOperator, max_operator_arity
 from .patterns import (
-    default_direct_patterns,
+    default_direct_expand_patterns,
     default_expand_patterns,
     default_shrink_patterns,
 )
 from .var_map import VarMap
 
 
-@lru_cache(4096)
+@lru_cache(2 ** 16)
 def match(node: Node, pattern: Node):
     if isinstance(pattern, Placeholder):
         return VarMap({pattern.value: node})
@@ -92,19 +92,32 @@ def contains_only(node, allowed_nodes):
 
 
 class Evaluator:
-    def __init__(self, shrink_patterns=(), expand_patterns=(), direct_patterns={}):
+    def __init__(
+        self,
+        shrink_patterns=(),
+        expand_patterns=(),
+        direct_shrink_patterns={},
+        direct_expand_patterns={},
+    ):
         self.shrink_patterns = default_shrink_patterns + list(shrink_patterns)
         self.expand_patterns = default_expand_patterns + list(expand_patterns)
-        self.direct_patterns = default_direct_patterns
-        self.direct_patterns.update(direct_patterns)
+        self.direct_shrink_patterns = direct_shrink_patterns
 
-    @lru_cache(4096)
+        self.direct_expand_patterns = default_direct_expand_patterns
+        self.direct_expand_patterns.update(direct_expand_patterns)
+
+    @lru_cache(2 ** 16)
     def shrink_once(self, node: Node) -> Optional[Node]:
         if isinstance(node, Ap):
             try:
                 return try_apply_operator(node)
             except NoEvalError:
                 pass
+
+        try:
+            return self.direct_shrink_patterns[node]
+        except KeyError:
+            pass
 
         shrinked = None
         for pattern, replacement in self.shrink_patterns:
@@ -170,7 +183,7 @@ class Evaluator:
         if not node.children:
             if isinstance(node, (Operator, Name)):
                 try:
-                    yield self.direct_patterns[node]
+                    yield self.direct_expand_patterns[node]
                 except KeyError:
                     pass
         else:
