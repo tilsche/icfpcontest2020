@@ -17,6 +17,24 @@ class Img:
         self._img.save(filename, format="png")
 
 
+class ColorImg:
+    def __init__(self, size):
+        self._size = size
+        self.pixels = np.full(self._size, 0xFF << 24, np.uint32)
+
+    def add_point(self, x, y, color=255):
+        if isinstance(color, int):
+            color = (color, color, color)
+
+        color = (color[0] << 0) | (color[1] << 8) | (color[2] << 16) | (0xFF << 24)
+        print(color)
+        self.pixels[(x, y)] = color
+
+    def save(self, filename):
+        self._img = Image.fromarray(np.transpose(self.pixels), mode="RGBA")
+        self._img.save(filename, format="png")
+
+
 def draw(nodes=[], filename="", size=(1, 1)):
     points = []
     max_x = size[0]

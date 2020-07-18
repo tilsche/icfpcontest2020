@@ -56,8 +56,6 @@ class Interaction:
         if self.screen:
             for list in data.as_list:
                 self.screen.draw(list.as_list)
-            self.screen.save(f"{self.protocol_name}-{self.iteration}.png")
-            self.iteration += 1
 
     def send(self, data: Node) -> Node:
         logger.warning(f"Should send {data}...")
@@ -94,3 +92,6 @@ class Interaction:
 
     def __call__(self, x: int, y: int):
         self.step(build_expression(f"ap ap vec {x} {y}"))
+        if self.screen:
+            self.screen.save(f"{self.protocol_name}-{self.iteration}.png", (x, y))
+            self.iteration += 1
