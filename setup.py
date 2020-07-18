@@ -11,7 +11,7 @@ setup(
       [console_scripts]
       py-zebra=zebv.app:main
       """,
-    install_requires=["requests", "pillow", "click", "click_log", "tcod", "numpy"],
+    install_requires=["requests", "pillow", "click", "click_log", "numpy"],
     tests_require=["pytest", "tcod"],
     extras_require={"tests": ["pytest", "tcod"]},
 )
