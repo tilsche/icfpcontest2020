@@ -215,13 +215,14 @@ class Evaluator:
         self, expression: Node, stop_types=(Integer, Placeholder, Bool)
     ) -> Node:
         start = time.time()
-        for step in range(100000):
+        for step in range(10000000):
             expression = self.shrink(expression)
 
             if step % 100 == 0:
                 rate = step / (time.time() - start)
                 # print(f"[{step} | {rate:.1f} 1/s] ({len(expression)}): {expression}")
-                print(f"[{step} | {rate:.1f} 1/s] ({len(expression)})")
+                # print(f"[{step} | {rate:.1f} 1/s] ({len(expression)})")
+                print(f"[{step} | {rate:.1f} 1/s]")  # ({len(expression)})")
             if contains_only(expression, stop_types):
                 return expression
 
