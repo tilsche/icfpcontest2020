@@ -154,7 +154,7 @@ class Evaluator:
                 copy.children[index] = simple_child
                 yield copy
 
-    def simplify(self, expression: Node, stop_types=(Number, Variable, Bool)):
+    def simplify(self, expression: Node, stop_types=(Number, Variable, Bool)) -> Node:
         expression = self.shrink(expression)
         if contains_only(expression, stop_types):
             return expression
@@ -167,7 +167,8 @@ class Evaluator:
 
         for _ in range(10000):
             if not todo_exprs:
-                return sorted(visited_exprs, key=len)[0]
+                raise RuntimeError("not found")
+                # return sorted(visited_exprs, key=len)[0]
 
             todo_exprs = list(sorted(todo_exprs, key=len))
             print(f"bfs candidates: {len(todo_exprs)}")
@@ -193,4 +194,5 @@ class Evaluator:
                 visited_exprs.append(candidate)
 
         print("giving up")
-        return sorted(visited_exprs, key=len)[0]
+        raise RuntimeError("Timeout")
+        # return sorted(visited_exprs, key=len)[0]

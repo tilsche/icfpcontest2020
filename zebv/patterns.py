@@ -45,8 +45,8 @@ ap ap ap if0 0 x0 x1   =   x0
 ap ap ap if0 1 x0 x1   =   x1
 # ap modem x0 = ap dem ap mod x0
 ap modem x0 = x0
-ap ap f38 x2 x0 = ap ap ap if0 ap car x0 ap ap cons ap modem ap car ap cdr x0 ap ap cons ap multipledraw ap car ap cdr ap cdr x0 nil ap ap ap interact x2 ap modem ap car ap cdr x0 ap send ap car ap cdr ap cdr x0
-ap ap ap interact x2 x4 x3 = ap ap f38 x2 ap ap x2 x4 x3
+# ap ap f38 x2 x0 = ap ap ap if0 ap car x0 ap ap cons ap modem ap car ap cdr x0 ap ap cons ap multipledraw ap car ap cdr ap cdr x0 nil ap ap ap interact x2 ap modem ap car ap cdr x0 ap send ap car ap cdr ap cdr x0
+# ap ap ap interact x2 x4 x3 = ap ap f38 x2 ap ap x2 x4 x3
 """.strip()
 
 pattern_operators = (

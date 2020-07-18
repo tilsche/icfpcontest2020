@@ -11,15 +11,6 @@ class NoEvalError(RuntimeError):
 class Node(ABC):
     children: List["Node"] = []
 
-    def match(self, pattern: "Node"):
-        if not self.children:
-            if self == pattern:
-                return {}
-            else:
-                return False
-
-        return
-
     def __eq__(self, other):
         return type(self) == type(other) and self.children == other.children
 
@@ -154,7 +145,7 @@ class Ap(Node):
         return self.children[1]
 
     def __str__(self):
-        return "ap {self.children[0]} {self.children[1]}".format(self=self)
+        return f"ap {self.children[0]} {self.children[1]}"
 
     def __repr__(self):
         return "Ap" + str((self.children[0], self.children[1]))

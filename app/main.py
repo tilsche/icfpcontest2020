@@ -1,10 +1,10 @@
+from logging import INFO, Formatter, LogRecord, getLogger
+
 import click
+
 import click_log
-
-from logging import getLogger, INFO, Formatter, LogRecord
-
 from zebv.api import ApiClient
-from zebv.modem import mod, demod
+from zebv.modem import demod, mod
 
 
 class LogFormatter(Formatter):
