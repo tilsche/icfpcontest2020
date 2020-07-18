@@ -71,6 +71,11 @@ class Command:
         req = (3, (self.player_key, (numbers, ())))
         return self._send(req)
 
+    def command(self, com):
+        # (4, playerKey, (... ship commands? ...))
+        req = (4, (self.player_key, (com, ())))
+        return self._send(req)
+
 
 @click.command()
 @click.argument("server_url")
@@ -91,6 +96,9 @@ def main(server_url, player_key, api_key):
     # command.init()
     command.join()
     command.start()
+
+    com_1 = (1, ())
+    command.command(com_1)
 
 
 if __name__ == "__main__":
