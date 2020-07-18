@@ -1,5 +1,5 @@
 import pytest
-from zebv.modem import _to_tuple_list, demod, mod, mod_node, mod_num, demod_node
+from zebv.modem import _to_tuple_list, demod, demod_node, mod, mod_node, mod_num
 from zebv.node import Ap
 from zebv.operators import Cons, Integer, Nil
 
