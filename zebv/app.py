@@ -73,8 +73,8 @@ def main(server_url, player_key, api_key):
     logger.info("ServerUrl: %s; PlayerKey: %s" % (server_url, player_key))
 
     client = ApiClient(server_url, api_key)
-    resp = client.aliens_send("data")
-    print(resp)
+    # resp = client.aliens_send("data")
+    # print(resp)
 
     # request = Ap(Ap(Cons(), Number(2)), Ap(Ap(Cons(), Number(int(player_key))), Nil()))
 
