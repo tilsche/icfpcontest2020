@@ -13,6 +13,14 @@ class HardcodedOperator(Operator):
     def __hash__(self):
         return hash(type(self))
 
+    @classmethod
+    def operators(cls):
+        for c in cls.__subclasses__():
+            if hasattr(c, "name"):
+                yield c
+            for cc in c.operators():
+                yield cc
+
 
 class EvaluatableOperator(HardcodedOperator):
     arity: int
@@ -80,19 +88,22 @@ class Div(BinaryOperator):
             raise NoEvalError()
 
 
-class Bool(HardcodedOperator):
+class Bool(BinaryOperator):
     pass
-
-    def __call__(self, a1: OperatorArgument):
-        raise NoEvalError()
 
 
 class T(Bool):
     name = "t"
 
+    def __call__(self, x0: OperatorArgument, x1: OperatorArgument):
+        return x0
+
 
 class F(Bool):
     name = "f"
+
+    def __call__(self, x0: OperatorArgument, x1: OperatorArgument):
+        return x1
 
 
 class Eq(BinaryOperator):
@@ -140,16 +151,24 @@ class Cons(HardcodedOperator):
     name = "cons"
 
 
-class Nil(HardcodedOperator):
+class Nil(UnaryOperator):
     name = "nil"
 
     @property
     def as_list(self):
         return SugarList()
 
+    def __call__(self, x0: OperatorArgument):
+        return T()
 
-operators = {
-    op().name: op() for op in (Inc, Dec, Add, Mul, Div, T, F, Eq, Lt, Neg, Cons, Nil)
-}
+
+class I(UnaryOperator):
+    name = "i"
+
+    def __call__(self, a1: OperatorArgument):
+        return a1
+
+
+operators = {op().name: op() for op in HardcodedOperator.operators()}
 
 max_operator_arity = 2

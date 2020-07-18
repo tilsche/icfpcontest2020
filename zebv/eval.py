@@ -213,10 +213,11 @@ class Evaluator:
     def simplify_linear(
         self, expression: Node, stop_types=(Number, Variable, Bool)
     ) -> Node:
-        for _ in range(10000):
+        for step in range(10000):
             expression = self.shrink(expression)
 
-            print(f"next ({len(expression)}): {expression}")
+            if step % 100 == 0:
+                print(f"[{step}] ({len(expression)}): {expression}")
             if contains_only(expression, stop_types):
                 return expression
 

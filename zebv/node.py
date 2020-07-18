@@ -127,6 +127,9 @@ class SugarList(Node):
         inner_reps = ", ".join(repr(i) for i in self.inner)
         return f"SugarList({inner_reps})"
 
+    def __iter__(self):
+        return iter(self.children)
+
 
 class SugarVector(Node):
     def __init__(self, *children):
