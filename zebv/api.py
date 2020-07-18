@@ -1,4 +1,8 @@
+from logging import getLogger
+
 import requests
+
+logger = getLogger(__name__)
 
 
 class ApiClient:
@@ -15,4 +19,7 @@ class ApiClient:
         return response.text
 
     def aliens_send(self, data: str) -> str:
-        return self._post("aliens/send", data)
+        logger.debug(f"aliens_send({data!r}) ~~~>")
+        response = self._post("aliens/send", data)
+        logger.debug(f"{response!r} <~~~~")
+        return response
