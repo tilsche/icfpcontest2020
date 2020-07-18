@@ -6,5 +6,5 @@ sys.setrecursionlimit(50000)
 
 data = open("galaxy").read().strip()
 
-i = Interaction(data, "galaxy")
+i = Interaction(data, "galaxy", interactive=True)
 i(0, 0)
