@@ -40,7 +40,6 @@ logging.basicConfig(level=logging.DEBUG, handlers=[handler])
 # logging.basicConfig(level=logging.DEBUG)
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 
 class Command:
@@ -152,6 +151,7 @@ def main(server_url, player_key, api_key):
     command = Command(client)
 
     if player_key == 0:  # Testcase, not for submission
+        logger.info("Choose Testing Mode")
         attac_player_key, defend_player_key = command.init()
         attac = AttacPlayer(attac_player_key, command)
         defend = DefendPlayer(defend_player_key, command)
@@ -159,6 +159,7 @@ def main(server_url, player_key, api_key):
         defend.start()
 
     else:
+        logger.info("Choose Submission Mode")
         resp = command.join(player_key)
         game_resp = GameResponse(resp)
         player = None
