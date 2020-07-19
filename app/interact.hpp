@@ -4,7 +4,11 @@
 #include <fmt/format.h>
 #include <ostream>
 
+#include <nitro/env/get.hpp>
+
 #include "eval.hpp"
+#include "httplib.h"
+#include "modem.hpp"
 #include "util.hpp"
 
 namespace zebra
@@ -66,7 +70,8 @@ inline std::ostream& operator<<(std::ostream& os, const Coordinate& expr)
 class Interact
 {
 public:
-    Interact(const std::string& protocol) : protocol_(make_operator(protocol))
+    Interact(const std::string& protocol)
+    : protocol_(make_operator(protocol)), apiclient_("icfpc2020-api.testkontur.ru", 443)
     {
     }
 
@@ -112,9 +117,11 @@ private:
 
     PExpr send_(const PExpr& data)
     {
-        std::cout << "send some stuff\n";
-        // TODO
-        return data;
+        auto path = "/aliens/send?apiKey=" + nitro::env::get("API_KEY");
+        const std::shared_ptr<httplib::Response> serverResponse =
+            apiclient_.Post(path.c_str(), zebra::modem::modulate(data), "text/plain");
+
+        return zebra::modem::demodulate(serverResponse->body);
     }
 
 public:
@@ -131,5 +138,6 @@ public:
 private:
     PExpr protocol_;
     PExpr state_ = operators::nil;
+    httplib::SSLClient apiclient_;
 };
 } // namespace zebra

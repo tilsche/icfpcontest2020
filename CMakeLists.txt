@@ -14,6 +14,8 @@ add_subdirectory(lib/fmt EXCLUDE_FROM_ALL)
 set(THREADS_PREFER_PTHREAD_FLAG true)
 find_package(Threads REQUIRED)
 
+find_package(OpenSSL REQUIRED)
+
 set(SOURCE_FILES
     app/main.cpp
     app/modem.cpp
@@ -54,17 +56,22 @@ target_compile_features(pow2
 
 #find_package(wxWidgets REQUIRED COMPONENTS core base)
 
-add_executable(galaxy app/galaxy.cpp)
+add_executable(galaxy app/galaxy.cpp app/modem.cpp)
 
 target_link_libraries(galaxy
     PRIVATE
         Nitro::core
+        Nitro::env
         wx::net
         wx::core
         wx::base
         wx::aui
         fmt::fmt-header-only
+        OpenSSL::SSL
+        OpenSSL::Crypto
 )
+
+
 
 target_compile_features(galaxy
     PRIVATE
@@ -72,7 +79,7 @@ target_compile_features(galaxy
 )
 
 # define feature test macro
-# target_compile_definitions(solver PRIVATE _GNU_SOURCE)
+target_compile_definitions(galaxy PRIVATE CPPHTTPLIB_OPENSSL_SUPPORT)
 
 # build Debug with -Werror
 target_compile_options(solver PRIVATE -Wall -pedantic -Wextra)
