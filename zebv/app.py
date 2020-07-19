@@ -11,6 +11,7 @@ from .operators import Cons, Nil
 from .game_state import GameResponse
 
 import threading
+import time
 
 ATTAC = 0
 DEFEND = 1
@@ -121,8 +122,7 @@ class Player(threading.Thread):
 
     def detonate(self, ship_id):
         command_id = 1
-        command = ()
-        command = (ship_id, command)
+        command = (ship_id, ())
         command = (command_id, command)
         self._command.command(self._player_key, command)
 
@@ -162,6 +162,8 @@ class DefendPlayer(Player):
         s_u_c = self.game_response.game_state.ships_and_commands.ships_and_commands
         for (ship, commands) in s_u_c:
             if ship.role == DEFEND:
+
+                time.sleep(0.5)
                 self.log.info(f"ACCELERATE {ship.ship_id}")
                 # self.accellerate(ship[0].ship_id, (1, 1))
                 self.detonate(ship.ship_id)
