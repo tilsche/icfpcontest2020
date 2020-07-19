@@ -5,17 +5,18 @@
 #include <ostream>
 
 #include "eval.hpp"
+#include "util.hpp"
 
 namespace zebra
 {
 
 struct Coordinate
 {
-    long long x;
-    long long y;
+    UnderlyingInteger x;
+    UnderlyingInteger y;
 
 public:
-    Coordinate(long long x, long long y) : x(x), y(y)
+    Coordinate(UnderlyingInteger x, UnderlyingInteger y) : x(x), y(y)
     {
     }
     Coordinate(const PExpr& expr)
@@ -47,8 +48,11 @@ public:
 private:
     void step_(const PExpr& vector)
     {
+        auto begin = now();
         auto proto_expr = make_ap(make_ap(this->protocol_, this->state_), vector);
         auto proto_result = this->evaluator.eval(proto_expr);
+        auto end = now();
+        fmt::print("step took {:.2f} ms\n", as_milliseconds(end - begin));
 
         auto fsd = as_list(proto_result);
         assert(fsd.size() == 3);
@@ -61,19 +65,19 @@ private:
         if (flag->value() == 0)
         {
             auto eimages = as_list(data);
-            std::cout << "draw images: " << eimages.size() << "\n";
+            std::cout << "draw " << eimages.size() << " images: (";
             images.clear();
             for (const auto& eimage : eimages)
             {
                 images.emplace_back();
                 auto epixels = as_list(eimage);
-                std::cout << "   draw pixels " << epixels.size() << "\n";
+                std::cout << epixels.size() << ", ";
                 for (const auto& v : epixels)
                 {
                     images.back().emplace_back(v);
                 }
             }
-            std::cout << "draw some stuff\n";
+            std::cout << ")\n";
         }
         else
         {
