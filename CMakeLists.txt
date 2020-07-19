@@ -36,10 +36,23 @@ add_executable(pow2 app/pow2.cpp)
 
 target_link_libraries(pow2
     PRIVATE
-       Nitro::core
+        Nitro::core
 )
 
 target_compile_features(pow2
+    PRIVATE
+        cxx_std_20
+)
+
+
+add_executable(galaxy app/galaxy.cpp)
+
+target_link_libraries(galaxy
+    PRIVATE
+        Nitro::core
+)
+
+target_compile_features(galaxy
     PRIVATE
         cxx_std_20
 )
