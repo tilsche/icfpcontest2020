@@ -128,7 +128,7 @@ class DefendPlayer(Player):
         self._ship_params = (1, (2, (3, (4, ()))))
 
     def act(self):
-        self.log.info(f"Do Something, as {self.game_response.static_game_info.role}")
+        self.log.info(f"Start as {self.game_response.static_game_info.role}")
         resp = self._command.start(self._player_key, self._ship_params)
         self.game_response = GameResponse(resp)
         logging.info(self.game_response)
@@ -201,15 +201,18 @@ def main(server_url, player_key, api_key):
         attac.start()
         defend.start()
 
-    else:  # not implemented yet
-        pass
+    else:
+        resp = command.join(player_key)
+        game_resp = GameResponse(resp)
+        player = None
+        if game_resp.static_game_info.role == 0:
+            player = AttacPlayer(player_key, command)
+        elif game_resp.static_game_info.role == 1:
+            player = DefendPlayer(player_key, command)
+        else:
+            raise RuntimeError(f"Unkone role {game_resp.static_game_info.role}")
 
-    # print(command.init())
-    # command.join()
-    # command.start()
-
-    # com_1 = 1
-    # command.command(com_1)
+        player.act()
 
 
 if __name__ == "__main__":
