@@ -121,7 +121,7 @@ class Command:
         status, result = self._send(4, player_key, lst(*args))
         if status != 1:
             raise RuntimeError(
-                f"Failed to send COMMAND for player {player_key}, Response: {(status, result)}"
+                f"Failed to send COMMAND: {(args)} for player {player_key}, Response: {(status, result)}"
             )
         return result
 
@@ -211,22 +211,29 @@ class DefendPlayer(Player):
         resp = self._command.start(self._player_key, self._ship_params)
         self.game_response = self.nothing()
 
+        inital_pos = None
         while self.game_response.game_stage == 1:
-            self.log.info(self.game_response)
+            # self.log.info(self.game_response)
             s_u_c = self.game_response.game_state.ships_and_commands.ships_and_commands
             for (ship, commands) in s_u_c:
                 if ship.role == DEFEND:
-                    self.log.info(f"ACCELERATE {ship.ship_id}")
-                    resp = self.accelerate(ship.ship_id, (1, 1))
-                    self.game_response = resp
-
-                    self.log.info(f"SHOOT {ship.ship_id}")
-                    resp = self.shoot(ship.ship_id, (1, 1), 1)
-                    self.game_response = resp
-
-                    self.log.info(f"DETONATE {ship.ship_id}")
-                    resp = self.detonate(ship.ship_id)
-                    self.game_response = resp
+                    self.log.info(f"position: {ship.position}, vel: {ship.velocity}")
+                    if not inital_pos:
+                        inital_pos = ship.position
+                    xi, yi = inital_pos
+                    x, y = ship.position
+                    fac = 2
+                    vec = (fac * (x - xi), fac * (y - yi))
+                    self.log.info(f"ACCELERATE {ship.ship_id}, VEC: {vec}")
+                    self.game_response = self.accelerate(ship.ship_id, vec)
+                    # resp = self.nothing()
+                    # self.log.info(f"SHOOT {ship.ship_id}")
+                    # resp = self.shoot(ship.ship_id, (1, 1), 1)
+                    # self.game_response = resp
+                    #
+                    # self.log.info(f"DETONATE {ship.ship_id}")
+                    # resp = self.detonate(ship.ship_id)
+                    # self.game_response = resp
 
         self.log.info(f"Finished: {self.game_response}")
 
