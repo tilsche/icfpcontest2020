@@ -197,7 +197,7 @@ class AttacPlayer(Player):
 
 
 class DefendPlayer(Player):
-    def __init__(self, player_key, command):
+    def __init__(self, player_key, command, log_level=logging.DEBUG):
         super().__init__(player_key, command)
         self.log = logger.getChild(f"DEFEND {DEFEND}")
         self.log.info(f"Player Key: {self._player_key}")
@@ -223,8 +223,8 @@ class DefendPlayer(Player):
                     xi, yi = inital_pos
                     x, y = ship.position
                     fac = 2
-                    # vec = (fac * (x - xi), fac * (y - yi))
-                    vec = (1, 1)
+                    vec = (fac * (x - xi), fac * (y - yi))
+                    #vec = (1, 1)
                     self.log.info(f"ACCELERATE {ship.ship_id}, VEC: {vec}")
                     self.game_response = self.accelerate(ship.ship_id, vec)
                     # self.game_response = self.shoot(ship.ship_id, (1, 1), 1)
@@ -265,9 +265,9 @@ def main(server_url, player_key, api_key):
         if game_resp.game_stage in [0, 1]:
             logger.info("Start Game")
             if game_resp.static_game_info.role == 0:
-                player = AttacPlayer(player_key, command)
+                player = AttacPlayer(player_key, command, log_level=logging.DEBUG)
             elif game_resp.static_game_info.role == 1:
-                player = DefendPlayer(player_key, command)
+                player = DefendPlayer(player_key, command, log_level=logging.DEBUG)
             else:
                 raise RuntimeError(f"Unkone role {game_resp.static_game_info.role}")
 
