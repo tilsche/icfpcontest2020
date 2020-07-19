@@ -171,9 +171,10 @@ class Player(threading.Thread):
 
 
 class AttacPlayer(Player):
-    def __init__(self, player_key, command):
+    def __init__(self, player_key, command, log_level=logging.ERROR):
         super().__init__(player_key, command)
         self.log = logger.getChild(f"ATTAC ({ATTAC})")
+        self.log.setLevel(log_level)
         self.log.info(f"Player Key: {self._player_key}")
         self._ship_params = (1, 2, 3, 4)
 
@@ -216,8 +217,15 @@ class DefendPlayer(Player):
             for (ship, commands) in s_u_c:
                 if ship.role == DEFEND:
                     self.log.info(f"ACCELERATE {ship.ship_id}")
-                    time.sleep(0.5)
                     resp = self.accelerate(ship.ship_id, (1, 1))
+                    self.game_response = resp
+
+                    self.log.info(f"SHOOT {ship.ship_id}")
+                    resp = self.shoot(ship.ship_id, (1, 1), 1)
+                    self.game_response = resp
+
+                    self.log.info(f"DETONATE {ship.ship_id}")
+                    resp = self.detonate(ship.ship_id)
                     self.game_response = resp
 
         self.log.info(f"Finished: {self.game_response}")
