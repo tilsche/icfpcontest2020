@@ -46,7 +46,7 @@ class Interaction:
             self.screen.on_mouse_click = callback
 
     def draw(self, data):
-        logger.warning(f"should draw: {data}")
+        logger.debug(f"should draw: {data}")
         if self.screen:
             for l in as_list(data):
                 self.screen.draw(as_list(l))
@@ -64,6 +64,7 @@ class Interaction:
         start_simplify = time.time()
         proto_result = self.evaluator.eval(proto_expr)
         duration = time.time() - start_simplify
+        logger.warning(f"Step took {duration} s")
 
         # This will probably crash, sorry
         flag, new_state, data = as_list(proto_result)

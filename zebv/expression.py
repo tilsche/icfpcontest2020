@@ -36,7 +36,7 @@ class Ap:
         return self._arg
 
     def __eq__(self, other):
-        return (
+        return id(self) == id(other) or (
             isinstance(other, Ap) and self._arg == other._arg and self._op == other._op
         )
 
