@@ -4,7 +4,7 @@ setup(
     name="zebv",
     version="0.1",
     author="Zebra Infused Hamsters",
-    python_requires=">=3.7",
+    python_requires=">=3.6",
     packages=["zebv"],
     scripts=[],
     entry_points="""
