@@ -8,6 +8,12 @@
 
 int main(int argc, char* argv[])
 {
+    auto expr = zebra::modem::demodulate("110110010100");
+
+    std::cout << expr << "\n";
+
+    return 0;
+
     const std::string serverUrl(argv[1]);
     const std::string playerKey(argv[2]);
 
