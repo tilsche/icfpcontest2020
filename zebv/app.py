@@ -217,14 +217,16 @@ class DefendPlayer(Player):
             s_u_c = self.game_response.game_state.ships_and_commands.ships_and_commands
             for (ship, commands) in s_u_c:
                 if ship.role == DEFEND:
-                    self.log.info(f"position: {ship.position}, vel: {ship.velocity}")
+                    self.log.info(
+                        f"tick: {self.game_response.game_state.game_tick} position: {ship.position}, vel: {ship.velocity}"
+                    )
                     if not inital_pos:
                         inital_pos = ship.position
                     xi, yi = inital_pos
                     x, y = ship.position
                     fac = 2
                     vec = (fac * (x - xi), fac * (y - yi))
-                    #vec = (1, 1)
+                    # vec = (1, 1)
                     self.log.info(f"ACCELERATE {ship.ship_id}, VEC: {vec}")
                     self.game_response = self.accelerate(ship.ship_id, vec)
                     # self.game_response = self.shoot(ship.ship_id, (1, 1), 1)
