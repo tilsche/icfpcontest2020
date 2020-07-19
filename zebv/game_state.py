@@ -15,7 +15,8 @@ class GameState:
     def __init__(self, game_state):
         self.game_tick, game_state = game_state
         self.x1, game_state = game_state
-        self.ships_and_commands, game_state = game_state
+        ships_and_commands, game_state = game_state
+        self.ships_and_commands = ShipsAndCommands(ships_and_commands)
         assert game_state == ()
 
     def __repr__(self):
@@ -23,8 +24,34 @@ class GameState:
 
 
 class ShipsAndCommands:
-    def __init__(self):
-        pass
+    def __init__(self, ships_and_commands):
+        self.ships_and_commands = []
+        while True:
+            if ships_and_commands == ():
+                break
+            else:
+                s, ships_and_commands = ships_and_commands
+                ship, applied_commands = s
+                self.ships_and_commands.append((Ship(ship), applied_commands))
+
+    def __repr__(self):
+        return f"ShipsAndCommands ({self.ships_and_commands})"
+
+
+class Ship:
+    def __init__(self, ship):
+        self.role, ship = ship
+        self.shipId, ship = ship
+        self.position, ship = ship
+        self.velocity, ship = ship
+        self.x4, ship = ship
+        self.x5, ship = ship
+        self.x6, ship = ship
+        self.x7, ship = ship
+        assert ship == ()
+
+    def __repr__(self):
+        return f"Ship (role: {self.role}, shipId: {self.shipId}, position: {self.position}, velocity: {self.velocity}, x4: {self.x4}, x5: {self.x5}, x6: {self.x6}, x7: {self.x7})"
 
 
 class GameResponse:
