@@ -5,6 +5,10 @@ project(icfp VERSION 20.2.0)
 add_subdirectory(lib/nitro)
 add_subdirectory(lib/wxWidgets)
 
+# TODO Maybe revert this with CMP0077 some time in the future
+set(FMT_INSTALL ON CACHE BOOL "If you can read this, something is wrong with CMake.")
+add_subdirectory(lib/fmt EXCLUDE_FROM_ALL)
+
 # find external dependencies
 #find_package(Boost REQUIRED COMPONENTS system program_options filesystem)
 set(THREADS_PREFER_PTHREAD_FLAG true)
@@ -57,6 +61,7 @@ target_link_libraries(galaxy
         wx::core
         wx::base
         wx::aui
+        fmt::fmt-header-only
 )
 
 target_compile_features(galaxy

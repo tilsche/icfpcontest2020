@@ -36,7 +36,7 @@ public:
     {
     }
 
-    void add_function(const std::string& name, PExpr definition)
+    void add_function(const std::string& name, const PExpr& definition)
     {
         functions_[name] = definition;
     }
@@ -101,7 +101,7 @@ private:
             {
                 return it->second;
             }
-            //            std::cout << "did not found " << expr->name_ << "\n";
+            std::cout << "did not found " << expr->name() << "\n";
         }
         if (expr->is_ap())
         {
