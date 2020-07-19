@@ -37,6 +37,10 @@ public:
     void add_function_file(const std::string& filename)
     {
         std::ifstream f(filename);
+        if (!f)
+        {
+            throw std::runtime_error("file not found: " + filename);
+        }
         std::string line;
         while (std::getline(f, line))
         {

@@ -3,6 +3,7 @@ project(icfp VERSION 20.2.0)
 
 # configure Nitro submodule
 add_subdirectory(lib/nitro)
+add_subdirectory(lib/wxWidgets)
 
 # find external dependencies
 #find_package(Boost REQUIRED COMPONENTS system program_options filesystem)
@@ -45,11 +46,17 @@ target_compile_features(pow2
 )
 
 
+#find_package(wxWidgets REQUIRED COMPONENTS core base)
+
 add_executable(galaxy app/galaxy.cpp)
 
 target_link_libraries(galaxy
     PRIVATE
         Nitro::core
+        wx::net
+        wx::core
+        wx::base
+        wx::aui
 )
 
 target_compile_features(galaxy

@@ -1,6 +1,8 @@
 #pragma once
 
 #include <memory>
+#include <utility>
+#include <vector>
 
 namespace zebra
 {
@@ -174,6 +176,15 @@ std::vector<PExpr> as_list(const PExpr& expr)
     auto tail = as_list(expr->arg());
     tail.insert(tail.begin(), expr->op()->arg());
     return tail;
+}
+
+std::pair<PExpr, PExpr> as_vector(const PExpr& expr)
+{
+    assert(expr->is_ap());
+    assert(expr->op()->is_ap());
+    assert(expr->op()->op() == operators::cons);
+
+    return { expr->op()->arg(), expr->arg() };
 }
 
 // inline bool operator==(const Expr& lhs, const Expr& rhs)

@@ -11,6 +11,16 @@ struct Coordinate
     long long y;
 
 public:
+    Coordinate(long long x, long long y) : x(x), y(y)
+    {
+    }
+    Coordinate(const PExpr& expr)
+    {
+        const auto& [ex, ey] = zebra::as_vector(expr);
+        this->x = ex->value();
+        this->y = ey->value();
+    }
+
     PExpr as_vector() const
     {
         return make_ap(make_ap(operators::cons, make_integer(this->x)), make_integer(this->y));
@@ -40,6 +50,19 @@ private:
         this->state_ = new_state;
         if (flag->value() == 0)
         {
+            auto eimages = as_list(data);
+            std::cout << "draw images: " << eimages.size() << "\n";
+            images.clear();
+            for (const auto& eimage : eimages)
+            {
+                images.emplace_back();
+                auto epixels = as_list(eimage);
+                std::cout << "   draw pixels " << epixels.size() << "\n";
+                for (const auto& v : epixels)
+                {
+                    images.back().emplace_back(v);
+                }
+            }
             std::cout << "draw some stuff\n";
         }
         else
@@ -63,6 +86,8 @@ public:
 
 public:
     Evaluator evaluator;
+
+    std::vector<std::vector<Coordinate>> images;
 
 private:
     PExpr protocol_;
