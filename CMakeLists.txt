@@ -42,6 +42,7 @@ add_executable(pow2 app/pow2.cpp)
 target_link_libraries(pow2
     PRIVATE
         Nitro::core
+        fmt::fmt-header-only
 )
 
 target_compile_features(pow2

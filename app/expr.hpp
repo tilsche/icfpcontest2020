@@ -8,6 +8,8 @@
 
 #include "util.hpp"
 
+#include <fmt/format.h>
+
 namespace zebra
 {
 enum class ExprType
@@ -21,7 +23,8 @@ using UnderlyingInteger = std::int64_t;
 
 class Expr;
 
-using PExpr = std::shared_ptr<Expr>;
+// using PExpr = std::shared_ptr<Expr>;
+using PExpr = Expr*;
 
 class Expr
 {
@@ -114,7 +117,7 @@ public:
 private:
     ExprType type_;
 
-    PExpr evaluated_;
+    PExpr evaluated_ = nullptr;
 
     PExpr op_;
     PExpr arg_;
@@ -122,49 +125,48 @@ private:
     std::string name_;
 };
 
-PExpr make_ap(const PExpr& op, const PExpr& arg)
+inline PExpr make_ap(const PExpr& op, const PExpr& arg)
 {
-#ifdef USE_AP_REGISTRY
-    static std::unordered_map<std::pair<Expr*, Expr*>, PExpr, pair_hash> ap_registry;
-    auto key = std::make_pair(op.get(), arg.get());
+    static std::unordered_map<std::pair<PExpr, PExpr>, PExpr, pair_hash> ap_registry(16777216ll);
+    static size_t calls = 0;
+    auto key = std::make_pair(op, arg);
+    calls++;
     auto it = ap_registry.find(key);
     if (it == ap_registry.end())
     {
+        if (ap_registry.size() % 10000 == 0)
+        {
+            fmt::print("make_ap reg size {}, cc {}, miss rate {}\n", ap_registry.size(), calls++,
+                       1.0 * ap_registry.size() / calls);
+        }
         bool inserted;
-        std::tie(it, inserted) = ap_registry.emplace(key, std::make_shared<Expr>(op, arg));
+        std::tie(it, inserted) = ap_registry.emplace(key, new Expr(op, arg));
         assert(inserted);
     }
     return it->second;
-#else
-    return std::make_shared<Expr>(op, arg);
-#endif
 }
 
-PExpr make_integer(UnderlyingInteger i)
+inline PExpr make_integer(UnderlyingInteger i)
 {
-#ifdef USE_INTEGER_REGISTRY
     static std::unordered_map<int, PExpr> number_registry;
     auto it = number_registry.find(i);
     if (it == number_registry.end())
     {
         bool inserted;
-        std::tie(it, inserted) = number_registry.emplace(i, std::make_shared<Expr>(i));
+        std::tie(it, inserted) = number_registry.emplace(i, new Expr(i));
         assert(inserted);
     }
     return it->second;
-#else
-    return std::make_shared<Expr>(i);
-#endif
 }
 
-PExpr make_operator(const std::string& name)
+inline PExpr make_operator(const std::string& name)
 {
     static std::unordered_map<std::string, PExpr> op_registry;
     auto it = op_registry.find(name);
     if (it == op_registry.end())
     {
         bool inserted;
-        std::tie(it, inserted) = op_registry.emplace(name, std::make_shared<Expr>(name));
+        std::tie(it, inserted) = op_registry.emplace(name, new Expr(name));
         assert(inserted);
     }
     return it->second;
