@@ -1,5 +1,7 @@
 from zebv.screen import BoundingBox, Coord
 
+import pytest
+
 
 def test_bounding_box():
     bb = BoundingBox()
@@ -52,3 +54,43 @@ def test_bounding_box_combine():
     assert bb.upper_left == Coord(-1, -1)
     assert bb.offset == Coord(1, 1)
     assert bb.size == Coord(3, 3)
+
+
+@pytest.fixture
+def bounding_box():
+    bb = BoundingBox()
+    bb.add_point(Coord(1, 1))
+    bb.add_point(Coord(-1, -1))
+
+    yield bb
+
+
+def test_bounding_box_range(bounding_box):
+    expected_points = [
+        Coord(-1, -1),
+        Coord(0, -1),
+        Coord(1, -1),
+        Coord(-1, 0),
+        Coord(0, 0),
+        Coord(1, 0),
+        Coord(-1, 1),
+        Coord(0, 1),
+        Coord(1, 1),
+    ]
+
+    points = [point for point in bounding_box]
+
+    assert len(points) == 9
+
+    for actual, expected in zip(points, expected_points):
+        assert actual == expected
+
+
+def test_bounding_box_xrange(bounding_box):
+    r = [i for i in bounding_box.xrange]
+    assert [-1, 0, 1] == r
+
+
+def test_bounding_box_yrange(bounding_box):
+    r = [i for i in bounding_box.yrange]
+    assert [-1, 0, 1] == r
