@@ -3,6 +3,9 @@
 
 #include <wx/wx.h>
 
+#include <nitro/lang/enumerate.hpp>
+#include <nitro/lang/reverse.hpp>
+
 #include "eval.hpp"
 #include "interact.hpp"
 
@@ -17,8 +20,8 @@ BEGIN_EVENT_TABLE(GalaxyPanel, wxPanel)
  */
 // EVT_MOUSEWHEEL(ChartDrawPanel::mouseWheelMoved)
 // EVT_LEFT_DOWN(ChartDrawPanel::mouseDown)
-// EVT_LEFT_UP(ChartDrawPanel::mouseReleased)
-// EVT_MOTION(ChartDrawPanel::mouseMoved)
+EVT_LEFT_UP(GalaxyPanel::mouse_left_up)
+EVT_MOTION(GalaxyPanel::mouse_moved)
 // EVT_KEY_DOWN(ChartDrawPanel::keyPressed)
 // EVT_KEY_UP(ChartDrawPanel::keyReleased)
 //// catch paint events
@@ -128,17 +131,24 @@ void GalaxyPanel::render(wxDC& dc)
     {
         dc.SetPen(wxNullPen);
     }
-    dc.SetBrush(*wxWHITE_BRUSH);
-    int count = 0;
-    for (const auto& image : interact_.images)
+
+    for (const auto& elem : nitro::lang::enumerate(nitro::lang::reverse(interact_.images)))
     {
-        for (const auto& pixel : image)
+        int grayscale = (255 / interact_.images.size()) * (elem.index() + 1);
+        dc.SetBrush(wxBrush(wxColor(grayscale, grayscale, grayscale)));
+
+        for (const auto& pixel : elem.value())
         {
-            count++;
             dc.DrawRectangle(transform(pixel), wxSize(scale, scale));
         }
     }
-    std::cout << "RENDER " << count << "\n";
+
+    dc.SetPen(*wxGREEN_PEN);
+    dc.SetBrush(wxNullBrush);
+    if (mouse_position_)
+    {
+        dc.DrawRectangle(transform(*mouse_position_), wxSize(scale, scale));
+    }
 }
 
 //

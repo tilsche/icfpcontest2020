@@ -1,5 +1,7 @@
 #pragma once
 
+#include <ostream>
+
 #include "eval.hpp"
 
 namespace zebra
@@ -26,6 +28,12 @@ public:
         return make_ap(make_ap(operators::cons, make_integer(this->x)), make_integer(this->y));
     }
 };
+
+inline std::ostream& operator<<(std::ostream& os, const Coordinate& expr)
+{
+    os << "<" << expr.x << ", " << expr.y << ">";
+    return os;
+}
 
 class Interact
 {

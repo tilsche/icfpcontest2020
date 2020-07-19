@@ -1,5 +1,7 @@
 #pragma once
 
+#include <optional>
+
 #include <wx/aui/framemanager.h>
 #include <wx/dcbuffer.h>
 #include <wx/wx.h>
@@ -85,8 +87,33 @@ private:
         return wxPoint((coord.x + offset_x) * scale, (coord.y + offset_y) * scale);
     }
 
+    zebra::Coordinate transform(wxPoint point)
+    {
+        return { (point.x / scale) - offset_x, (point.y / scale) - offset_y };
+    }
+
+    void mouse_left_up(wxMouseEvent& event)
+    {
+        interact_(transform(event.GetPosition()));
+        Refresh();
+    }
+
+    void mouse_moved(wxMouseEvent& event)
+    {
+        if (event.Leaving())
+        {
+            mouse_position_.reset();
+        }
+        else
+        {
+            mouse_position_ = transform(event.GetPosition());
+        }
+        Refresh();
+    }
+
 private:
     zebra::Interact& interact_;
+    std::optional<zebra::Coordinate> mouse_position_;
     int scale = 5;
     wxCoord offset_x;
     wxCoord offset_y;
