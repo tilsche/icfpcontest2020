@@ -35,12 +35,6 @@ class Interaction:
             self.protocol_name = protocol
 
             def callback(point):
-                if self.screen:
-                    self.screen.save(
-                        f"{self.protocol_name}-{self.iteration}.png", point
-                    )
-                    self.iteration += 1
-                self.screen.clear()
                 self(point.x, point.y)
 
             self.screen.on_mouse_click = callback
@@ -80,4 +74,9 @@ class Interaction:
             self.step(self.send(data))
 
     def __call__(self, x: int, y: int):
+        logger.warning(f"Click {x} {y}")
+        if self.screen:
+            self.screen.save(f"{self.protocol_name}-{self.iteration}.png", Coord(x, y))
+            self.iteration += 1
+        self.screen.clear()
         self.step(build_expression(f"ap ap vec {x} {y}"))

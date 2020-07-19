@@ -13,7 +13,7 @@ class Evaluator:
         initial_node = expression
         while True:
             result = self._try_eval(expression)
-            if result == expression:
+            if result is expression:
                 if isinstance(initial_node, Ap):
                     initial_node.evaluated = result
                 return result
