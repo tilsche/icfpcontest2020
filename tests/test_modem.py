@@ -1,6 +1,7 @@
 import pytest
 from zebv.expression import Ap, Integer
-from zebv.modem import _to_tuple_list, demod, demod_node, mod, mod_node, mod_num
+from zebv.modem import (_to_tuple_list, demod, demod_node, mod, mod_node,
+                        mod_num)
 
 TEST_NODES = [
     (Integer(0), 0, "010"),
