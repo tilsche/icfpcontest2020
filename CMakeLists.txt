@@ -32,6 +32,18 @@ target_compile_features(solver
         cxx_std_20
 )
 
+add_executable(pow2 app/pow2.cpp)
+
+target_link_libraries(pow2
+    PRIVATE
+       Nitro::core
+)
+
+target_compile_features(pow2
+    PRIVATE
+        cxx_std_20
+)
+
 # define feature test macro
 # target_compile_definitions(solver PRIVATE _GNU_SOURCE)
 
