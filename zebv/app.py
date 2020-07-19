@@ -163,14 +163,19 @@ def main(server_url, player_key, api_key):
         resp = command.join(player_key)
         game_resp = GameResponse(resp)
         player = None
-        if game_resp.static_game_info.role == 0:
-            player = AttacPlayer(player_key, command)
-        elif game_resp.static_game_info.role == 1:
-            player = DefendPlayer(player_key, command)
-        else:
-            raise RuntimeError(f"Unkone role {game_resp.static_game_info.role}")
 
-        player.act()
+        if game_resp.game_stage in [0, 1]:
+            logger.info("Start Game")
+            if game_resp.static_game_info.role == 0:
+                player = AttacPlayer(player_key, command)
+            elif game_resp.static_game_info.role == 1:
+                player = DefendPlayer(player_key, command)
+            else:
+                raise RuntimeError(f"Unkone role {game_resp.static_game_info.role}")
+
+            player.act()
+        else:
+            logger.info("Game finished ({game_resp.game_stage})")
 
 
 if __name__ == "__main__":
