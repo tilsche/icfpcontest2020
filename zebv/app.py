@@ -114,8 +114,7 @@ class Command:
         logger.debug(
             f"Sending COMMAND(4, player_key={player_key}, args=({' '.join(map(str, args))}))"
         )
-        request = lst(4, player_key, lst(*args))
-        status, result = self._send(request)
+        status, result = self._send(4, player_key, lst(*args))
         if status != 1:
             raise RuntimeError(f"Failed to send COMMAND for player {player_key}")
         return result
@@ -143,17 +142,26 @@ class Player(threading.Thread):
         response = self._command.command(self._player_key, lst(type_, *args))
         return GameResponse(response)
 
+    def nothing(self):
+        # debug:zebv.app: => (4, (7981600807349721590, ((), ()))) ~~~~~> (send)
+        #                   (4, (4471937984043146841, ((), ())))
+        #                   (4, (4471937984043146841, ((), ()))), ())
+
+        self.log.info(f"NOTHING()")
+        response = self._command.command(self._player_key)
+        return response
+
     def accelerate(self, ship_id, vector=(0, 0)):
         self.log.info(f"ACCELERATE(ship_id={ship_id}, vector={vector})")
-        self.command(0, ship_id, vector)
+        return self.command(0, ship_id, vector)
 
     def detonate(self, ship_id):
         self.log.info(f"DETONATE(ship_id={ship_id})")
-        self.command(1, ship_id)
+        return self.command(1, ship_id)
 
     def shoot(self, ship_id, target, x3=()):
         self.log.info(f"SHOOT(ship_id={ship_id}, target={target}, ?x3={x3})")
-        self.command(2, ship_id, target, x3)
+        return self.command(2, ship_id, target, x3)
 
 
 class AttacPlayer(Player):
@@ -168,14 +176,16 @@ class AttacPlayer(Player):
         self.log.info(f"Start as {self.game_response.static_game_info.role} == {ATTAC}")
         resp = self._command.start(self._player_key, self._ship_params)
         self.game_response = GameResponse(resp)
-        self.log.info(self.game_response)
-        s_u_c = self.game_response.game_state.ships_and_commands.ships_and_commands
-        for (ship, commands) in s_u_c:
-            if ship.role == ATTAC:
-                self.log.info(f"ACCELERATE {ship.ship_id}")
-                self.shoot(ship.ship_id, (1, 1), DEFEND)
-                # self.accellerate(ship.ship_id, (1, 1))
-                # self.detonate(ship.ship_id)
+        while self.game_response.game_stage == 1:
+            self.log.info(self.game_response)
+            s_u_c = self.game_response.game_state.ships_and_commands.ships_and_commands
+            for (ship, commands) in s_u_c:
+                if ship.role == ATTAC:
+                    self.log.info(f"ACCELERATE {ship.ship_id}")
+                    resp = self.nothing()
+                    self.game_response = GameResponse(resp)
+
+        self.log.info(f"Finished: {self.game_response}")
 
 
 class DefendPlayer(Player):
@@ -192,18 +202,16 @@ class DefendPlayer(Player):
         )
         resp = self._command.start(self._player_key, self._ship_params)
         self.game_response = GameResponse(resp)
-        self.log.info(self.game_response)
-        s_u_c = self.game_response.game_state.ships_and_commands.ships_and_commands
-        for (ship, commands) in s_u_c:
-            if ship.role == DEFEND:
+        while self.game_response.game_stage == 1:
+            self.log.info(self.game_response)
+            s_u_c = self.game_response.game_state.ships_and_commands.ships_and_commands
+            for (ship, commands) in s_u_c:
+                if ship.role == DEFEND:
+                    time.sleep(0.5)
+                    resp = self.nothing()
+                    self.game_response = GameResponse(resp)
 
-                time.sleep(0.5)
-                self.log.info(f"ACCELERATE {ship.ship_id}")
-                self.shoot(ship.ship_id, (1, 1), ATTAC)
-                # self.accellerate(ship.ship_id, (1, 1))
-                # self.detonate(ship.ship_id)
-                # self.game_response = GameResponse(resp)
-                # self.log.info(self.game_response)
+        self.log.info(f"Finished: {self.game_response}")
 
 
 @click.command()
