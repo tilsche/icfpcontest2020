@@ -1,10 +1,13 @@
+import os
 import time
 from logging import getLogger
 from typing import Callable
 
+from .api import ApiClient
 from .eval import Evaluator
 from .expression import Ap, Expression, as_list, as_vector, build_expression
-from .screen import AlienScreen
+from .modem import demod_node, mod_node
+from .screen import AlienScreen, Coord
 
 logger = getLogger(__name__)
 
@@ -20,7 +23,10 @@ class Interaction:
         self.evaluator = Evaluator(text)
         self.protocol = build_expression(protocol)
         self.state = "nil"
-        self.send_function = send_function
+        self.api_client = ApiClient(
+            "https://icfpc2020-api.testkontur.ru/", os.environ["PLAYER_KEY"]
+        )
+        self.send_function = self.api_client.aliens_send
         self.screen = None
         if interactive:
             self.screen = AlienScreen()
@@ -28,9 +34,14 @@ class Interaction:
             self.iteration = 0
             self.protocol_name = protocol
 
-            def callback(x, y):
+            def callback(point):
+                if self.screen:
+                    self.screen.save(
+                        f"{self.protocol_name}-{self.iteration}.png", point
+                    )
+                    self.iteration += 1
                 self.screen.clear()
-                self(x, y)
+                self(point.x, point.y)
 
             self.screen.on_mouse_click = callback
 
@@ -39,13 +50,12 @@ class Interaction:
         if self.screen:
             for l in as_list(data):
                 self.screen.draw(as_list(l))
-            self.screen.save(f"{self.protocol_name}-{self.iteration}.png")
-            self.iteration += 1
 
     def send(self, data: Expression) -> Expression:
         logger.warning(f"Should send {data}...")
         if self.send_function:
-            self.send_function(data)
+            res = self.send_function(mod_node(data))
+            return demod_node(res)
         else:
             raise RuntimeError("No send_function function supplied")
 
