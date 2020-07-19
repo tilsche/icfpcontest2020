@@ -110,19 +110,34 @@ class Player(threading.Thread):
         pass
 
     def accellerate(self, ship_id, vector=(0, 0)):
+        # (4, playerKey, (0, shipId, vector))
         vec = ()
         vec = (vector[0], vec)
         vec = (vector[1], vec)
         command_id = 0
         command = ()
-        command = (vec, command)
+        command = (vector, command)
         command = (ship_id, command)
         command = (command_id, command)
         self._command.command(self._player_key, command)
 
     def detonate(self, ship_id):
+        # (4, playerKey, (1, shipId))
         command_id = 1
         command = (ship_id, ())
+        command = (command_id, command)
+        self._command.command(self._player_key, command)
+
+    def shoot(self, ship_id, target=(0, 0)):
+        # (4, playerKey, (2, shipId, target, x3))
+        vec = ()
+        vec = (target[0], vec)
+        vec = (target[1], vec)
+
+        command_id = 2
+        command = (1, ())
+        command = (target, command)
+        command = (ship_id, command)
         command = (command_id, command)
         self._command.command(self._player_key, command)
 
@@ -130,13 +145,13 @@ class Player(threading.Thread):
 class AttacPlayer(Player):
     def __init__(self, player_key, command):
         super().__init__(player_key, command)
-        self.log = logger.getChild("ATTAC")
+        self.log = logger.getChild(f"ATTAC ({ATTAC})")
         self.log.info(f"Player Key: {self._player_key}")
         self._ship_params = (1, (2, (3, (4, ()))))
 
     def act(self, resp):
         self.game_response = GameResponse(resp)
-        self.log.info(f"Start as {self.game_response.static_game_info.role}")
+        self.log.info(f"Start as {self.game_response.static_game_info.role} == {ATTAC}")
         resp = self._command.start(self._player_key, self._ship_params)
         self.game_response = GameResponse(resp)
         self.log.info(self.game_response)
@@ -144,18 +159,23 @@ class AttacPlayer(Player):
         for (ship, commands) in s_u_c:
             if ship.role == ATTAC:
                 self.log.info(f"ACCELERATE {ship.ship_id}")
+                self.shoot(ship.ship_id, (1, 1))
+                # self.accellerate(ship.ship_id, (1, 1))
+                # self.detonate(ship.ship_id)
 
 
 class DefendPlayer(Player):
     def __init__(self, player_key, command):
         super().__init__(player_key, command)
-        self.log = logger.getChild("DEFEND")
+        self.log = logger.getChild(f"DEFEND {DEFEND}")
         self.log.info(f"Player Key: {self._player_key}")
         self._ship_params = (1, (2, (3, (4, ()))))
 
     def act(self, resp):
         self.game_response = GameResponse(resp)
-        self.log.info(f"Start as {self.game_response.static_game_info.role}")
+        self.log.info(
+            f"Start as {self.game_response.static_game_info.role} == {DEFEND}"
+        )
         resp = self._command.start(self._player_key, self._ship_params)
         self.game_response = GameResponse(resp)
         self.log.info(self.game_response)
@@ -165,10 +185,11 @@ class DefendPlayer(Player):
 
                 time.sleep(0.5)
                 self.log.info(f"ACCELERATE {ship.ship_id}")
-                # self.accellerate(ship[0].ship_id, (1, 1))
-                self.detonate(ship.ship_id)
-                self.game_response = GameResponse(resp)
-                self.log.info(self.game_response)
+                self.shoot(ship.ship_id, (1, 1))
+                # self.accellerate(ship.ship_id, (1, 1))
+                # self.detonate(ship.ship_id)
+                # self.game_response = GameResponse(resp)
+                # self.log.info(self.game_response)
 
 
 @click.command()
