@@ -154,6 +154,12 @@ class Player(threading.Thread):
         return GameResponse(response)
 
     def accelerate(self, ship_id, vector=(0, 0)):
+        """
+        accelerates the ship in a direction opposit to vec.
+        There seems to be a thermal budget, which defines the max boos a ship can do.
+
+        @parma vec: needs to be between (-1,-1) and (1,1)
+        """
         self.log.info(f"ACCELERATE(ship_id={ship_id}, vector={vector})")
         return self.command(0, ship_id, vector)
 
@@ -197,7 +203,7 @@ class DefendPlayer(Player):
         super().__init__(player_key, command)
         self.log = logger.getChild(f"DEFEND {DEFEND}")
         self.log.info(f"Player Key: {self._player_key}")
-        self._ship_params = (1, 2, 3, 4)
+        self._ship_params = (10, 10, 10, 10)
 
     def act(self, resp):
         self.game_response = GameResponse(resp)
@@ -222,15 +228,36 @@ class DefendPlayer(Player):
                     self.log.info(
                         f"tick: {self.game_response.game_state.game_tick} position: {ship.position}, vel: {ship.velocity}"
                     )
+                    self.log.info(f"commands: {commands}")
+
                     if not inital_pos:
                         inital_pos = ship.position
                     xi, yi = inital_pos
                     x, y = ship.position
-                    fac = -2
-                    vec = (fac * (x - xi), fac * (y - yi))
-                    # vec = (1, 1)
+                    # fac = -1
+                    dx = float(x - xi)
+                    dy = float(y - yi)
+                    dt = dx + dy
+                    if dt == 0:
+                        self.game_response = self.nothing()
+                        continue
+                    dx = dx / dt
+                    dy = dy / dt
+
+                    self.log.info(f"dx {dx}, dy {dy}")
+                    vx = 0
+                    vy = 0
+                    if abs(dx) > 0.25:
+                        vx = -1 if dx < 0 else 1
+                    if abs(dy) > 0.25:
+                        vy = -1 if dx < 0 else 1
+
+                    vec = (vx, vy)
+
                     self.log.info(f"ACCELERATE {ship.ship_id}, VEC: {vec}")
                     self.game_response = self.accelerate(ship.ship_id, vec)
+                    # self.game_response = self.detonate(ship.ship_id)
+                    #
                     # self.game_response = self.shoot(ship.ship_id, (1, 1), 1)
 
         self.log.info(f"Finished: {self.game_response}")
