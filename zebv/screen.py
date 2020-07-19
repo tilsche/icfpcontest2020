@@ -82,6 +82,7 @@ class AlienScreen(Thread):
         )
         self.clear()
         self.console = tcod.Console(WIDTH, HEIGHT)
+        self.last_click = None
 
     def run(self):
         with tcod.context.new_terminal(
@@ -101,6 +102,10 @@ class AlienScreen(Thread):
                             x, y, 1, 1, fg=self.fg_color(generation), ch=PIXEL
                         )
 
+                if self.last_click:
+                    (x, y) = self.last_click
+                    self.console.draw_rect(x, y, 1, 1, fg=(255, 0, 0), ch=PIXEL)
+
                 context.present(self.console, keep_aspect=True)
 
                 for event in tcod.event.wait():
@@ -108,6 +113,7 @@ class AlienScreen(Thread):
                     if event.type == "MOUSEBUTTONDOWN":
                         x, y = event.tile
                         self.on_mouse_click(Coord(x - self.offset.x, y - self.offset.y))
+                        self.last_click = (x, y)
                     if event.type == "QUIT":
                         raise SystemExit()
 
@@ -116,7 +122,7 @@ class AlienScreen(Thread):
         return len(self.generations)
 
     def fg_color(self, generation):
-        step = (255 // self.num_generations) * (generation + 1)
+        step = 255 - (255 // self.num_generations) * (generation)
         return (step, step, step)
 
     @property
@@ -160,6 +166,8 @@ class AlienScreen(Thread):
     def clear(self):
         self.generations = []
         self.bounding_box = BoundingBox()
+        self.bounding_box.add_point(Coord(-40, -40))
+        self.bounding_box.add_point(Coord(40, 40))
 
     def on_mouse_click(self, point: Coord):
         print(f"mouse click on ({point.x}, {point.y})")

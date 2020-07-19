@@ -8,6 +8,11 @@ from .operators import Cons, Nil
 from .parsing import build_expression
 from .patterns import parse_patterns
 from .screen import AlienScreen, Coord
+from .api import ApiClient
+from .modem import mod_node, demod_node
+
+import os
+
 
 logger = getLogger(__name__)
 
@@ -24,7 +29,10 @@ class Interaction:
         self.evaluator = Evaluator(*patterns)
         self.protocol = build_expression(protocol)
         self.state = Nil()
-        self.send_function = send_function
+        self.api_client = ApiClient(
+            "https://icfpc2020-api.testkontur.ru/", os.environ["PLAYER_KEY"]
+        )
+        self.send_function = self.api_client.aliens_send
         self.screen = None
         if interactive:
             self.screen = AlienScreen()
@@ -65,7 +73,8 @@ class Interaction:
     def send(self, data: Node) -> Node:
         logger.warning(f"Should send {data}...")
         if self.send_function:
-            self.send_function(data)
+            res = self.send_function(mod_node(data))
+            return demod_node(res)
         else:
             raise RuntimeError("No send_function function supplied")
 
