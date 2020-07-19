@@ -99,8 +99,7 @@ class Player(threading.Thread):
     def run(self):
         self.log.debug("Start")
         resp = self._command.join(self._player_key)
-        self.game_response = GameResponse(resp)
-        self.act()
+        self.act(resp)
 
     def act(self):
         pass
@@ -131,7 +130,8 @@ class AttacPlayer(Player):
         self.log.info(f"Player Key: {self._player_key}")
         self._ship_params = (1, (2, (3, (4, ()))))
 
-    def act(self):
+    def act(self, resp):
+        self.game_response = GameResponse(resp)
         self.log.info(f"Start as {self.game_response.static_game_info.role}")
         resp = self._command.start(self._player_key, self._ship_params)
         self.game_response = GameResponse(resp)
@@ -145,7 +145,8 @@ class DefendPlayer(Player):
         self.log.info(f"Player Key: {self._player_key}")
         self._ship_params = (1, (2, (3, (4, ()))))
 
-    def act(self):
+    def act(self, resp):
+        self.game_response = GameResponse(resp)
         self.log.info(f"Start as {self.game_response.static_game_info.role}")
         resp = self._command.start(self._player_key, self._ship_params)
         self.game_response = GameResponse(resp)
@@ -197,7 +198,7 @@ def main(server_url, player_key, api_key):
             else:
                 raise RuntimeError(f"Unkone role {game_resp.static_game_info.role}")
 
-            player.act()
+            player.act(resp)
         else:
             logger.info(
                 f"Game finished ({game_resp.game_stage}), Start only why I need to"
