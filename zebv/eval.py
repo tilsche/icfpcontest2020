@@ -1,13 +1,14 @@
+from lru import LRU
+
 from .expression import Ap, Expression, Integer, Literal, Operator, build_expression
 from .patterns import default_functions, parse_functions
 
 
 class Evaluator:
-    _ap_cache = {}
-
     def __init__(self, context=""):
         self._functions = default_functions
         self._functions.update(parse_functions(context))
+        self._ap_cache = LRU(2 ** 14)
 
     def eval(self, expression: Expression) -> Expression:
         if isinstance(expression, Ap) and expression.evaluated is not None:
@@ -22,7 +23,9 @@ class Evaluator:
             expression = result
 
     def _ap(self, op: Expression, arg: Expression):
-        key = id(op), id(arg)
+        kop = (op,) if isinstance(op, int) else id(op)
+        karg = (arg,) if isinstance(arg, int) else id(arg)
+        key = kop, karg
         try:
             return self._ap_cache[key]
         except KeyError:
