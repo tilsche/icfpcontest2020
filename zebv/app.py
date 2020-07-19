@@ -36,7 +36,7 @@ class LogFormatter(logging.Formatter):
 handler = click_log.ClickHandler()
 handler.formatter = LogFormatter()
 
-logging.basicConfig(level=logging.DEBUG, handlers=[handler])
+logging.basicConfig(handlers=[handler])
 # logging.basicConfig(level=logging.DEBUG)
 
 logger = logging.getLogger(__name__)
@@ -94,7 +94,7 @@ class Player(threading.Thread):
         super().__init__()
         self._player_key = player_key
         self._command = command
-        self.log = logging.getLogger("PLAYER")
+        self.log = logger.getChild("PLAYER")
 
     def run(self):
         self.log.debug("Start")
@@ -109,7 +109,7 @@ class Player(threading.Thread):
 class AttacPlayer(Player):
     def __init__(self, player_key, command):
         super().__init__(player_key, command)
-        self.log = logging.getLogger("ATTAC")
+        self.log = logger.getChild("ATTAC")
         self.log.info(f"Player Key: {self._player_key}")
         self._ship_params = (1, (2, (3, (4, ()))))
 
@@ -117,13 +117,13 @@ class AttacPlayer(Player):
         self.log.info(f"Start as {self.game_response.static_game_info.role}")
         resp = self._command.start(self._player_key, self._ship_params)
         self.game_response = GameResponse(resp)
-        logging.info(self.game_response)
+        self.log.info(self.game_response)
 
 
 class DefendPlayer(Player):
     def __init__(self, player_key, command):
         super().__init__(player_key, command)
-        self.log = logging.getLogger("DEFEND")
+        self.log = logger.getChild("DEFEND")
         self.log.info(f"Player Key: {self._player_key}")
         self._ship_params = (1, (2, (3, (4, ()))))
 
@@ -131,7 +131,7 @@ class DefendPlayer(Player):
         self.log.info(f"Start as {self.game_response.static_game_info.role}")
         resp = self._command.start(self._player_key, self._ship_params)
         self.game_response = GameResponse(resp)
-        logging.info(self.game_response)
+        self.log.info(self.game_response)
 
 
 @click.command()
@@ -175,7 +175,13 @@ def main(server_url, player_key, api_key):
 
             player.act()
         else:
-            logger.info("Game finished ({game_resp.game_stage})")
+            logger.info(
+                f"Game finished ({game_resp.game_stage}), Start only why I need to"
+            )
+            resp = command.start(player_key)
+            resp = GameResponse(resp)
+            logger.info(f"Got: {resp}")
+            logger.info(f"Bye")
 
 
 if __name__ == "__main__":
