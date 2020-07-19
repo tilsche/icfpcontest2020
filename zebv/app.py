@@ -96,7 +96,9 @@ class Command:
         logger.debug(f"Sending JOIN(2, player_key={player_key}, (???))")
         status, result = self._send(2, player_key, ())
         if status != 1:
-            raise RuntimeError(f"Join Failed: {player_key}")
+            raise RuntimeError(
+                f"Join Failed: {player_key}, Response: {(status, result)}"
+            )
         return result
 
     def start(self, player_key, ship_params=(1, 2, 3, 4)):
@@ -106,7 +108,9 @@ class Command:
         )
         status, result = self._send(3, player_key, ship_params)
         if status != 1:
-            raise RuntimeError(f"Start Failed: {ship_params}")
+            raise RuntimeError(
+                f"Start Failed: {ship_params}, Response: {(status, result)}"
+            )
         return result
 
     def command(self, player_key, *args):
@@ -116,7 +120,9 @@ class Command:
         )
         status, result = self._send(4, player_key, lst(*args))
         if status != 1:
-            raise RuntimeError(f"Failed to send COMMAND for player {player_key}")
+            raise RuntimeError(
+                f"Failed to send COMMAND for player {player_key}, Response: {(status, result)}"
+            )
         return result
 
 
@@ -201,16 +207,10 @@ class DefendPlayer(Player):
             f"Start as {self.game_response.static_game_info.role} == {DEFEND}"
         )
         resp = self._command.start(self._player_key, self._ship_params)
-        self.game_response = GameResponse(resp)
+        self.game_response = self.nothing()
+        self.log.info(self.game_response)
+
         while self.game_response.game_stage == 1:
-            self.log.info(self.game_response)
-            s_u_c = self.game_response.game_state.ships_and_commands.ships_and_commands
-            for (ship, commands) in s_u_c:
-                if ship.role == DEFEND:
-                    self.log.info(f"NOTHING {ship.ship_id}")
-                    time.sleep(0.5)
-                    resp = self.nothing()
-                    self.game_response = resp
             self.log.info(self.game_response)
             s_u_c = self.game_response.game_state.ships_and_commands.ships_and_commands
             for (ship, commands) in s_u_c:
