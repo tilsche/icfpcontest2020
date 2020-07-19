@@ -95,6 +95,7 @@ class Player(threading.Thread):
         self._player_key = player_key
         self._command = command
         self.log = logger.getChild("PLAYER")
+        self.game_response: GameResponse = None
 
     def run(self):
         self.log.debug("Start")
