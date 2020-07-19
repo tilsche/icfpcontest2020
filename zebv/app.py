@@ -151,12 +151,14 @@ class DefendPlayer(Player):
         resp = self._command.start(self._player_key, self._ship_params)
         self.game_response = GameResponse(resp)
         self.log.info(self.game_response)
-        ship = self.game_response.game_state.ships_and_commands.ships_and_commands[0]
-        self.log.info("ACCELERATE")
-        # self.accellerate(ship[0].ship_id, (1, 1))
-        self.detonate(ship[0].ship_id)
-        self.game_response = GameResponse(resp)
-        self.log.info(self.game_response)
+        s_u_c = self.game_response.game_state.ships_and_commands.ships_and_commands
+        for (ship, commands,) in s_u_c:
+            if ship.role == 1:
+                # self.log.info("ACCELERATE")
+                # self.accellerate(ship[0].ship_id, (1, 1))
+                self.detonate(ship.ship_id)
+                self.game_response = GameResponse(resp)
+                self.log.info(self.game_response)
 
 
 @click.command()
@@ -200,12 +202,7 @@ def main(server_url, player_key, api_key):
 
             player.act(resp)
         else:
-            logger.info(
-                f"Game finished ({game_resp.game_stage}), Start only why I need to"
-            )
-            resp = GameResponse(resp)
-            logger.info(f"Got: {resp}")
-            logger.info(f"Bye")
+            logger.info(f"Game finished ({game_resp.game_stage})")
 
 
 if __name__ == "__main__":
