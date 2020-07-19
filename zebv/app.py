@@ -149,7 +149,7 @@ class Player(threading.Thread):
 
         self.log.info(f"NOTHING()")
         response = self._command.command(self._player_key)
-        return response
+        return GameResponse(response)
 
     def accelerate(self, ship_id, vector=(0, 0)):
         self.log.info(f"ACCELERATE(ship_id={ship_id}, vector={vector})")
@@ -181,9 +181,9 @@ class AttacPlayer(Player):
             s_u_c = self.game_response.game_state.ships_and_commands.ships_and_commands
             for (ship, commands) in s_u_c:
                 if ship.role == ATTAC:
-                    self.log.info(f"ACCELERATE {ship.ship_id}")
+                    self.log.info(f"NOTHING {ship.ship_id}")
                     resp = self.nothing()
-                    self.game_response = GameResponse(resp)
+                    self.game_response = resp
 
         self.log.info(f"Finished: {self.game_response}")
 
@@ -207,9 +207,18 @@ class DefendPlayer(Player):
             s_u_c = self.game_response.game_state.ships_and_commands.ships_and_commands
             for (ship, commands) in s_u_c:
                 if ship.role == DEFEND:
+                    self.log.info(f"NOTHING {ship.ship_id}")
                     time.sleep(0.5)
                     resp = self.nothing()
-                    self.game_response = GameResponse(resp)
+                    self.game_response = resp
+            self.log.info(self.game_response)
+            s_u_c = self.game_response.game_state.ships_and_commands.ships_and_commands
+            for (ship, commands) in s_u_c:
+                if ship.role == DEFEND:
+                    self.log.info(f"ACCELERATE {ship.ship_id}")
+                    time.sleep(0.5)
+                    resp = self.accelerate(ship.ship_id, (1, 1))
+                    self.game_response = resp
 
         self.log.info(f"Finished: {self.game_response}")
 
