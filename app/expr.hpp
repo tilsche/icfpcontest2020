@@ -4,18 +4,13 @@
 
 #include <memory>
 #include <utility>
+#include <variant>
 #include <vector>
 
 #include "util.hpp"
 
 namespace zebra
 {
-enum class ExprType
-{
-    Integer,
-    Function,
-    Ap,
-};
 
 using UnderlyingInteger = std::int64_t;
 
@@ -26,14 +21,14 @@ using PExpr = std::shared_ptr<Expr>;
 class Expr
 {
 public:
-    Expr(const PExpr& op, const PExpr& arg) : type_(ExprType::Ap), op_(op), arg_(arg)
+    Expr(const PExpr& op, const PExpr& arg) : data_(OpArg_{ op, arg })
     {
     }
 
-    Expr(const std::string& name) : type_(ExprType::Function), name_(name)
+    Expr(const std::string& name) : data_(name)
     {
     }
-    Expr(UnderlyingInteger i) : type_(ExprType::Integer), integer_(i)
+    Expr(UnderlyingInteger i) : data_(i)
     {
     }
 
@@ -46,47 +41,35 @@ public:
 public:
     bool is_ap() const
     {
-        return this->type_ == ExprType::Ap;
+        return std::holds_alternative<OpArg_>(this->data_);
     }
 
     bool is_integer() const
     {
-        return this->type_ == ExprType::Integer;
+        return std::holds_alternative<UnderlyingInteger>(this->data_);
     }
 
     bool is_function() const
     {
-        return this->type_ == ExprType::Function;
-    }
-
-    PExpr& op()
-    {
-        assert(this->is_ap());
-        return this->op_;
+        return std::holds_alternative<std::string>(this->data_);
     }
 
     const PExpr& op() const
     {
         assert(this->is_ap());
-        return this->op_;
-    }
-
-    PExpr& arg()
-    {
-        assert(this->is_ap());
-        return this->arg_;
+        return std::get<OpArg_>(this->data_).op_;
     }
 
     const PExpr& arg() const
     {
         assert(this->is_ap());
-        return this->arg_;
+        return std::get<OpArg_>(this->data_).arg_;
     }
 
     const std::string& name() const
     {
         assert(this->is_function());
-        return this->name_;
+        return std::get<std::string>(this->data_);
     }
 
     const PExpr& evaluated() const
@@ -96,13 +79,8 @@ public:
 
     UnderlyingInteger value() const
     {
-        assert(type_ == ExprType::Integer);
-        return integer_;
-    }
-
-    ExprType type() const
-    {
-        return type_;
+        assert(this->is_integer());
+        return std::get<UnderlyingInteger>(this->data_);
     }
 
     PExpr& evaluate(const PExpr& expr)
@@ -112,14 +90,16 @@ public:
     }
 
 private:
-    ExprType type_;
+    struct OpArg_
+    {
+        PExpr op_;
+        PExpr arg_;
+    };
 
     PExpr evaluated_;
 
-    PExpr op_;
-    PExpr arg_;
-    UnderlyingInteger integer_;
-    std::string name_;
+    using Data_ = std::variant<PExpr, OpArg_, UnderlyingInteger, std::string>;
+    Data_ data_;
 };
 
 PExpr make_ap(const PExpr& op, const PExpr& arg)
@@ -232,17 +212,17 @@ std::pair<PExpr, PExpr> as_vector(const PExpr& expr)
 
 inline std::ostream& operator<<(std::ostream& os, const PExpr& expr)
 {
-    switch (expr->type())
+    if (expr->is_integer())
     {
-    case ExprType::Integer:
         os << expr->value();
-        break;
-    case ExprType ::Function:
+    }
+    else if (expr->is_function())
+    {
         os << expr->name();
-        break;
-    case ExprType ::Ap:
+    }
+    else if (expr->is_ap())
+    {
         os << "ap " << expr->op() << " " << expr->arg();
-        break;
     }
     return os;
 }
