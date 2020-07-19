@@ -181,7 +181,8 @@ class AttacPlayer(Player):
         self.game_response = GameResponse(resp)
         self.log.info(f"Start as {self.game_response.static_game_info.role} == {ATTAC}")
         resp = self._command.start(self._player_key, self._ship_params)
-        self.game_response = GameResponse(resp)
+        self.game_response = self.nothing()
+
         while self.game_response.game_stage == 1:
             self.log.info(self.game_response)
             s_u_c = self.game_response.game_state.ships_and_commands.ships_and_commands
@@ -208,7 +209,6 @@ class DefendPlayer(Player):
         )
         resp = self._command.start(self._player_key, self._ship_params)
         self.game_response = self.nothing()
-        self.log.info(self.game_response)
 
         while self.game_response.game_stage == 1:
             self.log.info(self.game_response)
