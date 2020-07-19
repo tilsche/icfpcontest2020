@@ -6,8 +6,6 @@ import click_log
 
 from .api import ApiClient
 from .modem import demod, mod
-from .node import Ap, Integer
-from .operators import Cons, Nil
 from .game_state import GameResponse
 
 import threading
@@ -17,6 +15,26 @@ ATTAC = 0
 DEFEND = 1
 
 
+def lst(*items):
+    """Generate a "tuple list"  from the list of arguments
+
+    A tuple list is a sequence of tuples nested to the right, terminated by the
+    empty tuple ().
+
+    >>> lst()
+    ()
+    >>> lst(1)
+    (1, ())
+    >>> lst(1, 2, 3)
+    (1, (2, (3, ())))
+    """
+
+    lst = ()
+    for item in reversed(items):
+        lst = (item, lst)
+    return lst
+
+
 class LogFormatter(logging.Formatter):
     colors = {
         "error": dict(fg="red"),
@@ -24,7 +42,7 @@ class LogFormatter(logging.Formatter):
         "critical": dict(fg="red"),
         "debug": dict(fg="blue"),
         "warning": dict(fg="yellow"),
-        "info": dict(fg="white"),
+        "info": dict(fg="green"),
     }
 
     def format(self, record: logging.LogRecord):
@@ -50,51 +68,61 @@ class Command:
     def __init__(self, client):
         self.client = client
 
-    def _send(self, request):
-        modulated = mod(request)
-        logger.debug(f"=> {request} ~~~~~> (send)")
+    def _send(self, id_, *args):
+        request = lst(id_, *args)
+        logger.debug(
+            f"=> Sending command {id_}: args={args} (rendered request: {request})"
+        )
 
+        modulated = mod(request)
         response = self.client.aliens_send(modulated)
         demodulated = demod(response)
 
-        logger.debug(f"<= {demodulated} <~~~~~ (recv)")
+        logger.debug(f"<= Received: {demodulated}")
 
         return demodulated
 
     def init(self):
-        status, result = self._send((1, (0, ())))
+        logger.debug("Sending INIT(1, 0)")
+        status, result = self._send(1, 0)
         if status != 1:
             raise RuntimeError("Init Failed")
 
-        (((_, (attac_player, ())), ((_, (def_player, ())), ())), ()) = result
+        (((_, (attac_player, _)), ((_, (def_player, _)), _)), _) = result
         return attac_player, def_player
 
-    def join(self, player_key):
+    def join(self, player_key) -> GameResponse:
         # (2, playerKey, (...unknown list...))
-        req = (2, (player_key, ((), ())))
-        status, result = self._send(req)
+        logger.debug(f"Sending JOIN(2, player_key={player_key}, (???))")
+        status, result = self._send(2, player_key, ())
         if status != 1:
             raise RuntimeError(f"Join Failed: {player_key}")
         return result
 
-    def start(self, player_key, ship_params=(1, (2, (3, (4, ()))))):
-        req = (3, (player_key, (ship_params, ())))
-        status, result = self._send(req)
+    def start(self, player_key, ship_params=(1, 2, 3, 4)):
+        ship_params = lst(*ship_params)
+        logger.debug(
+            f"Sending START(3, player_key={player_key}, ship_params={ship_params})"
+        )
+        status, result = self._send(3, player_key, ship_params)
         if status != 1:
             raise RuntimeError(f"Start Failed: {ship_params}")
         return result
 
-    def command(self, player_key, commands):
+    def command(self, player_key, *args):
         # (4, playerKey, (... ship commands? ...))
-        req = (4, (player_key, (commands, ())))
-        status, result = self._send(req)
+        logger.debug(
+            f"Sending COMMAND(4, player_key={player_key}, args=({' '.join(map(str, args))}))"
+        )
+        request = lst(4, player_key, lst(*args))
+        status, result = self._send(request)
         if status != 1:
-            raise RuntimeError(f"Command Failed: {commands}")
+            raise RuntimeError(f"Failed to send COMMAND for player {player_key}")
         return result
 
 
 class Player(threading.Thread):
-    def __init__(self, player_key, command):
+    def __init__(self, player_key, command: Command):
         super().__init__()
         self._player_key = player_key
         self._command = command
@@ -109,36 +137,23 @@ class Player(threading.Thread):
     def act(self):
         pass
 
-    def accellerate(self, ship_id, vector=(0, 0)):
-        # (4, playerKey, (0, shipId, vector))
-        # vec = ()
-        # vec = (vector[0], vec)
-        # vec = (vector[1], vec)
-        command_id = 0
-        command = ()
-        command = (vector, command)
-        command = (ship_id, command)
-        command = (command_id, command)
-        self._command.command(self._player_key, command)
+    def command(self, type_: int, *args) -> GameResponse:
+        """Send player command of type `type_` with arguments `args`
+        """
+        response = self._command.command(self._player_key, lst(type_, *args))
+        return GameResponse(response)
+
+    def accelerate(self, ship_id, vector=(0, 0)):
+        self.log.info(f"ACCELERATE(ship_id={ship_id}, vector={vector})")
+        self.command(0, ship_id, vector)
 
     def detonate(self, ship_id):
-        # (4, playerKey, (1, shipId))
-        command_id = 1
-        command = (ship_id, ())
-        command = (command_id, command)
-        self._command.command(self._player_key, command)
+        self.log.info(f"DETONATE(ship_id={ship_id})")
+        self.command(1, ship_id)
 
-    def shoot(self, ship_id, target=(0, 0), x3=0):
-        # (4, playerKey, (2, shipId, target, x3))
-        # vec = ()
-        # vec = (target[0], vec)
-        # vec = (target[1], vec)
-        command_id = 2
-        command = (x3, ())
-        command = (target, command)
-        command = (ship_id, command)
-        command = (command_id, command)
-        self._command.command(self._player_key, command)
+    def shoot(self, ship_id, target, x3=()):
+        self.log.info(f"SHOOT(ship_id={ship_id}, target={target}, ?x3={x3})")
+        self.command(2, ship_id, target, x3)
 
 
 class AttacPlayer(Player):
@@ -146,7 +161,7 @@ class AttacPlayer(Player):
         super().__init__(player_key, command)
         self.log = logger.getChild(f"ATTAC ({ATTAC})")
         self.log.info(f"Player Key: {self._player_key}")
-        self._ship_params = (1, (2, (3, (4, ()))))
+        self._ship_params = (1, 2, 3, 4)
 
     def act(self, resp):
         self.game_response = GameResponse(resp)
@@ -168,7 +183,7 @@ class DefendPlayer(Player):
         super().__init__(player_key, command)
         self.log = logger.getChild(f"DEFEND {DEFEND}")
         self.log.info(f"Player Key: {self._player_key}")
-        self._ship_params = (1, (2, (3, (4, ()))))
+        self._ship_params = (1, 2, 3, 4)
 
     def act(self, resp):
         self.game_response = GameResponse(resp)
