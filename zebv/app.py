@@ -149,10 +149,6 @@ class Player(threading.Thread):
         return GameResponse(response)
 
     def nothing(self):
-        # debug:zebv.app: => (4, (7981600807349721590, ((), ()))) ~~~~~> (send)
-        #                   (4, (4471937984043146841, ((), ())))
-        #                   (4, (4471937984043146841, ((), ()))), ())
-
         self.log.info(f"NOTHING()")
         response = self._command.command(self._player_key)
         return GameResponse(response)
@@ -212,8 +208,14 @@ class DefendPlayer(Player):
         self.game_response = self.nothing()
 
         inital_pos = None
+        tic_toc = False
         while self.game_response.game_stage == 1:
             # self.log.info(self.game_response)
+            # tic_toc = not tic_toc
+            # if not tic_toc:
+            #    self.nothing()
+            #    continue
+
             s_u_c = self.game_response.game_state.ships_and_commands.ships_and_commands
             for (ship, commands) in s_u_c:
                 if ship.role == DEFEND:
@@ -224,7 +226,7 @@ class DefendPlayer(Player):
                         inital_pos = ship.position
                     xi, yi = inital_pos
                     x, y = ship.position
-                    fac = 2
+                    fac = -2
                     vec = (fac * (x - xi), fac * (y - yi))
                     # vec = (1, 1)
                     self.log.info(f"ACCELERATE {ship.ship_id}, VEC: {vec}")
