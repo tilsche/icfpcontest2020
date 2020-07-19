@@ -112,6 +112,78 @@ class Generation(object):
     def __iter__(self):
         return iter(self.points)
 
+    def __contains__(self, point: Coord):
+        return point in self.points
+
+
+class NumberFindyThingy(object):
+    def __init__(self, points: Generation):
+        self.points = points
+
+    def __contains__(self, point: Coord):
+        return point in self.points
+
+    def parse_number(self, pivot: Coord, search_area: BoundingBox):
+        if pivot in self:
+            raise ValueError("Not a number")
+        elif pivot.right() not in self or pivot.down() not in self:
+            raise ValueError("Not a number")
+
+        size = -1
+        hrzt = vert = pivot
+
+        is_neg = False
+
+        while True:
+            vert = vert.down()
+            hrzt = hrzt.right()
+
+            if hrzt in self and vert not in self:
+                raise ValueError("Not a number")
+
+            if hrzt not in self and vert in self:
+                for _ in range(size + 1):
+                    vert = vert.right()
+                    if vert in self:
+                        raise ValueError("Not a number")
+                is_neg = True
+                break
+
+            if hrzt not in self and vert not in self:
+                break
+
+            size += 1
+
+            if size > 7:
+                raise ValueError("Not a number (seems to large)")
+
+        number_area = BoundingBox()
+        number_area.add_point(pivot.down().right())
+        number_area.add_point(
+            Coord(number_area.upper_left.x + size, number_area.upper_left.y + size)
+        )
+
+        number = 0
+        for i, point in enumerate(number_area):
+            if point in self:
+                number += pow(2, i)
+
+        if (size > 1 or (is_neg and size == 0)) and number == 0:
+            raise ValueError("Not a number")
+
+        parsed_number = []
+        number_area.add_point(pivot)
+        for point in number_area:
+            if point in self:
+                parsed_number.append(point)
+        if is_neg:
+            parsed_number.append(Coord(pivot.x, pivot.y + size + 2))
+
+        return (
+            -number if is_neg else number,
+            parsed_number,
+        )
+
 
 class AlienScreen(Thread):
     def __init__(self):
@@ -200,75 +272,20 @@ class AlienScreen(Thread):
         search_area.add_point(Coord(point.x - SEARCH_RADIUS, point.y - SEARCH_RADIUS))
         search_area.add_point(Coord(point.x + SEARCH_RADIUS, point.y + SEARCH_RADIUS))
 
-        for i in search_area.xrange:
-            for j in search_area.yrange:
-                try:
-                    num = self.parse_number(Coord(i, j), search_area)
-                    print(f"Parsed number: {num}")
-                    return
-                except ValueError:
-                    pass
+        for generation in self.generations:
+            finder = NumberFindyThingy(generation)
+            for i in search_area.xrange:
+                for j in search_area.yrange:
+                    try:
+                        (num, points) = finder.parse_number(Coord(i, j), search_area)
+                        self.parsed_number = points
+                        print(f"Parsed number: {num}")
+                        return
+                    except ValueError:
+                        pass
 
         print(f"No number found")
         self.parsed_number = None
-
-    def parse_number(self, pivot: Coord, search_area: BoundingBox):
-        if pivot in self:
-            raise ValueError("Not a number")
-        elif pivot.right() not in self or pivot.down() not in self:
-            raise ValueError("Not a number")
-
-        size = -1
-        hrzt = vert = pivot
-
-        is_neg = False
-
-        while True:
-            vert = vert.down()
-            hrzt = hrzt.right()
-
-            if hrzt in self and vert not in self:
-                raise ValueError("Not a number")
-
-            if hrzt not in self and vert in self:
-                for _ in range(size + 1):
-                    vert = vert.right()
-                    if vert in self:
-                        raise ValueError("Not a number")
-                is_neg = True
-                break
-
-            if hrzt not in self and vert not in self:
-                break
-
-            size += 1
-
-            if size > 7:
-                raise ValueError("Not a number (seems to large)")
-
-        number_area = BoundingBox()
-        number_area.add_point(pivot.down().right())
-        number_area.add_point(
-            Coord(number_area.upper_left.x + size, number_area.upper_left.y + size)
-        )
-
-        number = 0
-        for i, point in enumerate(number_area):
-            if point in self:
-                number += pow(2, i)
-
-        if (size > 1 or (is_neg and size == 0)) and number == 0:
-            raise ValueError("Not a number")
-
-        self.parsed_number = []
-        number_area.add_point(pivot)
-        for point in number_area:
-            if point in self:
-                self.parsed_number.append(point)
-        if is_neg:
-            self.parsed_number.append(Coord(pivot.x, pivot.y + size + 2))
-
-        return -number if is_neg else number
 
     @property
     def num_generations(self):
