@@ -65,7 +65,7 @@ class Interaction:
         # )
 
     def draw(self, data):
-        logger.warning(f"should draw: {data}")
+        # logger.warning(f"should draw: {data}")
         if self.screen:
             for list in data.as_list:
                 self.screen.draw(list.as_list)
@@ -90,6 +90,7 @@ class Interaction:
         start_simplify = time.time()
         proto_result = self.evaluator.simplify(proto_expr, (Ap, Cons, Nil, Integer))
         duration = time.time() - start_simplify
+        logger.warning(f"Step took {duration} s")
 
         # This will probably crash, sorry
         flag, new_state, data = proto_result.as_list.children

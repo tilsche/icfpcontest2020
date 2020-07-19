@@ -95,7 +95,7 @@ class AlienScreen(Thread):
             while True:
                 self.console.clear()
 
-                for generation, points in enumerate(self.generations):
+                for generation, points in enumerate(reversed(self.generations)):
                     for point in points:
                         (x, y) = point.as_tcod(self.offset)
                         self.console.draw_rect(
@@ -122,7 +122,7 @@ class AlienScreen(Thread):
         return len(self.generations)
 
     def fg_color(self, generation):
-        step = 255 - (255 // self.num_generations) * (generation)
+        step = (255 // self.num_generations) * (generation + 1)
         return (step, step, step)
 
     @property
