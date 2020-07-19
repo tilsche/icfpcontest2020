@@ -3,6 +3,8 @@ from .patterns import default_functions, parse_functions
 
 
 class Evaluator:
+    _ap_cache = {}
+
     def __init__(self, context=""):
         self._functions = default_functions
         self._functions.update(parse_functions(context))
@@ -18,6 +20,16 @@ class Evaluator:
                     initial_node.evaluated = result
                 return result
             expression = result
+
+    def _ap(self, op: Expression, arg: Expression):
+        key = id(op), id(arg)
+        try:
+            return self._ap_cache[key]
+        except KeyError:
+            pass
+        ex = Ap(op, arg)
+        self._ap_cache[key] = ex
+        return ex
 
     def _try_eval(self, expression: Expression) -> Expression:
         if isinstance(expression, Ap) and expression.evaluated is not None:
@@ -42,11 +54,11 @@ class Evaluator:
                 elif fun1 == "nil":
                     return "t"
                 elif fun1 == "isnil":
-                    return Ap(x, Ap("t", Ap("t", "f")))
+                    return self._ap(x, self._ap("t", self._ap("t", "f")))
                 elif fun1 == "car":
-                    return Ap(x, "t")
+                    return self._ap(x, "t")
                 elif fun1 == "cdr":
-                    return Ap(x, "f")
+                    return self._ap(x, "f")
 
             elif isinstance(fun1, Ap):
                 fun2 = self.eval(fun1.op)
@@ -80,13 +92,13 @@ class Evaluator:
                     z = fun2.arg
                     if isinstance(fun3, Operator):
                         if fun3 == "s":
-                            return Ap(Ap(z, x), Ap(y, x))
+                            return self._ap(self._ap(z, x), self._ap(y, x))
                         elif fun3 == "c":
-                            return Ap(Ap(z, x), y)
+                            return self._ap(self._ap(z, x), y)
                         elif fun3 == "b":
-                            return Ap(z, Ap(y, x))
+                            return self._ap(z, self._ap(y, x))
                         elif fun3 == "cons":
-                            return Ap(Ap(x, z), y)
+                            return self._ap(self._ap(x, z), y)
         return expression
 
     def _eval_cons(self, a: Expression, b: Expression):
