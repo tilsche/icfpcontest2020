@@ -5,7 +5,7 @@
 namespace zebra
 {
 
-auto now()
+inline auto now()
 {
     return std::chrono::system_clock::now();
 }
