@@ -76,7 +76,14 @@ class Interaction:
     def __call__(self, x: int, y: int):
         logger.warning(f"Click {x} {y}")
         if self.screen:
-            self.screen.save(f"{self.protocol_name}-{self.iteration}.png", Coord(x, y))
+            path = os.path.join("output", self.protocol_name)
+            try:
+                os.mkdir(path)
+            except FileExistsError:
+                pass
+            self.screen.save(
+                os.path.join(path, f"{self.iteration:06d}.png"), Coord(x, y)
+            )
             self.iteration += 1
         self.screen.clear()
         self.step(build_expression(f"ap ap vec {x} {y}"))
