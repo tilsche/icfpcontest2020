@@ -1,11 +1,15 @@
 #pragma once
 
+#include <cassert>
 #include <cstdint>
+#include <unordered_map>
 
 #include <memory>
 #include <utility>
 #include <variant>
 #include <vector>
+
+#include <nitro/lang/string.hpp>
 
 #include "util.hpp"
 
@@ -102,7 +106,7 @@ private:
     Data_ data_;
 };
 
-PExpr make_ap(const PExpr& op, const PExpr& arg)
+inline PExpr make_ap(const PExpr& op, const PExpr& arg)
 {
 #ifdef USE_AP_REGISTRY
     static std::unordered_map<std::pair<Expr*, Expr*>, PExpr, pair_hash> ap_registry;
@@ -120,7 +124,7 @@ PExpr make_ap(const PExpr& op, const PExpr& arg)
 #endif
 }
 
-PExpr make_integer(UnderlyingInteger i)
+inline PExpr make_integer(UnderlyingInteger i)
 {
 #ifdef USE_INTEGER_REGISTRY
     static std::unordered_map<int, PExpr> number_registry;
@@ -137,7 +141,7 @@ PExpr make_integer(UnderlyingInteger i)
 #endif
 }
 
-PExpr make_operator(const std::string& name)
+inline PExpr make_operator(const std::string& name)
 {
     static std::unordered_map<std::string, PExpr> op_registry;
     auto it = op_registry.find(name);
@@ -172,7 +176,7 @@ namespace operators
     static PExpr b = make_operator("b");
 } // namespace operators
 
-std::vector<PExpr> as_list(const PExpr& expr)
+inline std::vector<PExpr> as_list(const PExpr& expr)
 {
     if (expr == operators::nil)
     {
@@ -187,11 +191,14 @@ std::vector<PExpr> as_list(const PExpr& expr)
     return tail;
 }
 
-std::pair<PExpr, PExpr> as_vector(const PExpr& expr)
+inline bool is_cons(const PExpr& expr)
 {
-    assert(expr->is_ap());
-    assert(expr->op()->is_ap());
-    assert(expr->op()->op() == operators::cons);
+    return expr->is_ap() && expr->op()->is_ap() && expr->op()->op() == operators::cons;
+}
+
+inline std::pair<PExpr, PExpr> as_vector(const PExpr& expr)
+{
+    assert(is_cons(expr));
 
     return { expr->op()->arg(), expr->arg() };
 }

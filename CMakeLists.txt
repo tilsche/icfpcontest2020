@@ -16,6 +16,7 @@ find_package(Threads REQUIRED)
 
 set(SOURCE_FILES
     app/main.cpp
+    app/modem.cpp
 )
 
 add_executable(solver ${SOURCE_FILES})
@@ -25,6 +26,7 @@ target_link_libraries(solver
         Nitro::log
         Nitro::env
         Threads::Threads
+        fmt::fmt-header-only
 )
 
 target_include_directories(solver PRIVATE
