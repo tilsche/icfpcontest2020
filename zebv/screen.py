@@ -95,10 +95,11 @@ class AlienScreen(Thread):
                 self.console.clear()
 
                 for generation, points in enumerate(reversed(self.generations)):
+                    color = self.fg_color(generation)
                     for point in points:
                         (x, y) = point.as_tcod(self.offset)
-                        self.console.draw_rect(
-                            x, y, 1, 1, fg=self.fg_color(generation), ch=PIXEL
+                        tcod.console_set_char_background(
+                            self.console, x, y, color, tcod.BKGND_SET,
                         )
 
                 if self.last_click:
