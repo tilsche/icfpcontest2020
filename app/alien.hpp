@@ -30,13 +30,50 @@ public:
     template <typename Functor>
     void visit(Functor f) const
     {
-        for (int x = upper_left.x; x <= lower_right.x; x++)
+        for (int y = upper_left.y; y <= lower_right.y; y++)
         {
-            for (int y = upper_left.y; y <= lower_right.y; y++)
+            for (int x = upper_left.x; x <= lower_right.x; x++)
             {
                 f(Coordinate(x, y));
             }
         }
+    }
+    template <typename Functor>
+    void visit_border(Functor f)
+    {
+        auto point = upper_left;
+
+        while (point.x <= lower_right.x)
+        {
+            f(point);
+            point = point.right();
+        }
+
+        while (point.y <= lower_right.y)
+        {
+            f(point);
+            point = point.down();
+        }
+
+        while (point.x >= upper_left.x)
+        {
+            f(point);
+            point = point.left();
+        }
+
+        while (point.y > upper_left.y)
+        {
+            f(point);
+            point = point.up();
+        }
+    }
+
+    Coordinate size() const
+    {
+        return {
+            lower_right.x - upper_left.x + 1,
+            lower_right.y - upper_left.y + 1,
+        };
     }
 
     Coordinate upper_left;
@@ -63,9 +100,9 @@ public:
         BoundingBox bb{ { point.x - RADIUS, point.y - RADIUS },
                         { point.x + RADIUS, point.y + RADIUS } };
 
-        for (UnderlyingInteger y = bb.upper_left.y; y <= bb.lower_right.y; y++)
+        for (UnderlyingInteger x = bb.upper_left.x; x <= bb.lower_right.x; x++)
         {
-            for (UnderlyingInteger x = bb.upper_left.x; x <= bb.lower_right.x; x++)
+            for (UnderlyingInteger y = bb.upper_left.y; y <= bb.lower_right.y; y++)
             {
                 auto res = parse_number({ x, y });
                 if (res)
@@ -154,6 +191,18 @@ public:
                 number_points.push_back(p);
             }
         });
+
+        number_area.add_point(pivot.up().left());
+        number_area.add_point(number_area.lower_right.down().right());
+
+        auto has_empty_border = true;
+        number_area.visit_border([this, &has_empty_border](Coordinate p) {
+            if (this->is_set(p))
+                has_empty_border = false;
+        });
+
+        if (!has_empty_border)
+            return {};
 
         if (is_neg)
         {

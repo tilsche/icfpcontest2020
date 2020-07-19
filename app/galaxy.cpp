@@ -149,15 +149,10 @@ void GalaxyPanel::mouse_right_up(wxMouseEvent& event)
 
         if (res)
         {
-            parsed_number_pixels_ = res->points;
-            parsed_number_ = res->number;
-
+            parsed_numbers_.push_back(*res);
             return;
         }
     }
-
-    parsed_number_pixels_.clear();
-    parsed_number_.reset();
 
     Refresh();
 }
@@ -186,25 +181,26 @@ void GalaxyPanel::render(wxDC& dc)
         }
     }
 
-    if (parsed_number_)
-    {
-        dc.SetBrush(wxBrush(wxColor(255, 0, 255)));
+    dc.SetBrush(wxNullBrush);
 
-        for (const auto& pixel : parsed_number_pixels_)
+    dc.SetPen(wxPen(wxColor(255, 0, 255)));
+
+    for (auto& parsed_number : parsed_numbers_)
+    {
+
+        for (const auto& pixel : parsed_number.points)
         {
             dc.DrawRectangle(transform(pixel), wxSize(scale, scale));
         }
 
-        auto anchor = parsed_number_pixels_.front();
-        anchor.y += 7;
+        auto anchor = parsed_number.points.front();
 
         dc.SetTextForeground(wxColor(0, 255, 255));
 
-        dc.DrawText(std::to_string(*parsed_number_), transform(anchor));
+        dc.DrawText(std::to_string(parsed_number.number), transform(anchor));
     }
 
     dc.SetPen(*wxGREEN_PEN);
-    dc.SetBrush(wxNullBrush);
     if (mouse_position_)
     {
         dc.DrawRectangle(transform(*mouse_position_), wxSize(scale, scale));

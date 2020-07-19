@@ -6,6 +6,7 @@
 #include <wx/dcbuffer.h>
 #include <wx/wx.h>
 
+#include "alien.hpp"
 #include "interact.hpp"
 
 class GalaxyApp : public wxApp
@@ -95,6 +96,22 @@ private:
     void mouse_left_up(wxMouseEvent& event)
     {
         interact_(transform(event.GetPosition()));
+
+        parsed_numbers_.clear();
+
+        for (const auto& image : interact_.images)
+        {
+            zebra::AlienNumberFinder finder(image);
+
+            for (auto point : image)
+            {
+                if (auto res = finder.find_number_near(point))
+                {
+                    parsed_numbers_.push_back(*res);
+                }
+            }
+        }
+
         Refresh();
     }
 
@@ -120,8 +137,7 @@ private:
     wxCoord offset_x;
     wxCoord offset_y;
 
-    std::vector<zebra::Coordinate> parsed_number_pixels_;
-    std::optional<zebra::UnderlyingInteger> parsed_number_;
+    std::vector<zebra::NumberResult> parsed_numbers_;
 };
 
 enum
