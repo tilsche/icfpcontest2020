@@ -198,6 +198,56 @@ class AttacPlayer(Player):
         self.log.info(f"Finished: {self.game_response}")
 
 
+def stay_velocity(ship):
+    """
+    Uses the velocity to estimate the right dircetion for the boost
+    """
+    dx, dy = ship.velocity
+    dx = float(dx)
+    dy = float(dy)
+    dt = abs(dx) + abs(dy)
+    dx = dx / dt
+    dy = dy / dt
+
+    vx = 0
+    vy = 0
+    if abs(dx) > 0.25:
+        vx = -1 if dx < 0 else 1
+    if abs(dy) > 0.25:
+        vy = -1 if dy < 0 else 1
+
+    vec = (vx, vy)
+    return vec
+
+
+def stay_position(ship, inital_pos):
+    """
+    Calculates the distance between current position, and intial pos,
+    to estimate the right dircetion for the boost
+    """
+    xi, yi = inital_pos
+    x, y = ship.position
+    dx = float(x - xi)
+    dy = float(y - yi)
+
+    dt = abs(dx) + abs(dy)
+    if dt == 0:
+        return (0, 0)
+
+    dx = dx / dt
+    dy = dy / dt
+
+    vx = 0
+    vy = 0
+    if abs(dx) > 0.25:
+        vx = -1 if dx < 0 else 1
+    if abs(dy) > 0.25:
+        vy = -1 if dy < 0 else 1
+
+    vec = (vx, vy)
+    return vec
+
+
 class DefendPlayer(Player):
     def __init__(self, player_key, command, log_level=logging.DEBUG):
         super().__init__(player_key, command)
@@ -230,32 +280,11 @@ class DefendPlayer(Player):
                     )
                     self.log.info(f"commands: {commands}")
 
-                    # if not inital_pos:
-                    #    inital_pos = ship.position
-                    # xi, yi = inital_pos
-                    # x, y = ship.position
-                    # fac = -1
-                    # dx = float(x - xi)
-                    # dy = float(y - yi)
-                    dx, dy = ship.velocity
-                    dx = float(dx)
-                    dy = float(dy)
-                    dt = abs(dx) + abs(dy)
-                    # if dt == 0:
-                    #    self.game_response = self.nothing()
-                    #    continue
-                    dx = dx / dt
-                    dy = dy / dt
+                    if not inital_pos:
+                        inital_pos = ship.position
 
-                    self.log.info(f"dx {dx}, dy {dy}")
-                    vx = 0
-                    vy = 0
-                    if abs(dx) > 0.25:
-                        vx = -1 if dx < 0 else 1
-                    if abs(dy) > 0.25:
-                        vy = -1 if dy < 0 else 1
-
-                    vec = (vx, vy)
+                    vec = stay_velocity(ship)
+                    # vec = stay_position(ship, inital_pos)
 
                     self.log.info(f"ACCELERATE {ship.ship_id}, VEC: {vec}")
                     self.game_response = self.accelerate(ship.ship_id, vec)
