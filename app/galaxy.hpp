@@ -98,6 +98,8 @@ private:
         Refresh();
     }
 
+    void mouse_right_up(wxMouseEvent& event);
+
     void mouse_moved(wxMouseEvent& event)
     {
         if (event.Leaving())
@@ -117,6 +119,9 @@ private:
     int scale = 5;
     wxCoord offset_x;
     wxCoord offset_y;
+
+    std::vector<zebra::Coordinate> parsed_number_pixels_;
+    std::optional<zebra::UnderlyingInteger> parsed_number_;
 };
 
 enum

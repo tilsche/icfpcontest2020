@@ -30,7 +30,32 @@ public:
     {
         return make_ap(make_ap(operators::cons, make_integer(this->x)), make_integer(this->y));
     }
+
+    Coordinate up() const
+    {
+        return { x, y - 1 };
+    }
+
+    Coordinate down() const
+    {
+        return { x, y + 1 };
+    }
+
+    Coordinate left() const
+    {
+        return { x - 1, y };
+    }
+
+    Coordinate right() const
+    {
+        return { x + 1, y };
+    }
 };
+
+inline bool operator==(const Coordinate& a, const Coordinate& b)
+{
+    return a.x == b.x && a.y == b.y;
+}
 
 inline std::ostream& operator<<(std::ostream& os, const Coordinate& expr)
 {

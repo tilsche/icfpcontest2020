@@ -6,6 +6,7 @@
 #include <nitro/lang/enumerate.hpp>
 #include <nitro/lang/reverse.hpp>
 
+#include "alien.hpp"
 #include "eval.hpp"
 #include "interact.hpp"
 
@@ -21,6 +22,7 @@ BEGIN_EVENT_TABLE(GalaxyPanel, wxPanel)
 // EVT_MOUSEWHEEL(ChartDrawPanel::mouseWheelMoved)
 // EVT_LEFT_DOWN(ChartDrawPanel::mouseDown)
 EVT_LEFT_UP(GalaxyPanel::mouse_left_up)
+EVT_RIGHT_UP(GalaxyPanel::mouse_right_up)
 EVT_MOTION(GalaxyPanel::mouse_moved)
 // EVT_KEY_DOWN(ChartDrawPanel::keyPressed)
 // EVT_KEY_UP(ChartDrawPanel::keyReleased)
@@ -136,6 +138,30 @@ void GalaxyPanel::bounding_box(wxDC& dc)
     dc.DrawRectangle(wxPoint(0, 0), scale * wxSize(size_x, size_y));
 }
 
+void GalaxyPanel::mouse_right_up(wxMouseEvent& event)
+{
+    auto point = transform(event.GetPosition());
+
+    for (const auto& image : interact_.images)
+    {
+        zebra::AlienNumberFinder finder(image);
+        auto res = finder.find_number_near(point);
+
+        if (res)
+        {
+            parsed_number_pixels_ = res->points;
+            parsed_number_ = res->number;
+
+            return;
+        }
+    }
+
+    parsed_number_pixels_.clear();
+    parsed_number_.reset();
+
+    Refresh();
+}
+
 void GalaxyPanel::render(wxDC& dc)
 {
     bounding_box(dc);
@@ -158,6 +184,23 @@ void GalaxyPanel::render(wxDC& dc)
         {
             dc.DrawRectangle(transform(pixel), wxSize(scale, scale));
         }
+    }
+
+    if (parsed_number_)
+    {
+        dc.SetBrush(wxBrush(wxColor(255, 0, 255)));
+
+        for (const auto& pixel : parsed_number_pixels_)
+        {
+            dc.DrawRectangle(transform(pixel), wxSize(scale, scale));
+        }
+
+        auto anchor = parsed_number_pixels_.front();
+        anchor.y += 7;
+
+        dc.SetTextForeground(wxColor(0, 255, 255));
+
+        dc.DrawText(std::to_string(*parsed_number_), transform(anchor));
     }
 
     dc.SetPen(*wxGREEN_PEN);
