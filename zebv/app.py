@@ -8,7 +8,7 @@ from .api import ApiClient
 from .modem import demod, mod
 from .node import Ap, Integer
 from .operators import Cons, Nil
-from .game_state import GameState
+from .game_state import GameResponse
 
 import threading
 
