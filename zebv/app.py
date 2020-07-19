@@ -223,17 +223,11 @@ class DefendPlayer(Player):
                     xi, yi = inital_pos
                     x, y = ship.position
                     fac = 2
-                    vec = (fac * (x - xi), fac * (y - yi))
+                    # vec = (fac * (x - xi), fac * (y - yi))
+                    vec = (1, 1)
                     self.log.info(f"ACCELERATE {ship.ship_id}, VEC: {vec}")
                     self.game_response = self.accelerate(ship.ship_id, vec)
-                    # resp = self.nothing()
-                    # self.log.info(f"SHOOT {ship.ship_id}")
-                    # resp = self.shoot(ship.ship_id, (1, 1), 1)
-                    # self.game_response = resp
-                    #
-                    # self.log.info(f"DETONATE {ship.ship_id}")
-                    # resp = self.detonate(ship.ship_id)
-                    # self.game_response = resp
+                    # self.game_response = self.shoot(ship.ship_id, (1, 1), 1)
 
         self.log.info(f"Finished: {self.game_response}")
 
