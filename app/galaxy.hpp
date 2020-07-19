@@ -27,12 +27,13 @@ public:
     GalaxyFrame(zebra::Interact& interact);
 
 private:
-    void OnHello(wxCommandEvent& event);
+    void on_try_all(wxCommandEvent& event);
     void OnExit(wxCommandEvent& event);
     void OnAbout(wxCommandEvent& event);
 
 private:
     wxAuiManager aui_manager_;
+    zebra::Interact& interact_;
 };
 
 class GalaxyPanel;
@@ -142,5 +143,5 @@ private:
 
 enum
 {
-    ID_Hello = 1
+    ID_try_all = 1
 };

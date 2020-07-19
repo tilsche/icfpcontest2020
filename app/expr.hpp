@@ -1,10 +1,13 @@
 #pragma once
 
 #include <cassert>
+#include <cstddef>
 #include <cstdint>
 #include <unordered_map>
 
+#include <functional>
 #include <memory>
+#include <string>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -266,3 +269,4 @@ inline PExpr parse_expr(const std::string& s)
     return parse_expr(it, end);
 }
 } // namespace zebra
+

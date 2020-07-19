@@ -59,12 +59,12 @@ bool GalaxyApp::OnInit()
     return true;
 }
 GalaxyFrame::GalaxyFrame(zebra::Interact& interact)
-: wxFrame(NULL, wxID_ANY, "Hello World", wxDefaultPosition, wxSize(1024, 768),
-          wxDEFAULT_FRAME_STYLE)
+: wxFrame(NULL, wxID_ANY, "Hello Galaxy", wxDefaultPosition, wxSize(1024, 768),
+          wxDEFAULT_FRAME_STYLE),
+  interact_(interact)
 {
     wxMenu* menuFile = new wxMenu;
-    menuFile->Append(ID_Hello, "&Hello...\tCtrl-H",
-                     "Help string shown in status bar for this menu item");
+    menuFile->Append(ID_try_all, "Try all!");
     menuFile->AppendSeparator();
     menuFile->Append(wxID_EXIT);
     wxMenu* menuHelp = new wxMenu;
@@ -74,8 +74,8 @@ GalaxyFrame::GalaxyFrame(zebra::Interact& interact)
     menuBar->Append(menuHelp, "&Help");
     SetMenuBar(menuBar);
     CreateStatusBar();
-    SetStatusText("Welcome to wxWidgets!");
-    Bind(wxEVT_MENU, &GalaxyFrame::OnHello, this, ID_Hello);
+    SetStatusText("Welcome to the Galaxy!");
+    Bind(wxEVT_MENU, &GalaxyFrame::on_try_all, this, ID_try_all);
     Bind(wxEVT_MENU, &GalaxyFrame::OnAbout, this, wxID_ABOUT);
     Bind(wxEVT_MENU, &GalaxyFrame::OnExit, this, wxID_EXIT);
 
@@ -95,9 +95,9 @@ void GalaxyFrame::OnAbout(wxCommandEvent& event)
     wxMessageBox("This is a wxWidgets Hello World example", "About Hello World",
                  wxOK | wxICON_INFORMATION);
 }
-void GalaxyFrame::OnHello(wxCommandEvent& event)
+void GalaxyFrame::on_try_all(wxCommandEvent& event)
 {
-    wxLogMessage("Hello world from wxWidgets!");
+    interact_.try_all();
 }
 
 GalaxyDC::GalaxyDC(GalaxyPanel* dp) : wxAutoBufferedPaintDC(dp)
@@ -109,21 +109,11 @@ GalaxyDC::GalaxyDC(GalaxyPanel* dp) : wxAutoBufferedPaintDC(dp)
 
 void GalaxyPanel::bounding_box(wxDC& dc)
 {
-    wxCoord min_x = 0, min_y = 0, max_x = 0, max_y = 0;
-    for (const auto& image : interact_.images)
-    {
-        for (const auto& pixel : image)
-        {
-            min_x = std::min<wxCoord>(min_x, pixel.x);
-            max_x = std::max<wxCoord>(max_x, pixel.x);
-            min_y = std::min<wxCoord>(min_y, pixel.y);
-            max_y = std::max<wxCoord>(max_y, pixel.y);
-        }
-    }
-    wxCoord size_x = max_x - min_x + 1;
-    wxCoord size_y = max_y - min_y + 1;
-    offset_x = -min_x;
-    offset_y = -min_y;
+    auto [top_left, bottom_right] = zebra::bounding_box(interact_.images);
+    wxCoord size_x = bottom_right.x - top_left.x + 1;
+    wxCoord size_y = bottom_right.y - top_left.y + 1;
+    offset_x = -top_left.x;
+    offset_y = -top_left.y;
 
     scale = std::min<int>(dc.GetSize().x / size_x, dc.GetSize().y / size_y);
     if (scale < 1)
