@@ -40,7 +40,7 @@ logging.basicConfig(level=logging.DEBUG, handlers=[handler])
 # logging.basicConfig(level=logging.DEBUG)
 
 logger = logging.getLogger(__name__)
-# logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.DEBUG)
 
 
 class Command:
