@@ -34,6 +34,23 @@ bool GalaxyApp::OnInit()
 {
     interact_.evaluator.add_function_file("../resources/galaxy.txt");
     interact_({ 0, 0 });
+    interact_({ 0, 0 });
+    interact_({ 0, 0 });
+    interact_({ 0, 0 });
+    interact_({ 0, 0 });
+    interact_({ 0, 0 });
+    interact_({ 0, 0 });
+    interact_({ 0, 0 });
+
+    interact_({ 0, 0 });
+    interact_({ 8, 4 });
+    interact_({ 2, -8 });
+    interact_({ 3, 6 });
+    interact_({ 0, -14 });
+    interact_({ -4, 10 });
+    interact_({ 9, -3 });
+    interact_({ -4, 10 });
+    interact_({ 1, 4 });
 
     GalaxyFrame* frame = new GalaxyFrame(interact_);
     frame->Show(true);

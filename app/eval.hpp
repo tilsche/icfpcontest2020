@@ -15,6 +15,20 @@
 namespace zebra
 {
 
+PExpr _safe_add(const PExpr& left, const PExpr& right)
+{
+    UnderlyingInteger result;
+    __builtin_add_overflow(left->value(), right->value(), &result);
+    return make_integer(result);
+}
+
+PExpr _safe_mul(const PExpr& left, const PExpr& right)
+{
+    UnderlyingInteger result;
+    __builtin_mul_overflow(left->value(), right->value(), &result);
+    return make_integer(result);
+}
+
 class Evaluator
 {
 public:
@@ -121,9 +135,9 @@ private:
                     if (fun2 == operators::f)
                         return x;
                     if (fun2 == operators::add)
-                        return make_integer(eval(x)->value() + eval(y)->value());
+                        return _safe_add(eval(x), eval(y));
                     if (fun2 == operators::mul)
-                        return make_integer(eval(x)->value() * eval(y)->value());
+                        return _safe_mul(eval(x), eval(y));
                     if (fun2 == operators::div)
                         return make_integer(eval(y)->value() / eval(x)->value());
                     if (fun2 == operators::lt)

@@ -54,7 +54,7 @@ private:
         PExpr new_state = fsd.at(1);
         PExpr data = fsd.at(2);
 
-        std::cout << "fsd: " << flag << ", " << new_state << ", " << data << "\n";
+        // std::cout << "fsd: " << flag << "\n" << ", " << new_state << ", " << data << "\n";
         this->state_ = new_state;
         if (flag->value() == 0)
         {

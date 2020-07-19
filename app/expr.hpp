@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 #include <memory>
 #include <utility>
 #include <vector>
@@ -13,7 +15,7 @@ enum class ExprType
     Ap,
 };
 
-using UnderlyingInteger = long long;
+using UnderlyingInteger = std::int64_t;
 
 class Expr;
 
