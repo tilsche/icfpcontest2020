@@ -1,4 +1,4 @@
-from threading import Thread
+from threading import Thread, Lock
 
 import tcod
 from zebv.draw import ColorImg, Img
@@ -79,9 +79,11 @@ class AlienScreen(Thread):
         self.tileset = tcod.tileset.load_tilesheet(
             "dejavu10x10_gs_tc.png", 32, 8, tcod.tileset.CHARMAP_TCOD,
         )
-        self.clear()
         self.console = tcod.Console(WIDTH, HEIGHT)
         self.last_click = None
+        self.mouse_pos = None
+        self.mutex = Lock()
+        self.clear()
 
     def run(self):
         with tcod.context.new_terminal(
@@ -94,26 +96,37 @@ class AlienScreen(Thread):
             while True:
                 self.console.clear()
 
-                for generation, points in enumerate(reversed(self.generations)):
-                    color = self.fg_color(generation)
-                    for point in points:
-                        (x, y) = point.as_tcod(self.offset)
-                        tcod.console_set_char_background(
-                            self.console, x, y, color, tcod.BKGND_SET,
-                        )
+                with self.mutex:
+                    for generation, points in enumerate(reversed(self.generations)):
+                        color = self.fg_color(generation)
+                        for point in points:
+                            (x, y) = point.as_tcod(self.offset)
+                            tcod.console_set_char_background(
+                                self.console, x, y, color, tcod.BKGND_SET,
+                            )
 
                 if self.last_click:
                     (x, y) = self.last_click
                     self.console.draw_rect(x, y, 1, 1, fg=(255, 0, 0), ch=PIXEL)
 
+                if self.mouse_pos:
+                    (x, y) = self.mouse_pos
+                    self.console.draw_rect(x, y, 1, 1, fg=(255, 255, 0), ch=PIXEL)
+
                 context.present(self.console, keep_aspect=True)
 
                 for event in tcod.event.wait():
                     context.convert_event(event)
+                    if event.type == "MOUSEMOTION":
+                        self.mouse_pos = event.tile
+
                     if event.type == "MOUSEBUTTONDOWN":
-                        x, y = event.tile
-                        self.on_mouse_click(Coord(x - self.offset.x, y - self.offset.y))
-                        self.last_click = (x, y)
+                        with self.mutex:
+                            x, y = event.tile
+                            self.on_mouse_click(
+                                Coord(x - self.offset.x, y - self.offset.y)
+                            )
+                            self.last_click = (x, y)
                     if event.type == "QUIT":
                         raise SystemExit()
 
@@ -134,41 +147,44 @@ class AlienScreen(Thread):
         return self.bounding_box.offset
 
     def draw(self, nodes=[]):
-        generation = Generation()
+        with self.mutex:
+            generation = Generation()
 
-        for n in nodes:
-            assert n.op.op == "cons"
-            x = n.op.arg
-            y = n.arg
+            for n in nodes:
+                assert n.op.op == "cons"
+                x = n.op.arg
+                y = n.arg
 
-            generation.add_point(Coord(x, y))
+                generation.add_point(Coord(x, y))
 
-        self.generations.append(generation)
-        self.bounding_box.add_box(generation.bounding_box)
+            self.generations.append(generation)
+            self.bounding_box.add_box(generation.bounding_box)
 
-        self.console = tcod.Console(self.size.x + 1, self.size.y + 1)
+            self.console = tcod.Console(self.size.x + 1, self.size.y + 1)
 
     def save(self, filename, interact_point: Coord):
-        im = ColorImg(size=(self.size.x + 1, self.size.y + 1))
+        with self.mutex:
+            im = ColorImg(size=(self.size.x + 1, self.size.y + 1))
 
-        for generation, points in enumerate(self.generations):
-            for point in points:
-                (x, y) = point.as_tcod(self.offset)
-                im.add_point(x, y, color=self.fg_color(generation)[0])
+            for generation, points in enumerate(self.generations):
+                for point in points:
+                    (x, y) = point.as_tcod(self.offset)
+                    im.add_point(x, y, color=self.fg_color(generation)[0])
 
-        (x, y) = interact_point.as_tcod(self.offset)
-        try:
-            im.add_point(x, y, (255, 0, 0))
-        except IndexError:
-            pass
+            (x, y) = interact_point.as_tcod(self.offset)
+            try:
+                im.add_point(x, y, (255, 0, 0))
+            except IndexError:
+                pass
 
-        im.save(filename)
+            im.save(filename)
 
     def clear(self):
-        self.generations = []
-        self.bounding_box = BoundingBox()
-        self.bounding_box.add_point(Coord(-40, -40))
-        self.bounding_box.add_point(Coord(40, 40))
+        with self.mutex:
+            self.generations = []
+            self.bounding_box = BoundingBox()
+            self.bounding_box.add_point(Coord(-40, -40))
+            self.bounding_box.add_point(Coord(40, 40))
 
     def on_mouse_click(self, point: Coord):
         print(f"mouse click on ({point.x}, {point.y})")

@@ -2,6 +2,7 @@ import os
 import time
 from logging import getLogger
 from typing import Callable
+import threading
 
 from .api import ApiClient
 from .eval import Evaluator
@@ -27,6 +28,9 @@ class Interaction:
             "https://icfpc2020-api.testkontur.ru/", os.environ["PLAYER_KEY"]
         )
         self.send_function = self.api_client.aliens_send
+
+        self.event = threading.Event()
+
         self.screen = None
         if interactive:
             self.screen = AlienScreen()
@@ -35,13 +39,24 @@ class Interaction:
             self.protocol_name = protocol
 
             def callback(point):
-                self(point.x, point.y)
+                if not self.event.is_set():
+                    self.next_point = point
+                    self.event.set()
+                else:
+                    logger.debug(f"Already scheduled an interaction")
 
             self.screen.on_mouse_click = callback
+
+    def run(self):
+        while self.screen is not None and self.screen.is_alive():
+            self.event.wait()
+            self(self.next_point.x, self.next_point.y)
+            self.event.clear()
 
     def draw(self, data):
         logger.debug(f"should draw: {data}")
         if self.screen:
+            self.screen.clear()
             for l in as_list(data):
                 self.screen.draw(as_list(l))
 
@@ -85,5 +100,4 @@ class Interaction:
                 os.path.join(path, f"{self.iteration:06d}.png"), Coord(x, y)
             )
             self.iteration += 1
-        self.screen.clear()
         self.step(build_expression(f"ap ap vec {x} {y}"))
