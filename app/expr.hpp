@@ -6,6 +6,8 @@
 #include <utility>
 #include <vector>
 
+#include "util.hpp"
+
 namespace zebra
 {
 enum class ExprType
@@ -122,12 +124,37 @@ private:
 
 PExpr make_ap(const PExpr& op, const PExpr& arg)
 {
+#ifdef USE_AP_REGISTRY
+    static std::unordered_map<std::pair<Expr*, Expr*>, PExpr, pair_hash> ap_registry;
+    auto key = std::make_pair(op.get(), arg.get());
+    auto it = ap_registry.find(key);
+    if (it == ap_registry.end())
+    {
+        bool inserted;
+        std::tie(it, inserted) = ap_registry.emplace(key, std::make_shared<Expr>(op, arg));
+        assert(inserted);
+    }
+    return it->second;
+#else
     return std::make_shared<Expr>(op, arg);
+#endif
 }
 
 PExpr make_integer(UnderlyingInteger i)
 {
+#ifdef USE_INTEGER_REGISTRY
+    static std::unordered_map<int, PExpr> number_registry;
+    auto it = number_registry.find(i);
+    if (it == number_registry.end())
+    {
+        bool inserted;
+        std::tie(it, inserted) = number_registry.emplace(i, std::make_shared<Expr>(i));
+        assert(inserted);
+    }
+    return it->second;
+#else
     return std::make_shared<Expr>(i);
+#endif
 }
 
 PExpr make_operator(const std::string& name)
