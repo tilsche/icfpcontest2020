@@ -12,6 +12,9 @@ from .game_state import GameResponse
 
 import threading
 
+ATTAC = 0
+DEFEND = 1
+
 
 class LogFormatter(logging.Formatter):
     colors = {
@@ -136,7 +139,11 @@ class AttacPlayer(Player):
         self.log.info(f"Start as {self.game_response.static_game_info.role}")
         resp = self._command.start(self._player_key, self._ship_params)
         self.game_response = GameResponse(resp)
-        return self.log.info(self.game_response)
+        self.log.info(self.game_response)
+        s_u_c = self.game_response.game_state.ships_and_commands.ships_and_commands
+        for (ship, commands) in s_u_c:
+            if ship.role == ATTAC:
+                self.log.info(f"ACCELERATE {ship.ship_id}")
 
 
 class DefendPlayer(Player):
@@ -153,9 +160,9 @@ class DefendPlayer(Player):
         self.game_response = GameResponse(resp)
         self.log.info(self.game_response)
         s_u_c = self.game_response.game_state.ships_and_commands.ships_and_commands
-        for (ship, commands,) in s_u_c:
-            if ship.role == 1:
-                # self.log.info("ACCELERATE")
+        for (ship, commands) in s_u_c:
+            if ship.role == DEFEND:
+                self.log.info(f"ACCELERATE {ship.ship_id}")
                 # self.accellerate(ship[0].ship_id, (1, 1))
                 self.detonate(ship.ship_id)
                 self.game_response = GameResponse(resp)
