@@ -1,13 +1,13 @@
 import pytest
-import zebv.parsing as parsing
+from zebv.expression import build_expression
 
 
 def t(exp):
-    return parsing.build_expression(parsing.tokenize(exp))
+    return build_expression(exp)
 
 
 def s(e, exp):
-    return e.shrink(t(exp))
+    return e.eval(t(exp))
 
 
 def test_ap(e):

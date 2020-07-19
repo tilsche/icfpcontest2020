@@ -6,8 +6,6 @@ import click_log
 
 from .api import ApiClient
 from .modem import demod, mod
-from .node import Ap, Integer
-from .operators import Cons, Nil
 
 
 class LogFormatter(Formatter):

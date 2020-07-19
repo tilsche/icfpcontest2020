@@ -1,8 +1,6 @@
 import numpy as np
 from PIL import Image
 
-from . import node
-
 
 class Img:
     def __init__(self, size):
@@ -22,12 +20,12 @@ def draw(nodes=[], filename="", size=(1, 1)):
     max_x = size[0]
     max_y = size[1]
     for n in nodes:
-        assert n.op.op.name == "cons"
+        assert n.op.op == "cons"
         x = n.op.arg
         y = n.arg
-        points.append((x.value, y.value))
-        max_x = max(x.value + 1, max_x)
-        max_y = max(y.value + 1, max_y)
+        points.append((x, y))
+        max_x = max(x + 1, max_x)
+        max_y = max(y + 1, max_y)
 
     new_size = (max_x, max_y)
     im = Img(new_size)

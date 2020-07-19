@@ -1,17 +1,16 @@
 import pytest
+from zebv.expression import Ap, Integer
 from zebv.modem import _to_tuple_list, demod, demod_node, mod, mod_node, mod_num
-from zebv.node import Ap
-from zebv.operators import Cons, Integer, Nil
 
 TEST_NODES = [
     (Integer(0), 0, "010"),
     (Integer(1), 1, "01100001"),
-    (Nil(), (), "00"),
-    (Ap(Ap(Cons(), Nil()), Nil()), ((), ()), "110000"),
-    (Ap(Ap(Cons(), Integer(0)), Nil()), (0, ()), "1101000"),
-    (Ap(Ap(Cons(), Integer(1)), Integer(2)), (1, 2), "110110000101100010"),
+    ("nil", (), "00"),
+    (Ap(Ap("cons", "nil"), "nil"), ((), ()), "110000"),
+    (Ap(Ap("cons", Integer(0)), "nil"), (0, ()), "1101000"),
+    (Ap(Ap("cons", Integer(1)), Integer(2)), (1, 2), "110110000101100010"),
     (
-        Ap(Ap(Cons(), Integer(1)), Ap(Ap(Cons(), Integer(2)), Nil())),
+        Ap(Ap("cons", Integer(1)), Ap(Ap("cons", Integer(2)), "nil")),
         (1, (2, ())),
         "1101100001110110001000",
     ),

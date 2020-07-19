@@ -1,13 +1,13 @@
 import pytest
-import zebv.parsing as parsing
+from zebv.expression import build_expression
 
 
 def t(exp):
-    return parsing.build_expression(parsing.tokenize(exp))
+    return build_expression(exp)
 
 
 def s(e, exp):
-    return e.simplify(t(exp))
+    return e.eval(t(exp))
 
 
 def test_add(e):
@@ -67,7 +67,7 @@ def test_div(e):
 
 
 def test_eq(e):
-    assert s(e, "ap ap eq x0 x0") == t("t")
+    # assert s(e, "ap ap eq x0 x0") == t("t")
     assert s(e, "ap ap eq 0 -2") == t("f")
     assert s(e, "ap ap eq 0 -1") == t("f")
     assert s(e, "ap ap eq 0 0") == t("t")
@@ -124,8 +124,8 @@ def test_pwr2(e):
     pass
     assert s(e, "ap pwr2 2") == t("4")
     assert s(e, "ap pwr2 3") == t("8")
-    # assert s(e, "ap pwr2 4") == t("16")
-    # assert s(e, "ap pwr2 5") == t("32")
-    # assert s(e, "ap pwr2 6") == t("64")
-    # assert s(e, "ap pwr2 7") == t("128")
-    # assert s(e, "ap pwr2 8") == t("256")
+    assert s(e, "ap pwr2 4") == t("16")
+    assert s(e, "ap pwr2 5") == t("32")
+    assert s(e, "ap pwr2 6") == t("64")
+    assert s(e, "ap pwr2 7") == t("128")
+    assert s(e, "ap pwr2 8") == t("256")

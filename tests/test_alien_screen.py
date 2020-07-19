@@ -1,12 +1,10 @@
 from zebv.eval import Evaluator
-from zebv.node import Ap, Integer
-from zebv.operators import Cons, Nil
-from zebv.parsing import build_expression, tokenize
+from zebv.expression import as_list, build_expression
 from zebv.screen import AlienScreen
 
 
 def t(exp):
-    return build_expression(tokenize(exp))
+    return build_expression(exp)
 
 
 def t_list(vecs):
@@ -48,12 +46,10 @@ def test_screen():
     # screen.draw([(41, 51), (56, 31)])
     # screen.draw([(21, 35), (22, 43)])
 
-    galaxy = e.simplify(
-        build_expression(tokenize(GALAXY)), (Cons, Nil, Ap, Integer)
-    ).as_list
+    galaxy = as_list(e.eval(build_expression(GALAXY)))
 
     for list in galaxy:
-        screen.draw(list.as_list)
+        screen.draw(as_list(list))
 
     screen.join()
 

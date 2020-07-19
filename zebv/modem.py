@@ -2,8 +2,7 @@ from logging import getLogger
 from math import ceil
 from typing import Tuple, Union
 
-from .node import Ap, Integer, Node
-from .operators import Cons, Nil
+from .expression import Ap, Expression, Integer
 
 logger = getLogger(__name__)
 
@@ -40,15 +39,15 @@ def mod(input) -> str:
         raise TypeError(f"The fuck is this? input={input}")
 
 
-def _to_tuple_list(node: Union[Ap, Integer, Nil]):
+def _to_tuple_list(node: Expression):
     if isinstance(node, Integer):
-        return int(node.value)
-    elif isinstance(node, Nil):
+        return int(node)
+    elif node == "nil":
         return ()
     elif isinstance(node, Ap):
         first_ap = node.op
         arg = node.arg
-        if isinstance(first_ap, Ap) and isinstance(first_ap.op, Cons):
+        if isinstance(first_ap, Ap) and first_ap.op == "cons":
             return (_to_tuple_list(first_ap.arg), _to_tuple_list(arg))
         else:
             raise ValueError(f'Node {node!r} is not in the form of "ap ap cons _"')
@@ -56,23 +55,23 @@ def _to_tuple_list(node: Union[Ap, Integer, Nil]):
         raise ValueError(f'Node {node!r} is neither a number, "nil" nor an "ap cons"')
 
 
-def _from_tuple_list(tuple_list) -> Node:
+def _from_tuple_list(tuple_list) -> Expression:
     if isinstance(tuple_list, int):
         return Integer(tuple_list)
     elif isinstance(tuple_list, tuple):
         arity = len(tuple_list)
         if arity == 0:
-            return Nil()
+            return "nil"
         elif arity == 2:
             (left, right) = tuple_list
-            return Ap(Ap(Cons(), _from_tuple_list(left)), _from_tuple_list(right))
+            return Ap(Ap("cons", _from_tuple_list(left)), _from_tuple_list(right))
         else:
             raise ValueError(f"Invalid tuple_list {tuple_list!r}")
     else:
         raise ValueError(f"Invalid tuple_list {tuple_list!r}")
 
 
-def mod_node(node: Union[Ap, Integer, Nil]) -> str:
+def mod_node(node: Expression) -> str:
     return mod(_to_tuple_list(node))
 
 
@@ -116,5 +115,5 @@ def demod(input: str) -> Union[Tuple, int]:
     return result
 
 
-def demod_node(input: str) -> Node:
+def demod_node(input: str) -> Expression:
     return _from_tuple_list(demod(input))

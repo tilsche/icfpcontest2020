@@ -1,11 +1,15 @@
 import pytest
 from zebv.eval import Evaluator
-from zebv.parsing import build_expression, tokenize
 
 
 @pytest.fixture
 def e():
-    yield Evaluator()
+    yield Evaluator(
+        """
+            inc = ap add 1
+            dec = ap add -1
+        """
+    )
 
 
 @pytest.fixture

@@ -78,12 +78,12 @@ class AlienScreen(Thread):
         offset_y = 0
 
         for n in nodes:
-            assert n.op.op.name == "cons"
+            assert n.op.op == "cons"
             x = n.op.arg
             y = n.arg
-            points.append((x.value + self.offset_x, y.value + self.offset_y))
-            offset_x = min(x.value, offset_x)
-            offset_y = min(y.value, offset_y)
+            points.append((x + self.offset_x, y + self.offset_y))
+            offset_x = min(x, offset_x)
+            offset_y = min(y, offset_y)
 
         self.generations.append(points)
 
