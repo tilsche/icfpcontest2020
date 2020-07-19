@@ -230,17 +230,20 @@ class DefendPlayer(Player):
                     )
                     self.log.info(f"commands: {commands}")
 
-                    if not inital_pos:
-                        inital_pos = ship.position
-                    xi, yi = inital_pos
-                    x, y = ship.position
+                    # if not inital_pos:
+                    #    inital_pos = ship.position
+                    # xi, yi = inital_pos
+                    # x, y = ship.position
                     # fac = -1
-                    dx = float(x - xi)
-                    dy = float(y - yi)
-                    dt = dx + dy
-                    if dt == 0:
-                        self.game_response = self.nothing()
-                        continue
+                    # dx = float(x - xi)
+                    # dy = float(y - yi)
+                    dx, dy = ship.velocity
+                    dx = float(dx)
+                    dy = float(dy)
+                    dt = abs(dx) + abs(dy)
+                    # if dt == 0:
+                    #    self.game_response = self.nothing()
+                    #    continue
                     dx = dx / dt
                     dy = dy / dt
 
