@@ -105,6 +105,24 @@ class Player(threading.Thread):
     def act(self):
         pass
 
+    def accellerate(self, ship_id, vector=(0, 0)):
+        vec = ()
+        vec = (vector[0], vec)
+        vec = (vector[1], vec)
+        command_id = 0
+        command = ()
+        command = (vec, command)
+        command = (ship_id, command)
+        command = (command_id, command)
+        self._command.command(self._player_key, command)
+
+    def detonate(self, ship_id):
+        command_id = 1
+        command = ()
+        command = (ship_id, command)
+        command = (command_id, command)
+        self._command.command(self._player_key, command)
+
 
 class AttacPlayer(Player):
     def __init__(self, player_key, command):
@@ -117,7 +135,7 @@ class AttacPlayer(Player):
         self.log.info(f"Start as {self.game_response.static_game_info.role}")
         resp = self._command.start(self._player_key, self._ship_params)
         self.game_response = GameResponse(resp)
-        self.log.info(self.game_response)
+        return self.log.info(self.game_response)
 
 
 class DefendPlayer(Player):
@@ -130,6 +148,12 @@ class DefendPlayer(Player):
     def act(self):
         self.log.info(f"Start as {self.game_response.static_game_info.role}")
         resp = self._command.start(self._player_key, self._ship_params)
+        self.game_response = GameResponse(resp)
+        self.log.info(self.game_response)
+        ship = self.game_response.game_state.ships_and_commands.ships_and_commands[0]
+        self.log.info("ACCELERATE")
+        # self.accellerate(ship[0].ship_id, (1, 1))
+        self.detonate(ship[0].ship_id)
         self.game_response = GameResponse(resp)
         self.log.info(self.game_response)
 
@@ -178,7 +202,6 @@ def main(server_url, player_key, api_key):
             logger.info(
                 f"Game finished ({game_resp.game_stage}), Start only why I need to"
             )
-            resp = command.start(player_key)
             resp = GameResponse(resp)
             logger.info(f"Got: {resp}")
             logger.info(f"Bye")

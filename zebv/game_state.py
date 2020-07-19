@@ -41,7 +41,7 @@ class ShipsAndCommands:
 class Ship:
     def __init__(self, ship):
         self.role, ship = ship
-        self.shipId, ship = ship
+        self.ship_id, ship = ship
         self.position, ship = ship
         self.velocity, ship = ship
         self.x4, ship = ship
@@ -51,7 +51,7 @@ class Ship:
         assert ship == ()
 
     def __repr__(self):
-        return f"Ship (role: {self.role}, shipId: {self.shipId}, position: {self.position}, velocity: {self.velocity}, x4: {self.x4}, x5: {self.x5}, x6: {self.x6}, x7: {self.x7})"
+        return f"Ship (role: {self.role}, shipId: {self.ship_id}, position: {self.position}, velocity: {self.velocity}, x4: {self.x4}, x5: {self.x5}, x6: {self.x6}, x7: {self.x7})"
 
 
 class GameResponse:
