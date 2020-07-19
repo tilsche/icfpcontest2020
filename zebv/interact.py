@@ -37,8 +37,8 @@ class Interaction:
     def draw(self, data):
         logger.warning(f"should draw: {data}")
         if self.screen:
-            for list in data.as_list:
-                self.screen.draw(list.as_list)
+            for l in as_list(data):
+                self.screen.draw(as_list(l))
             self.screen.save(f"{self.protocol_name}-{self.iteration}.png")
             self.iteration += 1
 
@@ -59,11 +59,11 @@ class Interaction:
         flag, new_state, data = as_list(proto_result)
 
         logger.debug(
-            f"[{duration} s] {__name__}: flag={flag!r}, new_state={new_state!r}, data={data.sugar}"
+            f"[{duration} s] {__name__}: flag={flag!r}, new_state={new_state!r}, data={data}"
         )
 
         self.state = new_state
-        if flag.value == 0:
+        if flag == 0:
             self.draw(data)
         else:
             self.step(self.send(data))

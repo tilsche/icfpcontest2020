@@ -16,8 +16,6 @@ class Evaluator:
             if result == expression:
                 if isinstance(initial_node, Ap):
                     initial_node.evaluated = result
-                else:
-                    print(initial_node, result)
                 return result
             expression = result
 
