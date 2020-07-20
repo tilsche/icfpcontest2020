@@ -180,7 +180,8 @@ class AttacPlayer(Player):
         super().__init__(*args, **kwargs)
         self.log = logger.getChild(f"ATTAC  ({ATTAC})")
         self.log.info(f"Player Key: {self._player_key}")
-        self._ship_params = (10, 10, 10, 10)
+        # self._ship_params = (10, 10, 10, 10)
+        self._ship_params = (62, 64, 16, 1)  # copy&paste unagi
 
     def act(self, resp):
         self.game_response = GameResponse(resp)
@@ -207,10 +208,15 @@ class AttacPlayer(Player):
                     if not inital_distance:
                         inital_distance = calc.distance(ship.position)
 
-                    if inital_distance > calc.distance(ship.position):
-                        degree += 5
-                    if inital_distance < calc.distance(ship.position):
-                        degree -= 5
+                    current_distance = calc.distance(ship.position)
+                    if current_distance > inital_distance:
+                        degree = 90
+                        self.log.info(f"FALL BACK {ship.ship_id}")
+                        self.game_response = self.nothing()
+                        continue
+
+                    diff = inital_distance - current_distance
+                    degree += 1 * (diff) / inital_distance * 3
                     rad = calc.rad(degree)
                     self.log.info(f"rad = {rad} ({degree})")
                     vec = calc.orbit(ship, rad)
@@ -229,7 +235,8 @@ class DefendPlayer(Player):
         super().__init__(*args, **kwargs)
         self.log = logger.getChild(f"DEFEND ({DEFEND})")
         self.log.info(f"Player Key: {self._player_key}")
-        self._ship_params = (10, 10, 10, 10)
+        # self._ship_params = (10, 10, 10, 10)
+        self._ship_params = (208, 0, 4, 96)  # copy&paste unagi
 
     def act(self, resp):
         self.game_response = GameResponse(resp)
@@ -264,10 +271,15 @@ class DefendPlayer(Player):
                     if not inital_distance:
                         inital_distance = calc.distance(ship.position)
 
-                    if inital_distance > calc.distance(ship.position):
-                        degree += 5
-                    if inital_distance < calc.distance(ship.position):
-                        degree -= 5
+                    current_distance = calc.distance(ship.position)
+                    if current_distance > inital_distance:
+                        degree = 90
+                        self.log.info(f"FALL BACK {ship.ship_id}")
+                        self.game_response = self.nothing()
+                        continue
+
+                    diff = inital_distance - current_distance
+                    degree += 1 * (diff) / inital_distance * 3
                     rad = calc.rad(degree)
                     self.log.info(f"rad = {rad} ({degree})")
                     vec = calc.orbit(ship, rad)

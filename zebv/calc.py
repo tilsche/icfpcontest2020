@@ -67,10 +67,9 @@ def orbit(ship, gamma):
 
     vx = 0
     vy = 0
-    if abs(dx) > 0.25:
-        vx = -1 if dx < 0 else 1
-    if abs(dy) > 0.25:
-        vy = -1 if dy < 0 else 1
+
+    vx = -1 if dx < 0 else 1
+    vy = -1 if dy < 0 else 1
 
     vec = (vx, vy)
     return vec
