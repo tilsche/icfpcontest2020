@@ -70,6 +70,11 @@ inline bool operator==(const Coordinate& a, const Coordinate& b)
 {
     return a.x == b.x && a.y == b.y;
 }
+inline std::ostream& operator<<(std::ostream& os, const Coordinate& c)
+{
+    os << "<" << c.x << ", " << c.y << ">";
+    return os;
+}
 
 class ImageList : public std::vector<std::vector<Coordinate>>
 {
@@ -95,6 +100,22 @@ public:
     }
 };
 
+inline std::ostream& operator<<(std::ostream& os, const ImageList& il)
+{
+    os << "i[";
+    for (const auto& image : il)
+    {
+        os << "[";
+        for (const auto& pixel : image)
+        {
+            os << pixel << ",";
+        }
+        os << "],";
+    }
+    os << "]";
+    return os;
+}
+
 std::pair<Coordinate, Coordinate> bounding_box(const ImageList& image_list)
 {
     Coordinate top_left{ 0, 0 };
@@ -112,25 +133,20 @@ std::pair<Coordinate, Coordinate> bounding_box(const ImageList& image_list)
     return { top_left, bottom_right };
 }
 
-inline std::ostream& operator<<(std::ostream& os, const Coordinate& expr)
-{
-    os << "<" << expr.x << ", " << expr.y << ">";
-    return os;
-}
-
 class Interact
 {
 public:
     Interact(const std::string& protocol)
     : protocol_(make_operator(protocol)), apiclient_("icfpc2020-api.testkontur.ru", 443)
     {
+        history_.emplace_back(operators::nil, ImageList());
     }
 
 private:
-    std::tuple<int, PExpr, PExpr> ap_proto_(const PExpr& vector)
+    std::tuple<int, PExpr, PExpr> ap_proto_(const PExpr& state, const PExpr& vector)
     {
         auto begin = now();
-        auto proto_expr = make_ap(make_ap(this->protocol_, this->state_), vector);
+        auto proto_expr = make_ap(make_ap(this->protocol_, state), vector);
         auto proto_result = this->evaluator.eval(proto_expr);
         auto end = now();
         // fmt::print("step took {:.2f} ms\n", as_milliseconds(end - begin));
@@ -141,20 +157,17 @@ private:
         return { fsd.at(0)->value(), fsd.at(1), fsd.at(2) };
     }
 
-    void step_(const PExpr& vector)
+    void step_(const PExpr& state, const PExpr& vector)
     {
-        auto [flag, new_state, data] = ap_proto_(vector);
+        auto [flag, new_state, data] = ap_proto_(state, vector);
 
-        this->state_ = new_state;
         if (flag == 0)
         {
-            s_images = zebra::to_string(simple_data(data));
-            images = ImageList(data);
-            // std::cout << ")\n";
+            history_.emplace_back(new_state, ImageList(data));
         }
         else
         {
-            this->step_(this->send_(data));
+            this->step_(new_state, this->send_(data));
         }
     }
 
@@ -175,17 +188,18 @@ private:
 public:
     void try_all()
     {
-        auto [tl, br] = bounding_box(images);
+        auto [tl, br] = bounding_box(images());
         Coordinate c;
 
-        auto s_state = zebra::to_string(simple_data(state_));
+        auto s_state = zebra::to_string(simple_data(state()));
+        auto s_images = zebra::to_string(images());
 
         candidates.clear();
         for (c.x = tl.x; c.x <= br.x; c.x++)
         {
             for (c.y = tl.y; c.y <= br.y; c.y++)
             {
-                auto [flag, new_state, data] = ap_proto_(c.as_vector());
+                auto [flag, new_state, data] = ap_proto_(state(), c.as_vector());
                 auto s_new_state = zebra::to_string(simple_data(new_state));
                 auto s_data = zebra::to_string(simple_data(data));
 
@@ -196,7 +210,7 @@ public:
                 }
                 else
                 {
-                    if (s_data == this->s_images)
+                    if (s_data == s_images)
                     {
                         if (s_new_state == s_state)
                         {
@@ -223,11 +237,31 @@ public:
         fmt::print("all tries complete\n");
     }
 
+    void undo()
+    {
+        if (history_.size() < 2)
+        {
+            fmt::print("Cant undo any more!");
+            return;
+        }
+        history_.pop_back();
+    }
+
 public:
     void operator()(Coordinate coord)
     {
         candidates.clear();
-        step_(coord.as_vector());
+        step_(state(), coord.as_vector());
+    }
+
+    const PExpr& state() const
+    {
+        return history_.back().first;
+    }
+
+    const ImageList& images() const
+    {
+        return history_.back().second;
     }
 
 public:
@@ -235,12 +269,10 @@ public:
     std::unordered_map<std::tuple<int, std::string, std::string>, std::vector<Coordinate>>
         candidates;
 
-    std::string s_images;
-    ImageList images;
-
 private:
+    std::vector<std::pair<PExpr, ImageList>> history_;
+
     PExpr protocol_;
-    PExpr state_ = operators::nil;
     httplib::SSLClient apiclient_;
 };
 } // namespace zebra
