@@ -69,8 +69,8 @@ logger = logging.getLogger(__name__)
 
 DEGREE = 90
 
-INIT_DIST_FAC = 2
-DEG_MUL = 3
+INIT_DIST_FAC = 3
+DEG_MUL = -1
 
 
 class Command:
