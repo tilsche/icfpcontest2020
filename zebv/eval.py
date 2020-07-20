@@ -67,6 +67,8 @@ class Evaluator:
                 fun2 = self.eval(fun1.op)
                 y = fun1.arg
                 if isinstance(fun2, Operator):
+                    if fun2 == "cons":
+                        return self._eval_cons(y, x)
                     if fun2 == "t":
                         return y
                     if fun2 == "f":
@@ -88,20 +90,18 @@ class Evaluator:
                             return "t" if xn == yn else "f"
                         raise RuntimeError(fun2)
 
-                    if fun2 == "cons":
-                        return self._eval_cons(y, x)
                 if isinstance(fun2, Ap):
                     fun3 = self.eval(fun2.op)
                     z = fun2.arg
                     if isinstance(fun3, Operator):
+                        if fun3 == "cons":
+                            return self._ap(self._ap(x, z), y)
                         if fun3 == "s":
                             return self._ap(self._ap(z, x), self._ap(y, x))
-                        elif fun3 == "c":
+                        if fun3 == "c":
                             return self._ap(self._ap(z, x), y)
-                        elif fun3 == "b":
+                        if fun3 == "b":
                             return self._ap(z, self._ap(y, x))
-                        elif fun3 == "cons":
-                            return self._ap(self._ap(x, z), y)
         return expression
 
     def _eval_cons(self, a: Expression, b: Expression):

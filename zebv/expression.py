@@ -60,6 +60,22 @@ def _tokenize_expression(input: str) -> Generator[Token, None, None]:
             yield intern(token)
 
 
+_ap_cache = {}
+
+
+def _ap(op, arg):
+    kop = (op,) if isinstance(op, int) else id(op)
+    karg = (arg,) if isinstance(arg, int) else id(arg)
+    key = kop, karg
+    try:
+        return _ap_cache[key]
+    except KeyError:
+        pass
+    ex = Ap(op, arg)
+    _ap_cache[key] = ex
+    return ex
+
+
 def _build_expression(tokens: Iterator[Token]) -> Expression:
     tok = next(tokens)
 
