@@ -210,28 +210,21 @@ class AttacPlayer(Player):
             for (ship, commands) in s_u_c:
                 if ship.role == DEFEND:
                     self.previous_target_movements[ship.ship_id].append(ship)
+                    self.log.info(f"Opponent defend ship: {ship}")
                 if ship.role == ATTAC:
+                    self.log.info(f"my attac ship:        {ship}")
                     self.lock.acquire()
                     self.log.info(
                         f"Tick:     {self.game_response.game_state.game_tick}"
                     )
-                    self.log.info(f"Position:   {ship.position}")
-                    self.log.info(f"Vel:        {ship.velocity}")
                     self.log.info(f"Distance:   {calc.distance(ship.position)}")
                     self.log.info(f"Commands:   {commands}")
-                    self.log.info(f"Ship stats: {ship.stats}")
-                    self.log.info(f"Ship heat:  {ship.heat}")
                     self.lock.release()
 
                     if not inital_distance:
                         inital_distance = calc.distance(ship.position)
 
                     current_distance = calc.distance(ship.position)
-                    if current_distance > 1.5 * inital_distance:
-                        degree = 90
-                        self.log.info(f"FALL BACK {ship.ship_id} AND SHOOT")
-                        self.game_response = self.cause_shoot(ship, s_u_c)
-                        continue
 
                     diff = 1.5 * inital_distance - current_distance
                     degree += 1 * (diff) / inital_distance * 3
@@ -287,8 +280,12 @@ class DefendPlayer(Player):
             #    continue
 
             s_u_c = self.game_response.game_state.ships_and_commands.ships_and_commands
+
             for (ship, commands) in s_u_c:
+                if ship.role == ATTAC:
+                    self.log.info(f"Opponent attac ship: {ship}")
                 if ship.role == DEFEND:
+                    self.log.info(f"my defend ship:      {ship}")
                     self.lock.acquire()
                     self.log.info(
                         f"Tick:     {self.game_response.game_state.game_tick}"
@@ -305,10 +302,6 @@ class DefendPlayer(Player):
                     current_distance = calc.distance(ship.position)
 
                     if ship.heat >= 64:  # do nothing with wo much heat
-                        self.log.info(f"FALL BACK {ship.ship_id} AND NO SHOOT")
-                        self.game_response = self.nothing()
-                    elif current_distance > 1.5 * inital_distance:
-                        degree = 90
                         self.log.info(f"FALL BACK {ship.ship_id} AND NO SHOOT")
                         self.game_response = self.nothing()
 
