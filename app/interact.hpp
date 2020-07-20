@@ -12,6 +12,7 @@
 #include <nitro/env/get.hpp>
 
 #include "eval.hpp"
+#include "flat_expr.hpp"
 #include "httplib.h"
 #include "modem.hpp"
 #include "simple_expr.hpp"
@@ -159,7 +160,7 @@ private:
 
     PExpr send_(const PExpr& data)
     {
-        std::cout << "Sending: " << as_list(data) << std::endl;
+        std::cout << "Sending: " << flat_data(data) << std::endl;
 
         auto path = "/aliens/send?apiKey=" + nitro::env::get("API_KEY");
         const std::shared_ptr<httplib::Response> serverResponse =
@@ -167,8 +168,7 @@ private:
 
         auto expr = zebra::modem::demodulate(serverResponse->body);
 
-        std::cout << "Received: " << as_list(expr) << std::endl;
-
+        std::cout << "Received: " << flat_data(expr) << std::endl;
         return expr;
     }
 

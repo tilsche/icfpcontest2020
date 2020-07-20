@@ -202,7 +202,7 @@ public:
             number = -number;
         }
 
-        return { { pivot, size + 2, number } };
+        return { { pivot, int(size) + 2, number } };
     }
 
     bool not_set(Coordinate point) const

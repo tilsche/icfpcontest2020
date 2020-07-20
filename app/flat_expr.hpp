@@ -22,13 +22,13 @@ struct FlatList
 FlatNode flat_data(const SimpleNode& sn)
 {
     if (std::holds_alternative<UnderlyingInteger>(sn)) {
-        return {sn};
+        return FlatNode(std::get<UnderlyingInteger>(sn));
     }
     PFlatList pfl = std::make_shared<FlatList>();
     auto snp = &sn;
     while (std::holds_alternative<PSimpleCons>(*snp)) {
         pfl->data.emplace_back(flat_data(std::get<PSimpleCons>(*snp)->head));
-        snp = std::get<PSimpleCons>(*snp)->tail;
+        snp = &std::get<PSimpleCons>(*snp)->tail;
     }
     if (std::holds_alternative<SimpleNil>(*snp))
     {
@@ -36,7 +36,7 @@ FlatNode flat_data(const SimpleNode& sn)
     } else {
         pfl->data.emplace_back(std::get<UnderlyingInteger>(*snp));
     }
-    return {pfl};
+    return FlatNode(pfl);
 }
 
 FlatNode flat_data(const PExpr& expr)
@@ -58,7 +58,7 @@ inline std::ostream& operator<<(std::ostream& os, const FlatNode& fn)
         } else {
             os << "<";
         }
-        first = true;
+        bool first = true;
         for (const auto& e : list.data) {
             if (first) {
                 first = false;
@@ -66,6 +66,11 @@ inline std::ostream& operator<<(std::ostream& os, const FlatNode& fn)
                 os << ", ";
             }
             os << e;
+        }
+        if (list.is_terminated) {
+            os << ")";
+        } else {
+            os << ">";
         }
     }
     return os;
