@@ -304,10 +304,14 @@ class DefendPlayer(Player):
 
                     current_distance = calc.distance(ship.position)
 
-                    if current_distance > 0.5 * inital_distance:
+                    if (
+                        current_distance > 0.5 * inital_distance
+                        and self.game_response.game_state.game_tick > 3
+                    ):
                         # just do some random navigation, as long as we are far away
                         if random.uniform(0, 1) < 0.25:  # only with a chance of 1/4
                             vec = random.choice([(1, 1), (-1, -1), (1, 0), (0, 1)])
+                            self.log.info(f"RANDOM ACCELERATE {ship.ship_id}, VEC: {vec}")
                             self.game_response = self.accelerate(ship.ship_id, vec)
                             continue
 
