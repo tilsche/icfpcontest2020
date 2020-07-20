@@ -78,7 +78,7 @@ std::pair<std::int64_t, std::string_view> demodulate_number_impl(std::string_vie
     while (true)
     {
         auto first = remaining.substr(0, 1);
-        remaining = num.substr(1);
+        remaining = remaining.substr(1);
 
         if (first == "1")
         {
@@ -99,7 +99,7 @@ std::pair<std::int64_t, std::string_view> demodulate_number_impl(std::string_vie
     default:
     {
         auto len = 4 * bits;
-        auto value = remaining.substr(1, len);
+        auto value = remaining.substr(0, len);
         auto rest = remaining.substr(len);
 
         std::cerr << fmt::format("Found number: [{}|{}|{}], bits={}, remaining={}\n",
