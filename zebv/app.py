@@ -285,11 +285,14 @@ class AttacPlayer(Player):
                         self.log.info(f"rad = {rad} ({degree})")
                         vec = calc.orbit(ship, rad)
 
-                        self.log.info(f"ACCELERATE {ship.ship_id}, VEC: {vec}")
-                        if shoot:
+                        if shoot and self.game_response.game_state.game_tick > 3:
+                            self.log.info(
+                                f"ACCELERATE and SHOT {ship.ship_id}, VEC: {vec}"
+                            )
                             shoot = False
                             self.game_response = self.cause_shoot(ship, s_u_c, vec)
                         else:
+                            self.log.info(f"ACCELERATE {ship.ship_id}, VEC: {vec}")
                             shoot = True
                             self.game_response = self.accelerate(ship.ship_id, vec)
 
@@ -308,9 +311,9 @@ class AttacPlayer(Player):
                 )
 
                 if vec:
-                    return self.shoot_accel(ship.ship_id, target_position, 1, vec)
+                    return self.shoot_accel(ship.ship_id, target_position, 10, vec)
                 else:
-                    return self.shoot(ship.ship_id, target_position, 1)
+                    return self.shoot(ship.ship_id, target_position, 10)
 
 
 class DefendPlayer(Player):
