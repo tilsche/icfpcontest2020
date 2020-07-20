@@ -211,8 +211,16 @@ class AttacPlayer(Player):
                     current_distance = calc.distance(ship.position)
                     if current_distance > inital_distance:
                         degree = 90
-                        self.log.info(f"FALL BACK {ship.ship_id}")
-                        self.game_response = self.nothing()
+                        self.log.info(f"FALL BACK {ship.ship_id} AND SHOOT")
+                        for (other_ship, commands) in s_u_c:
+                            if other_ship.role == DEFEND:  # attac the defenderrs XD
+                                shoot_to = calc.shoot_direction(ship, other_ship)
+                                self.log.info(
+                                    f"SHOOT TO {other_ship.ship_id}, at {other_ship.position}, with {shoot_to}"
+                                )
+                                self.game_response = self.shoot(
+                                    ship.ship_id, shoot_to, 1
+                                )
                         continue
 
                     diff = inital_distance - current_distance
@@ -274,8 +282,16 @@ class DefendPlayer(Player):
                     current_distance = calc.distance(ship.position)
                     if current_distance > inital_distance:
                         degree = 90
-                        self.log.info(f"FALL BACK {ship.ship_id}")
-                        self.game_response = self.nothing()
+                        self.log.info(f"FALL BACK {ship.ship_id} AND SHOOT")
+                        for (other_ship, commands) in s_u_c:
+                            if other_ship.role == ATTAC:  # attac the defenderrs XD
+                                shoot_to = calc.shoot_direction(ship, other_ship)
+                                self.log.info(
+                                    f"SHOOT TO {other_ship.ship_id}, at {other_ship.position}, with {shoot_to}"
+                                )
+                                self.game_response = self.shoot(
+                                    ship.ship_id, shoot_to, 1
+                                )
                         continue
 
                     diff = inital_distance - current_distance

@@ -83,3 +83,7 @@ def distance(vec1, vec2=(0, 0)):
 
 def rad(alpha):
     return math.pi * alpha / 180
+
+
+def shoot_direction(ship, target_ship):
+    return target_ship.position
