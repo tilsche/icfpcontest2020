@@ -202,7 +202,9 @@ class AttacPlayer(Player):
                     self.log.info(f"Commands: {commands}")
                     self.lock.release()
 
-                    vec = calc.orbit(ship, pi / 2)
+                    rad = calc.rad(85)
+                    self.log.info(f"rad = {rad}")
+                    vec = calc.orbit(ship, rad)
                     # vec = stay_position(ship, inital_pos)
 
                     self.log.info(f"ACCELERATE {ship.ship_id}, VEC: {vec}")
@@ -251,7 +253,9 @@ class DefendPlayer(Player):
                     self.log.info(f"Commands: {commands}")
                     self.lock.release()
 
-                    vec = calc.orbit(ship, pi / 2)
+                    rad = calc.rad(85)
+                    self.log.info(f"rad = {rad}")
+                    vec = calc.orbit(ship, rad)
                     # vec = stay_position(ship, inital_pos)
 
                     self.log.info(f"ACCELERATE {ship.ship_id}, VEC: {vec}")
