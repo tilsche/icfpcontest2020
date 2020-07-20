@@ -252,15 +252,11 @@ class AttacPlayer(Player):
     def cause_shoot(self, ship, s_u_c):
         for (other_ship, commands) in s_u_c:
             if other_ship.role == DEFEND:  # attac the defenderrs XD
-                shoot_to = calc.shoot_direction(
-                    ship,
-                    other_ship,
-                    self.previous_target_movements[other_ship.ship_id],
-                )
+                target_position = calc.predict_movement(other_ship)
                 self.log.info(
-                    f"SHOOT TO {other_ship.ship_id}, at {other_ship.position}, with {shoot_to}"
+                    f"SHOOT at {target_position}, targeting {other_ship.ship_id} (now at {other_ship.position})"
                 )
-                return self.shoot(ship.ship_id, shoot_to, 1)
+                return self.shoot(ship.ship_id, target_position, 1)
 
 
 class DefendPlayer(Player):

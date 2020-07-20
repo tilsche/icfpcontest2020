@@ -1,8 +1,10 @@
 import math
+from typing import List
+from logging import getLogger
 
 from .game_state import Ship
 
-from typing import List, Dict, Tuple
+logger = getLogger(__name__)
 
 
 def stay_velocity(ship):
@@ -89,10 +91,41 @@ def rad(alpha):
     return math.pi * alpha / 180
 
 
-def shoot_direction(ship: Ship, target_ship: Ship, previous_target_states: List[Ship]):
-    # Lets just assume that ds/dt = v, so s(t+1) ~= s(t) + v
-    # (s = position, v = velocity).
+def signum(x):
+    if x < 0:
+        return -1
+    if x > 0:
+        return 1
+    else:
+        return 0
+
+
+def gravitational_vel(x, y):
+    x_vel = -signum(x)
+    y_vel = -signum(y)
+
+    xabs = abs(x)
+    yabs = abs(y)
+
+    if xabs > yabs:
+        vel = (x_vel, 0)
+    elif yabs > xabs:
+        vel = (0, y_vel)
+    else:
+        vel = (x_vel, y_vel)
+
+    logger.debug(f"gravitational_accel({x}, {y}) -> {vel}")
+    return vel
+
+
+def predict_movement(ship: Ship):
+    velocity_correct = gravitational_vel(*ship.position)
+    pos = ship.position
+    vel = ship.velocity
+    logger.debug(
+        f"predict_movement(ship={ship!r}): pos={pos}, vel={vel}, correct= +{velocity_correct}"
+    )
     return (
-        target_ship.position[0] + ship.velocity[0],
-        target_ship.position[1] + ship.velocity[1],
+        pos[0] + vel[0] + velocity_correct[0],
+        pos[1] + vel[1] + velocity_correct[1],
     )
