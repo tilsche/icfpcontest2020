@@ -191,6 +191,7 @@ class AttacPlayer(Player):
 
         inital_distance = None
         degree = 90
+        previous_target_ships = {}
         while self.game_response.game_stage == 1:
             s_u_c = self.game_response.game_state.ships_and_commands.ships_and_commands
             for (ship, commands) in s_u_c:
@@ -214,7 +215,16 @@ class AttacPlayer(Player):
                         self.log.info(f"FALL BACK {ship.ship_id} AND SHOOT")
                         for (other_ship, commands) in s_u_c:
                             if other_ship.role == DEFEND:  # attac the defenderrs XD
-                                shoot_to = calc.shoot_direction(ship, other_ship)
+                                if other_ship.ship_id not in previous_target_ships:
+                                    previous_target_ships[other_ship.ship_id] = []
+                                shoot_to = calc.shoot_direction(
+                                    ship,
+                                    other_ship,
+                                    previous_target_ships[other_ship.ship_id],
+                                )
+                                previous_target_ships[other_ship.ship_id].append(
+                                    other_ship
+                                )
                                 self.log.info(
                                     f"SHOOT TO {other_ship.ship_id}, at {other_ship.position}, with {shoot_to}"
                                 )
@@ -256,6 +266,7 @@ class DefendPlayer(Player):
 
         inital_distance = None
         degree = 90
+        previous_target_ships = {}
         while self.game_response.game_stage == 1:
             # self.log.info(self.game_response)
             # tic_toc = not tic_toc
@@ -285,7 +296,16 @@ class DefendPlayer(Player):
                         self.log.info(f"FALL BACK {ship.ship_id} AND SHOOT")
                         for (other_ship, commands) in s_u_c:
                             if other_ship.role == ATTAC:  # attac the defenderrs XD
-                                shoot_to = calc.shoot_direction(ship, other_ship)
+                                if other_ship.ship_id not in previous_target_ships:
+                                    previous_target_ships[other_ship.ship_id] = []
+                                shoot_to = calc.shoot_direction(
+                                    ship,
+                                    other_ship,
+                                    previous_target_ships[other_ship.ship_id],
+                                )
+                                previous_target_ships[other_ship.ship_id].append(
+                                    other_ship
+                                )
                                 self.log.info(
                                     f"SHOOT TO {other_ship.ship_id}, at {other_ship.position}, with {shoot_to}"
                                 )
