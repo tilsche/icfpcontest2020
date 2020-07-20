@@ -159,11 +159,17 @@ private:
 
     PExpr send_(const PExpr& data)
     {
+        std::cout << "Sending: " << as_list(data) << std::endl;
+
         auto path = "/aliens/send?apiKey=" + nitro::env::get("API_KEY");
         const std::shared_ptr<httplib::Response> serverResponse =
             apiclient_.Post(path.c_str(), zebra::modem::modulate(data), "text/plain");
 
-        return zebra::modem::demodulate(serverResponse->body);
+        auto expr = zebra::modem::demodulate(serverResponse->body);
+
+        std::cout << "Received: " << as_list(expr) << std::endl;
+
+        return expr;
     }
 
 public:

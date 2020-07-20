@@ -237,6 +237,19 @@ inline std::ostream& operator<<(std::ostream& os, const PExpr& expr)
     return os;
 }
 
+inline std::ostream& operator<<(std::ostream& os, const std::vector<PExpr>& list)
+{
+    os << "(";
+    for (auto& expr : list)
+    {
+        if (is_cons(expr))
+            os << as_list(expr) << ", ";
+        else
+            os << expr << ", ";
+    }
+    return os << ")";
+}
+
 inline PExpr parse_expr(std::vector<std::string>::const_iterator& it,
                         std::vector<std::string>::const_iterator& end)
 {
@@ -269,4 +282,3 @@ inline PExpr parse_expr(const std::string& s)
     return parse_expr(it, end);
 }
 } // namespace zebra
-

@@ -57,9 +57,6 @@ std::string modulate(PExpr expr)
         // std::cerr << "modulating cons...\n";
         const auto [head, tail] = as_vector(expr);
 
-        auto head_str = modulate(head);
-        auto tail_str = modulate(tail);
-
         return fmt::format("11{}{}", modulate(head), modulate(tail));
     }
     else
