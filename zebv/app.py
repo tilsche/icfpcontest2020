@@ -180,7 +180,7 @@ class AttacPlayer(Player):
         super().__init__(*args, **kwargs)
         self.log = logger.getChild(f"ATTAC  ({ATTAC})")
         self.log.info(f"Player Key: {self._player_key}")
-        self._ship_params = (1, 2, 3, 4)
+        self._ship_params = (10, 10, 10, 10)
 
     def act(self, resp):
         self.game_response = GameResponse(resp)
