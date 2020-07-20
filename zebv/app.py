@@ -181,6 +181,17 @@ class AttacPlayer(Player):
         self.log = logger.getChild(f"ATTAC  ({ATTAC})")
         self.log.info(f"Player Key: {self._player_key}")
         # self._ship_params = (10, 10, 10, 10)
+        # (heat_cap, shot_power, shield, live_points)
+        # treffer und schüsse reduzieren head_cap
+        # wenn heat_cap aufgebraucht:
+        # * schüsse
+        #   * reduzieren shot_power
+        #   * wenn shoot power leer ist --> angreifer tot
+        # * treffer
+        #   * reduzieren shield
+        #   * wenn shield leer -->  live_points werden reduziert
+        #   * wenn live_points leer --> verteidiger tot
+
         self._ship_params = (62, 64, 16, 1)  # copy&paste unagi
 
     def act(self, resp):
