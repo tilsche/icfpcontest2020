@@ -13,6 +13,7 @@ import threading
 import time
 from math import pi
 import collections
+import random
 
 ATTAC = 0
 DEFEND = 1
@@ -357,7 +358,17 @@ class DefendPlayer(Player):
                     if ship.heat >= 64:  # do nothing with wo much heat
                         self.log.info(f"FALL BACK {ship.ship_id} AND NO SHOOT")
                         self.game_response = self.nothing()
-
+                    elif (
+                        current_distance > 0.5 * inital_distance
+                        and self.game_response.game_state.game_tick > 3
+                    ):
+                        # just do some random navigation, as long as we are far away
+                        if random.uniform(0, 1) < 0.5:  # only with a chance of 1/2
+                            vec = random.choice([(1, 1), (-1, -1), (1, 0), (0, 1)])
+                            self.log.info(
+                                f"RANDOM ACCELERATE {ship.ship_id}, VEC: {vec}"
+                            )
+                            self.game_response = self.accelerate(ship.ship_id, vec)
                     else:
                         diff = current_distance / inital_distance
                         if diff < 1:
