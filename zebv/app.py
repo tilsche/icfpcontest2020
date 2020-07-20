@@ -188,6 +188,8 @@ class AttacPlayer(Player):
         resp = self._command.start(self._player_key, self._ship_params)
         self.game_response = self.nothing()
 
+        inital_distance = None
+        degree = 90
         while self.game_response.game_stage == 1:
             s_u_c = self.game_response.game_state.ships_and_commands.ships_and_commands
             for (ship, commands) in s_u_c:
@@ -202,10 +204,16 @@ class AttacPlayer(Player):
                     self.log.info(f"Commands: {commands}")
                     self.lock.release()
 
-                    rad = calc.rad(85)
-                    self.log.info(f"rad = {rad}")
+                    if not inital_distance:
+                        inital_distance = calc.distance(ship.position)
+
+                    if inital_distance < calc.distance(ship.position):
+                        degree += 5
+                    if inital_distance > calc.distance(ship.position):
+                        degree -= 5
+                    rad = calc.rad(degree)
+                    self.log.info(f"rad = {rad} ({degree})")
                     vec = calc.orbit(ship, rad)
-                    # vec = stay_position(ship, inital_pos)
 
                     self.log.info(f"ACCELERATE {ship.ship_id}, VEC: {vec}")
                     self.game_response = self.accelerate(ship.ship_id, vec)
@@ -231,8 +239,8 @@ class DefendPlayer(Player):
         resp = self._command.start(self._player_key, self._ship_params)
         self.game_response = self.nothing()
 
-        inital_pos = None
-        tic_toc = False
+        inital_distance = None
+        degree = 90
         while self.game_response.game_stage == 1:
             # self.log.info(self.game_response)
             # tic_toc = not tic_toc
@@ -253,10 +261,16 @@ class DefendPlayer(Player):
                     self.log.info(f"Commands: {commands}")
                     self.lock.release()
 
-                    rad = calc.rad(85)
-                    self.log.info(f"rad = {rad}")
+                    if not inital_distance:
+                        inital_distance = calc.distance(ship.position)
+
+                    if inital_distance < calc.distance(ship.position):
+                        degree += 5
+                    if inital_distance > calc.distance(ship.position):
+                        degree -= 5
+                    rad = calc.rad(degree)
+                    self.log.info(f"rad = {rad} ({degree})")
                     vec = calc.orbit(ship, rad)
-                    # vec = stay_position(ship, inital_pos)
 
                     self.log.info(f"ACCELERATE {ship.ship_id}, VEC: {vec}")
                     self.game_response = self.accelerate(ship.ship_id, vec)
