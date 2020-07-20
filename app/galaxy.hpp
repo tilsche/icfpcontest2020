@@ -8,6 +8,7 @@
 
 #include "alien.hpp"
 #include "interact.hpp"
+#include "riddle.hpp"
 
 class GalaxyApp : public wxApp
 {
@@ -28,9 +29,15 @@ public:
 
 private:
     void on_try_all(wxCommandEvent& event);
+    void on_try_6(wxCommandEvent& event);
     void on_undo(wxCommandEvent& event);
     void on_save_trace(wxCommandEvent& event);
     void on_load_trace(wxCommandEvent& event);
+    void on_solve_riddle(wxCommandEvent& event)
+    {
+        std::cout << "Trying to solve riddle";
+        zebra::solve_riddle(interact_);
+    }
     void OnExit(wxCommandEvent& event);
     void OnAbout(wxCommandEvent& event);
 
@@ -162,4 +169,6 @@ enum
     ID_undo = 2,
     ID_save_trace = 3,
     ID_load_trace = 4,
+    ID_solve_riddle = 5,
+    ID_try_6 = 6,
 };

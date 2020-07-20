@@ -65,24 +65,30 @@ GalaxyFrame::GalaxyFrame(zebra::Interact& interact)
   interact_(interact)
 {
     wxMenu* menuFile = new wxMenu;
-    menuFile->Append(ID_try_all, "Try all!");
-    menuFile->Append(ID_undo, "Undo\tCtrl+z");
     menuFile->Append(ID_save_trace, "Save trace\tCtrl+s");
     menuFile->Append(ID_load_trace, "Load trace");
     menuFile->AppendSeparator();
     menuFile->Append(wxID_EXIT);
+    wxMenu* menuGame = new wxMenu;
+    menuGame->Append(ID_undo, "Undo\tCtrl+z");
+    menuGame->Append(ID_try_all, "Try all!");
+    menuGame->Append(ID_try_6, "Try 6x6!\tCtrl+t");
+    menuGame->Append(ID_solve_riddle, "Solve riddle!");
     wxMenu* menuHelp = new wxMenu;
     menuHelp->Append(wxID_ABOUT);
     wxMenuBar* menuBar = new wxMenuBar;
     menuBar->Append(menuFile, "&File");
+    menuBar->Append(menuGame, "&Game");
     menuBar->Append(menuHelp, "&Help");
     SetMenuBar(menuBar);
     CreateStatusBar();
     SetStatusText("Welcome to the Galaxy!");
     Bind(wxEVT_MENU, &GalaxyFrame::on_try_all, this, ID_try_all);
+    Bind(wxEVT_MENU, &GalaxyFrame::on_try_6, this, ID_try_6);
     Bind(wxEVT_MENU, &GalaxyFrame::on_undo, this, ID_undo);
     Bind(wxEVT_MENU, &GalaxyFrame::on_save_trace, this, ID_save_trace);
     Bind(wxEVT_MENU, &GalaxyFrame::on_load_trace, this, ID_load_trace);
+    Bind(wxEVT_MENU, &GalaxyFrame::on_solve_riddle, this, ID_solve_riddle);
     Bind(wxEVT_MENU, &GalaxyFrame::OnAbout, this, wxID_ABOUT);
     Bind(wxEVT_MENU, &GalaxyFrame::OnExit, this, wxID_EXIT);
 
@@ -107,6 +113,11 @@ void GalaxyFrame::OnAbout(wxCommandEvent& event)
 void GalaxyFrame::on_try_all(wxCommandEvent& event)
 {
     interact_.try_all();
+}
+
+void GalaxyFrame::on_try_6(wxCommandEvent& event)
+{
+    interact_.try_all(6);
 }
 
 void GalaxyFrame::on_undo(wxCommandEvent& event)
@@ -240,7 +251,7 @@ void GalaxyPanel::render_candidates(wxDC& dc)
         }
         for (const auto& pixel : candidate.second)
         {
-            dc.DrawRectangle(transform(pixel), wxSize(scale, scale));
+            dc.DrawRectangle(transform(pixel), interact_.try_stride * wxSize(scale, scale));
         }
     }
 }
@@ -249,7 +260,7 @@ void GalaxyPanel::render_numbers(wxDC& dc)
 {
     dc.SetBrush(wxNullBrush);
     dc.SetPen(wxPen(wxColor(255, 0, 255)));
-    auto fontsize = std::max(10, std::min(48, 4 * this->scale));
+    auto fontsize = std::max(10, std::min(38, 4 * this->scale));
     dc.SetFont(wxFont(fontsize, wxFONTFAMILY_MODERN, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD));
     dc.SetTextForeground(wxColor(0, 255, 255));
 
@@ -298,6 +309,16 @@ void GalaxyPanel::render(wxDC& dc)
     {
         std::stringstream str;
         str << *mouse_position_;
+        for (const auto& elem : nitro::lang::enumerate(interact_.images()))
+        {
+            for (const auto& pixel : elem.value())
+            {
+                if (mouse_position_.value() == pixel)
+                {
+                    str << "|" << elem.index();
+                }
+            }
+        }
 
         dc.SetTextForeground(wxColor(0, 255, 0));
 

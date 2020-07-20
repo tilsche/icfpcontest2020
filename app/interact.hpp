@@ -196,7 +196,7 @@ private:
         auto proto_expr = make_ap(make_ap(this->protocol_, state), vector);
         auto proto_result = this->evaluator.eval(proto_expr);
         auto end = now();
-        // fmt::print("step took {:.2f} ms\n", as_milliseconds(end - begin));
+        fmt::print("step took {:.2f} ms\n", as_milliseconds(end - begin));
 
         auto fsd = as_list(proto_result);
         assert(fsd.size() == 3);
@@ -241,18 +241,20 @@ public:
         notify();
     }
 
-    void try_all()
+    void try_all(int stride = 1)
     {
         auto [tl, br] = bounding_box(images());
         Coordinate c;
+
+        this->try_stride = stride;
 
         auto s_state = zebra::to_string(simple_data(state()));
         auto s_images = zebra::to_string(images());
 
         candidates.clear();
-        for (c.x = tl.x; c.x <= br.x; c.x++)
+        for (c.x = tl.x; c.x <= br.x; c.x += stride)
         {
-            for (c.y = tl.y; c.y <= br.y; c.y++)
+            for (c.y = tl.y; c.y <= br.y; c.y += stride)
             {
                 auto [flag, new_state, data] = ap_proto_(state(), c.as_vector());
                 auto s_new_state = zebra::to_string(simple_data(new_state));
@@ -298,7 +300,7 @@ public:
         candidates.clear();
         if (history_.size() < 2)
         {
-            fmt::print("Cant undo any more!");
+            fmt::print("Cant undo any more!\n");
             return;
         }
         history_.pop_back();
@@ -334,6 +336,7 @@ public:
     Evaluator evaluator;
     std::unordered_map<std::tuple<int, std::string, std::string>, std::vector<Coordinate>>
         candidates;
+    int try_stride;
 
     // one shorter as the history
     std::vector<Coordinate> trace_;
