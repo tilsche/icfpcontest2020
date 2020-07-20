@@ -85,3 +85,23 @@ class GameResponse:
 
     def __repr__(self):
         return f"GameResponse (game_stage: {self.game_stage}, static_game_info: {self.static_game_info}, game_state: {self.game_state})"
+
+
+class LaserResponse:
+    def __init__(self, resp):
+        init_resp = resp
+        resp, _ = resp
+        resp, _ = resp
+        self.command, resp = resp
+        self.positon, resp = resp
+        self.laser_power, resp = resp
+        self.damage_delt, resp = resp
+        self.x5, resp = resp
+        if not (resp == ()):
+            raise RuntimeError(
+                f"Fecode of {init_resp} as LaserResponse failed: {resp} left over"
+            )
+
+    def __repr__(self):
+        return f"LaserResponse (command: {self.command}, positon: {self.positon}, laser_power: {self.laser_power}, damage_delt: {self.damage_delt}, x5: {self.x5})"
+

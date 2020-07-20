@@ -6,7 +6,7 @@ import click_log
 
 from .api import ApiClient
 from .modem import demod, mod
-from .game_state import GameResponse
+from .game_state import GameResponse, LaserResponse
 import zebv.calc as calc
 
 import threading
@@ -172,8 +172,10 @@ class Player(threading.Thread):
         return self.command(1, ship_id)
 
     def shoot(self, ship_id, target, laser_power=()):
-        self.log.info(f"SHOOT(ship_id={ship_id}, target={target}, laser_power={x3})")
-        return self.command(2, ship_id, target, x3)
+        self.log.info(
+            f"SHOOT(ship_id={ship_id}, target={target}, laser_power={laser_power})"
+        )
+        return self.command(2, ship_id, target, laser_power)
 
 
 class AttacPlayer(Player):
@@ -204,21 +206,31 @@ class AttacPlayer(Player):
 
         inital_distance = None
         degree = 90
+        shoot = False
 
         while self.game_response.game_stage == 1:
             s_u_c = self.game_response.game_state.ships_and_commands.ships_and_commands
             for (ship, commands) in s_u_c:
                 if ship.role == DEFEND:
                     self.previous_target_movements[ship.ship_id].append(ship)
-                    self.log.info(f"Opponent defend ship: {ship}")
+                    self.log.info(f"Opponent defend ship: {ship}, {commands}")
                 if ship.role == ATTAC:
-                    self.log.info(f"my attac ship:        {ship}")
+                    self.log.info(f"my attac ship:        {ship}, {commands}")
                     self.lock.acquire()
                     self.log.info(
                         f"Tick:     {self.game_response.game_state.game_tick}"
                     )
                     self.log.info(f"Distance:   {calc.distance(ship.position)}")
-                    self.log.info(f"Commands:   {commands}")
+
+                    laser_response = None
+                    try:
+                        laser_response = LaserResponse(commands)
+
+                    except (RuntimeError, ValueError) as e:
+                        self.log.warn(f"Cannot decond Command:  {commands}, {e}")
+                        pass
+                    self.log.info(f"Laser Response: {laser_response}")
+
                     self.lock.release()
 
                     if not inital_distance:
@@ -226,14 +238,23 @@ class AttacPlayer(Player):
 
                     current_distance = calc.distance(ship.position)
 
-                    diff = 1.5 * inital_distance - current_distance
-                    degree += 1 * (diff) / inital_distance * 3
-                    rad = calc.rad(degree)
-                    self.log.info(f"rad = {rad} ({degree})")
-                    vec = calc.orbit(ship, rad)
+                    if ship.heat >= 64:  # do nothing with wo much heat
+                        self.log.info(f"FALL BACK {ship.ship_id} AND NO SHOOT")
+                        self.game_response = self.nothing()
+                    elif shoot:
+                        shoot = False
+                        self.game_response = self.cause_shoot(ship, s_u_c)
+                    else:
+                        shoot = True
+                        diff = 1.5 * inital_distance - current_distance
+                        degree += 1 * (diff) / inital_distance * 3
+                        rad = calc.rad(degree)
+                        self.log.info(f"rad = {rad} ({degree})")
+                        vec = calc.orbit(ship, rad)
 
-                    self.log.info(f"ACCELERATE {ship.ship_id}, VEC: {vec}")
-                    self.game_response = self.accelerate(ship.ship_id, vec)
+                        self.log.info(f"ACCELERATE {ship.ship_id}, VEC: {vec}")
+                        self.game_response = self.accelerate(ship.ship_id, vec)
+
                     # self.game_response = self.detonate(ship.ship_id)
                     #
                     # self.game_response = self.shoot(ship.ship_id, (1, 1), 1)
