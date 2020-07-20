@@ -223,7 +223,7 @@ class AttacPlayer(Player):
                                 )
                         continue
 
-                    diff = inital_distance - current_distance
+                    diff = 1.5 * inital_distance - current_distance
                     degree += 1 * (diff) / inital_distance * 3
                     rad = calc.rad(degree)
                     self.log.info(f"rad = {rad} ({degree})")
@@ -294,7 +294,7 @@ class DefendPlayer(Player):
                                 )
                         continue
 
-                    diff = inital_distance - current_distance
+                    diff = 1.5 * inital_distance - current_distance
                     degree += 1 * (diff) / inital_distance * 3
                     rad = calc.rad(degree)
                     self.log.info(f"rad = {rad} ({degree})")
