@@ -219,7 +219,8 @@ class AttacPlayer(Player):
                     self.log.info(f"Vel:        {ship.velocity}")
                     self.log.info(f"Distance:   {calc.distance(ship.position)}")
                     self.log.info(f"Commands:   {commands}")
-                    self.log.info(f"Ship stats: {ship.ship_stats}")
+                    self.log.info(f"Ship stats: {ship.stats}")
+                    self.log.info(f"Ship heat:  {ship.heat}")
                     self.lock.release()
 
                     if not inital_distance:
@@ -292,30 +293,34 @@ class DefendPlayer(Player):
                     self.log.info(
                         f"Tick:     {self.game_response.game_state.game_tick}"
                     )
-                    self.log.info(f"Position: {ship.position}")
-                    self.log.info(f"Vel:      {ship.velocity}")
                     self.log.info(f"Distance: {calc.distance(ship.position)}")
                     self.log.info(f"Commands: {commands}")
+                    self.log.info(f"Ship stats: {ship}")
+
                     self.lock.release()
 
                     if not inital_distance:
                         inital_distance = calc.distance(ship.position)
 
                     current_distance = calc.distance(ship.position)
-                    if current_distance > 1.5 * inital_distance:
+
+                    if ship.heat >= 64:  # do nothing with wo much heat
+                        self.log.info(f"FALL BACK {ship.ship_id} AND NO SHOOT")
+                        self.game_response = self.nothing()
+                    elif current_distance > 1.5 * inital_distance:
                         degree = 90
                         self.log.info(f"FALL BACK {ship.ship_id} AND NO SHOOT")
                         self.game_response = self.nothing()
-                        continue
 
-                    diff = 1.5 * inital_distance - current_distance
-                    degree += 1 * (diff) / inital_distance * 3
-                    rad = calc.rad(degree)
-                    self.log.info(f"rad = {rad} ({degree})")
-                    vec = calc.orbit(ship, rad)
+                    else:
+                        diff = 1.5 * inital_distance - current_distance
+                        degree += 1 * (diff) / inital_distance * 3
+                        rad = calc.rad(degree)
+                        self.log.info(f"rad = {rad} ({degree})")
+                        vec = calc.orbit(ship, rad)
 
-                    self.log.info(f"ACCELERATE {ship.ship_id}, VEC: {vec}")
-                    self.game_response = self.accelerate(ship.ship_id, vec)
+                        self.log.info(f"ACCELERATE {ship.ship_id}, VEC: {vec}")
+                        self.game_response = self.accelerate(ship.ship_id, vec)
                     # self.game_response = self.detonate(ship.ship_id)
                     #
                     # self.game_response = self.shoot(ship.ship_id, (1, 1), 1)
