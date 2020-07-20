@@ -183,6 +183,19 @@ class Player(threading.Thread):
         )
         return self.command(2, ship_id, target, laser_power)
 
+    def shoot_accel(self, ship_id, target, laser_power, accel_vec):
+        self.log.info(
+            f"SHOOT_ACCEL(ship_id={ship_id}, target={target}, laser_power={laser_power}, accel_vec={accel_vec})"
+        )
+
+        return GameResponse(
+            self._command.command(
+                self._player_key,
+                lst(0, ship_id, accel_vec),
+                lst(2, ship_id, target, laser_power),
+            )
+        )
+
 
 class AttacPlayer(Player):
     def __init__(self, *args, **kwargs):
@@ -249,11 +262,7 @@ class AttacPlayer(Player):
                     if ship.heat >= 64:  # do nothing with wo much heat
                         self.log.info(f"FALL BACK {ship.ship_id} AND NO SHOOT")
                         self.game_response = self.nothing()
-                    elif shoot:
-                        shoot = False
-                        self.game_response = self.cause_shoot(ship, s_u_c)
                     else:
-                        shoot = True
                         diff = current_distance / inital_distance
                         if diff < 1:
                             diff = -1 / diff
@@ -266,7 +275,12 @@ class AttacPlayer(Player):
                         vec = calc.orbit(ship, rad)
 
                         self.log.info(f"ACCELERATE {ship.ship_id}, VEC: {vec}")
-                        self.game_response = self.accelerate(ship.ship_id, vec)
+                        if shoot:
+                            shoot = False
+                            self.game_response = self.cause_shoot(ship, s_u_c, vec)
+                        else:
+                            shoot = True
+                            self.game_response = self.accelerate(ship.ship_id, vec)
 
                     # self.game_response = self.detonate(ship.ship_id)
                     #
@@ -274,7 +288,7 @@ class AttacPlayer(Player):
 
         self.log.info(f"Finished: {self.game_response}")
 
-    def cause_shoot(self, ship, s_u_c):
+    def cause_shoot(self, ship, s_u_c, vec=None):
         for (other_ship, commands) in s_u_c:
             if other_ship.role == DEFEND:  # attac the defenderrs XD
                 shoot_to = calc.shoot_direction(
@@ -285,7 +299,10 @@ class AttacPlayer(Player):
                 self.log.info(
                     f"SHOOT TO {other_ship.ship_id}, at {other_ship.position}, with {shoot_to}"
                 )
-                return self.shoot(ship.ship_id, shoot_to, 1)
+                if vec:
+                    return self.shoot_accel(ship.ship_id, shoot_to, 1, vec)
+                else:
+                    return self.shoot(ship.ship_id, shoot_to, 1)
 
 
 class DefendPlayer(Player):
