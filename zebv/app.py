@@ -229,8 +229,7 @@ class AttacPlayer(Player):
                     if current_distance > 1.5 * inital_distance:
                         degree = 90
                         self.log.info(f"FALL BACK {ship.ship_id} AND SHOOT")
-                        # self.game_response = self.cause_shoot(ship, s_u_c)
-                        self.game_response = self.nothing()
+                        self.game_response = self.cause_shoot(ship, s_u_c)
                         continue
 
                     diff = 1.5 * inital_distance - current_distance
