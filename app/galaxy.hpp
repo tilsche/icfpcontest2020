@@ -52,6 +52,12 @@ class GalaxyPanel : public wxPanel
 public:
     GalaxyPanel(wxFrame* parent, zebra::Interact& interact) : wxPanel(parent), interact_(interact)
     {
+        interact.add_listener([this]() {
+            this->Refresh();
+            this->parse_numbers();
+            this->Refresh();
+        });
+        parse_numbers();
         SetBackgroundStyle(wxBG_STYLE_CUSTOM);
         SetBackgroundColour(wxColor(100, 0, 100));
     }
@@ -101,10 +107,8 @@ private:
         return { (point.x / scale) - offset_x, (point.y / scale) - offset_y };
     }
 
-    void mouse_left_up(wxMouseEvent& event)
+    void parse_numbers()
     {
-        interact_(transform(event.GetPosition()));
-
         parsed_numbers_.clear();
 
         for (const auto& image : interact_.images())
@@ -119,7 +123,11 @@ private:
                 }
             }
         }
+    }
 
+    void mouse_left_up(wxMouseEvent& event)
+    {
+        interact_(transform(event.GetPosition()));
         Refresh();
     }
 

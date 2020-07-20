@@ -186,6 +186,7 @@ public:
         {
             this->operator()(c);
         }
+        notify();
     }
 
 private:
@@ -232,6 +233,14 @@ private:
     }
 
 public:
+    void operator()(Coordinate coord)
+    {
+        trace_.emplace_back(coord);
+        candidates.clear();
+        step_(state(), coord.as_vector());
+        notify();
+    }
+
     void try_all()
     {
         auto [tl, br] = bounding_box(images());
@@ -281,6 +290,7 @@ public:
             }
         }
         fmt::print("all tries complete\n");
+        notify();
     }
 
     void undo()
@@ -293,16 +303,23 @@ public:
         }
         history_.pop_back();
         trace_.pop_back();
+        notify();
+    }
+
+    void notify() const
+    {
+        for (const auto& l : listeners_)
+        {
+            l();
+        }
+    }
+
+    void add_listener(const std::function<void()>& l)
+    {
+        listeners_.emplace_back(l);
     }
 
 public:
-    void operator()(Coordinate coord)
-    {
-        trace_.emplace_back(coord);
-        candidates.clear();
-        step_(state(), coord.as_vector());
-    }
-
     const PExpr& state() const
     {
         return history_.back().first;
@@ -323,6 +340,7 @@ public:
 
 private:
     std::vector<std::pair<PExpr, ImageList>> history_;
+    std::vector<std::function<void()>> listeners_;
 
     PExpr protocol_;
     httplib::SSLClient apiclient_;
