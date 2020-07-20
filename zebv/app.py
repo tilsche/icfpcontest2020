@@ -13,6 +13,7 @@ import threading
 import time
 from math import pi
 import collections
+import random
 
 ATTAC = 0
 DEFEND = 1
@@ -302,6 +303,14 @@ class DefendPlayer(Player):
                         inital_distance = calc.distance(ship.position)
 
                     current_distance = calc.distance(ship.position)
+
+                    if current_distance > 0.5 * inital_distance:
+                        # just do some random navigation, as long as we are far away
+                        if random.uniform(0, 1) < 0.25:  # only with a chance of 1/4
+                            vec = random.choice([(1, 1), (-1, -1), (1, 0), (0, 1)])
+                            self.game_response = self.accelerate(ship.ship_id, vec)
+                            continue
+
                     if current_distance > 1.5 * inital_distance:
                         degree = 90
                         self.log.info(f"FALL BACK {ship.ship_id} AND NO SHOOT")
