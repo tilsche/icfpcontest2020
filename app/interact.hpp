@@ -186,7 +186,7 @@ public:
                 fmt::print("{}", c);
                 if (flag)
                 {
-                    fmt::print(" send");
+                    //                    fmt::print(" send");
                 }
                 else
                 {
@@ -194,26 +194,27 @@ public:
                     {
                         if (s_new_state == s_state)
                         {
-                            fmt::print(" unchanged\n");
+                            //                            fmt::print(" unchanged\n");
                             continue;
                         }
-                        fmt::print(" same-images");
+                        //                        fmt::print(" same-images");
                     }
                 }
                 auto key = std::make_tuple(flag, s_new_state, s_data);
                 if (candidates.contains(key))
                 {
-                    fmt::print(" known candidate");
+                    //                    fmt::print(" known candidate");
                 }
                 else
                 {
-                    fmt::print(" Unique\n      {} | {} | {}\n", flag, s_new_state, s_data);
+                    //                    fmt::print(" Unique\n      {} | {} | {}\n", flag,
+                    //                    s_new_state, s_data);
                 }
                 candidates[key].push_back(c);
                 fmt::print("\n");
             }
         }
-        fmt::print("tries complete\n");
+        fmt::print("all tries complete\n");
     }
 
 public:

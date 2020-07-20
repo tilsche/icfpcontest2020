@@ -43,19 +43,19 @@ public:
     {
         auto point = upper_left;
 
-        while (point.x <= lower_right.x)
+        while (point.x < lower_right.x)
         {
             f(point);
             point = point.right();
         }
 
-        while (point.y <= lower_right.y)
+        while (point.y < lower_right.y)
         {
             f(point);
             point = point.down();
         }
 
-        while (point.x >= upper_left.x)
+        while (point.x > upper_left.x)
         {
             f(point);
             point = point.left();
@@ -82,7 +82,8 @@ public:
 
 struct NumberResult
 {
-    std::vector<zebra::Coordinate> points;
+    zebra::Coordinate pivot;
+    int size;
     UnderlyingInteger number;
 };
 
@@ -167,8 +168,6 @@ public:
         auto p = pivot.down().right();
         auto number_area = BoundingBox(p, { p.x + size, p.y + size });
 
-        std::vector<Coordinate> number_points;
-
         int i = 0;
         UnderlyingInteger number = 0;
 
@@ -185,14 +184,8 @@ public:
 
         number_area.add_point(pivot);
 
-        number_area.visit([this, &number_points](Coordinate p) {
-            if (this->is_set(p))
-            {
-                number_points.push_back(p);
-            }
-        });
-
         number_area.add_point(pivot.up().left());
+        // We don't know why, but this doesn't work
         number_area.add_point(number_area.lower_right.down().right());
 
         auto has_empty_border = true;
@@ -207,10 +200,9 @@ public:
         if (is_neg)
         {
             number = -number;
-            number_points.push_back({ pivot.x, pivot.y + size + 2 });
         }
 
-        return { { number_points, number } };
+        return { { pivot, size + 2, number } };
     }
 
     bool not_set(Coordinate point) const

@@ -195,26 +195,16 @@ void GalaxyPanel::render_numbers(wxDC& dc)
 {
     dc.SetBrush(wxNullBrush);
     dc.SetPen(wxPen(wxColor(255, 0, 255)));
+    auto fontsize = std::max(10, std::min(48, 4 * this->scale));
+    dc.SetFont(wxFont(fontsize, wxFONTFAMILY_MODERN, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD));
+    dc.SetTextForeground(wxColor(0, 255, 255));
 
     for (auto& parsed_number : parsed_numbers_)
     {
 
-        for (const auto& pixel : parsed_number.points)
-        {
-            dc.DrawRectangle(transform(pixel), wxSize(scale, scale));
-        }
+        dc.DrawRectangle(transform(parsed_number.pivot), parsed_number.size * wxSize(scale, scale));
 
-        auto anchor = parsed_number.points.front();
-
-        dc.SetTextForeground(wxColor(0, 255, 255));
-
-        dc.DrawText(std::to_string(parsed_number.number), transform(anchor));
-    }
-
-    dc.SetPen(*wxGREEN_PEN);
-    if (mouse_position_)
-    {
-        dc.DrawRectangle(transform(*mouse_position_), wxSize(scale, scale));
+        dc.DrawText(std::to_string(parsed_number.number), transform(parsed_number.pivot));
     }
 }
 
@@ -248,6 +238,12 @@ void GalaxyPanel::render(wxDC& dc)
     render_map(dc);
     render_candidates(dc);
     render_numbers(dc);
+
+    dc.SetPen(*wxGREEN_PEN);
+    if (mouse_position_)
+    {
+        dc.DrawRectangle(transform(*mouse_position_), wxSize(scale, scale));
+    }
 }
 
 //
