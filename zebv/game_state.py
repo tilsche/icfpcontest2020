@@ -90,8 +90,6 @@ class GameResponse:
 class LaserResponse:
     def __init__(self, resp):
         init_resp = resp
-        resp, _ = resp
-        resp, _ = resp
         self.command, resp = resp
         self.positon, resp = resp
         self.laser_power, resp = resp

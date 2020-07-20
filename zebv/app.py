@@ -246,11 +246,18 @@ class AttacPlayer(Player):
 
                     laser_response = None
                     try:
-                        laser_response = LaserResponse(commands)
-
+                        c, _ = commands
+                        c, _ = commands
+                        laser_response = LaserResponse(c)
                     except (RuntimeError, ValueError) as e:
-                        self.log.warn(f"Cannot decond Command:  {commands}, {e}")
-                        pass
+                        try:
+                            _, c = c
+                            c, _ = c
+                            laser_response = LaserResponse(c)
+                        except (RuntimeError, ValueError, TypeError) as e:
+                            self.log.warn(f"Cannot decond Command:  {c}, {e}")
+                            self.log.warn(f"Cannot decond Command:  {commands}, {e}")
+
                     self.log.info(f"Laser Response: {laser_response}")
 
                     self.lock.release()
