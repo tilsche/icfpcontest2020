@@ -209,7 +209,7 @@ class AttacPlayer(Player):
                         inital_distance = calc.distance(ship.position)
 
                     current_distance = calc.distance(ship.position)
-                    if current_distance > inital_distance:
+                    if current_distance > 1.5 * inital_distance:
                         degree = 90
                         self.log.info(f"FALL BACK {ship.ship_id} AND SHOOT")
                         for (other_ship, commands) in s_u_c:
@@ -280,7 +280,7 @@ class DefendPlayer(Player):
                         inital_distance = calc.distance(ship.position)
 
                     current_distance = calc.distance(ship.position)
-                    if current_distance > inital_distance:
+                    if current_distance > 1.5 * inital_distance:
                         degree = 90
                         self.log.info(f"FALL BACK {ship.ship_id} AND SHOOT")
                         for (other_ship, commands) in s_u_c:
