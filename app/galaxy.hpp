@@ -28,6 +28,7 @@ public:
 
 private:
     void on_try_all(wxCommandEvent& event);
+    void on_undo(wxCommandEvent& event);
     void OnExit(wxCommandEvent& event);
     void OnAbout(wxCommandEvent& event);
 
@@ -104,7 +105,7 @@ private:
 
         parsed_numbers_.clear();
 
-        for (const auto& image : interact_.images)
+        for (const auto& image : interact_.images())
         {
             zebra::AlienNumberFinder finder(image);
 
@@ -147,5 +148,6 @@ private:
 
 enum
 {
-    ID_try_all = 1
+    ID_try_all = 1,
+    ID_undo = 2
 };

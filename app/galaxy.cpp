@@ -65,6 +65,7 @@ GalaxyFrame::GalaxyFrame(zebra::Interact& interact)
 {
     wxMenu* menuFile = new wxMenu;
     menuFile->Append(ID_try_all, "Try all!");
+    menuFile->Append(ID_undo, "Undo (ctrl-z)\tCtrl+z");
     menuFile->AppendSeparator();
     menuFile->Append(wxID_EXIT);
     wxMenu* menuHelp = new wxMenu;
@@ -76,6 +77,7 @@ GalaxyFrame::GalaxyFrame(zebra::Interact& interact)
     CreateStatusBar();
     SetStatusText("Welcome to the Galaxy!");
     Bind(wxEVT_MENU, &GalaxyFrame::on_try_all, this, ID_try_all);
+    Bind(wxEVT_MENU, &GalaxyFrame::on_undo, this, ID_undo);
     Bind(wxEVT_MENU, &GalaxyFrame::OnAbout, this, wxID_ABOUT);
     Bind(wxEVT_MENU, &GalaxyFrame::OnExit, this, wxID_EXIT);
 
@@ -90,14 +92,21 @@ void GalaxyFrame::OnExit(wxCommandEvent& event)
 {
     Close(true);
 }
+
 void GalaxyFrame::OnAbout(wxCommandEvent& event)
 {
     wxMessageBox("This is a wxWidgets Hello World example", "About Hello World",
                  wxOK | wxICON_INFORMATION);
 }
+
 void GalaxyFrame::on_try_all(wxCommandEvent& event)
 {
     interact_.try_all();
+}
+
+void GalaxyFrame::on_undo(wxCommandEvent& event)
+{
+    interact_.undo();
 }
 
 GalaxyDC::GalaxyDC(GalaxyPanel* dp) : wxAutoBufferedPaintDC(dp)
@@ -109,7 +118,7 @@ GalaxyDC::GalaxyDC(GalaxyPanel* dp) : wxAutoBufferedPaintDC(dp)
 
 void GalaxyPanel::bounding_box(wxDC& dc)
 {
-    auto [top_left, bottom_right] = zebra::bounding_box(interact_.images);
+    auto [top_left, bottom_right] = zebra::bounding_box(interact_.images());
     wxCoord size_x = bottom_right.x - top_left.x + 1;
     wxCoord size_y = bottom_right.y - top_left.y + 1;
     offset_x = -top_left.x;
@@ -132,7 +141,7 @@ void GalaxyPanel::mouse_right_up(wxMouseEvent& event)
 {
     auto point = transform(event.GetPosition());
 
-    for (const auto& image : interact_.images)
+    for (const auto& image : interact_.images())
     {
         zebra::AlienNumberFinder finder(image);
         auto res = finder.find_number_near(point);
@@ -219,9 +228,9 @@ void GalaxyPanel::render_map(wxDC& dc)
         dc.SetPen(wxNullPen);
     }
 
-    for (const auto& elem : nitro::lang::enumerate(nitro::lang::reverse(interact_.images)))
+    for (const auto& elem : nitro::lang::enumerate(nitro::lang::reverse(interact_.images())))
     {
-        int grayscale = (255 / interact_.images.size()) * (elem.index() + 1);
+        int grayscale = (255 / interact_.images().size()) * (elem.index() + 1);
         dc.SetBrush(wxBrush(wxColor(grayscale, grayscale, grayscale)));
 
         for (const auto& pixel : elem.value())
