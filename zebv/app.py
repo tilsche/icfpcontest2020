@@ -215,10 +215,11 @@ class AttacPlayer(Player):
                     self.log.info(
                         f"Tick:     {self.game_response.game_state.game_tick}"
                     )
-                    self.log.info(f"Position: {ship.position}")
-                    self.log.info(f"Vel:      {ship.velocity}")
-                    self.log.info(f"Distance: {calc.distance(ship.position)}")
-                    self.log.info(f"Commands: {commands}")
+                    self.log.info(f"Position:   {ship.position}")
+                    self.log.info(f"Vel:        {ship.velocity}")
+                    self.log.info(f"Distance:   {calc.distance(ship.position)}")
+                    self.log.info(f"Commands:   {commands}")
+                    self.log.info(f"Ship stats: {ship.ship_stats}")
                     self.lock.release()
 
                     if not inital_distance:
@@ -228,7 +229,8 @@ class AttacPlayer(Player):
                     if current_distance > 1.5 * inital_distance:
                         degree = 90
                         self.log.info(f"FALL BACK {ship.ship_id} AND SHOOT")
-                        self.cause_shoot(ship, s_u_c)
+                        # self.game_response = self.cause_shoot(ship, s_u_c)
+                        self.game_response = self.nothing()
                         continue
 
                     diff = 1.5 * inital_distance - current_distance
@@ -256,7 +258,7 @@ class AttacPlayer(Player):
                 self.log.info(
                     f"SHOOT TO {other_ship.ship_id}, at {other_ship.position}, with {shoot_to}"
                 )
-                self.game_response = self.shoot(ship.ship_id, shoot_to, 1)
+                return self.shoot(ship.ship_id, shoot_to, 1)
 
 
 class DefendPlayer(Player):
@@ -304,7 +306,7 @@ class DefendPlayer(Player):
                     if current_distance > 1.5 * inital_distance:
                         degree = 90
                         self.log.info(f"FALL BACK {ship.ship_id} AND NO SHOOT")
-                        self.nothing()
+                        self.game_response = self.nothing()
                         continue
 
                     diff = 1.5 * inital_distance - current_distance
