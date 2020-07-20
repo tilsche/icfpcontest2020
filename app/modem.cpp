@@ -29,9 +29,9 @@ std::string modulate_number(std::int64_t num)
         }
         unary_len.push_back('0');
 
-        std::cerr << fmt::format(
-            "modulate_number: num={}, abs_value={}, unary_len={}, n={}, len={}\n", num, abs_value,
-            unary_len, n, len);
+        // std::cerr << fmt::format(
+        //     "modulate_number: num={}, abs_value={}, unary_len={}, n={}, len={}\n", num,
+        //     abs_value, unary_len, n, len);
 
         return fmt::format(
             "{pos_neg}{unary_len}{abs_value:0{n}b}", fmt::arg("pos_neg", num >= 0 ? "01" : "10"),
@@ -43,18 +43,18 @@ std::string modulate(PExpr expr)
 {
     if (expr->is_integer())
     {
-        std::cerr << "modulating number...\n";
+        // std::cerr << "modulating number...\n";
         return modulate_number(expr->value());
     }
     else if (expr == operators::nil)
     {
-        std::cerr << "modulating nil...\n";
+        // std::cerr << "modulating nil...\n";
         using namespace std::literals::string_literals;
         return "00"s;
     }
     else if (is_cons(expr))
     {
-        std::cerr << "modulating cons...\n";
+        // std::cerr << "modulating cons...\n";
         const auto [head, tail] = as_vector(expr);
 
         auto head_str = modulate(head);
@@ -72,7 +72,7 @@ std::pair<std::int64_t, std::string_view> demodulate_number_impl(std::string_vie
 {
     int bits = 0;
 
-    std::cerr << fmt::format("Parsing number: [{}]\n", num);
+    // std::cerr << fmt::format("Parsing number: [{}]\n", num);
 
     auto remaining = num;
     while (true)
@@ -102,8 +102,8 @@ std::pair<std::int64_t, std::string_view> demodulate_number_impl(std::string_vie
         auto value = remaining.substr(0, len);
         auto rest = remaining.substr(len);
 
-        std::cerr << fmt::format("Found number: [{}|{}|{}], bits={}, remaining={}\n",
-                                 num.substr(0, bits + 1), value, rest, bits, remaining);
+        // std::cerr << fmt::format("Found number: [{}|{}|{}], bits={}, remaining={}\n",
+        //                          num.substr(0, bits + 1), value, rest, bits, remaining);
 
         std::int64_t parsed_value = 0;
         std::from_chars(value.begin(), value.end(), parsed_value, 2);
@@ -126,16 +126,16 @@ std::pair<PExpr, std::string_view> demodulate_impl(std::string_view input)
     auto type = input.substr(0, 2);
     auto value = input.substr(2);
 
-    std::cerr << fmt::format("Demodulating: [{}|{}]\n", type, value);
+    // std::cerr << fmt::format("Demodulating: [{}|{}]\n", type, value);
 
     if (type == "00")
     {
-        std::cerr << "Demodulating nil...\n";
+        // std::cerr << "Demodulating nil...\n";
         return { operators::nil, value };
     }
     else if (type == "11")
     {
-        std::cerr << "Demodulating a list...\n";
+        // std::cerr << "Demodulating a list...\n";
         auto [head, rest] = demodulate_impl(value);
         auto [tail, left_over] = demodulate_impl(rest);
 
@@ -143,14 +143,14 @@ std::pair<PExpr, std::string_view> demodulate_impl(std::string_view input)
     }
     else if (type == "01")
     {
-        std::cerr << "Demodulating a positive number...\n";
+        // std::cerr << "Demodulating a positive number...\n";
         auto [num_value, left_over] = demodulate_number_impl(value);
 
         return { make_integer(static_cast<UnderlyingInteger>(num_value)), left_over };
     }
     else if (type == "10")
     {
-        std::cerr << "Demodulating a negative number...\n";
+        // std::cerr << "Demodulating a negative number...\n";
         auto [num_value, left_over] = demodulate_number_impl(value);
 
         return { make_integer(-static_cast<UnderlyingInteger>(num_value)), left_over };

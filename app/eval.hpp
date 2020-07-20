@@ -101,7 +101,7 @@ private:
             {
                 return it->second;
             }
-            std::cout << "did not found " << expr->name() << "\n";
+            // std::cout << "did not found " << expr->name() << "\n";
         }
         if (expr->is_ap())
         {

@@ -80,12 +80,12 @@ public:
     ImageList(PExpr expr)
     {
         auto eimages = as_list(expr);
-        std::cout << "draw " << eimages.size() << " images: (";
+        // std::cout << "draw " << eimages.size() << " images: (";
         for (const auto& eimage : eimages)
         {
             this->emplace_back();
             auto epixels = as_list(eimage);
-            std::cout << epixels.size() << ", ";
+            // std::cout << epixels.size() << ", ";
             for (const auto& v : epixels)
             {
                 this->back().emplace_back(v);
@@ -132,7 +132,7 @@ private:
         auto proto_expr = make_ap(make_ap(this->protocol_, this->state_), vector);
         auto proto_result = this->evaluator.eval(proto_expr);
         auto end = now();
-        fmt::print("step took {:.2f} ms\n", as_milliseconds(end - begin));
+        // fmt::print("step took {:.2f} ms\n", as_milliseconds(end - begin));
 
         auto fsd = as_list(proto_result);
         assert(fsd.size() == 3);
@@ -149,7 +149,7 @@ private:
         {
             s_images = zebra::to_string(simple_data(data));
             images = ImageList(data);
-            std::cout << ")\n";
+            // std::cout << ")\n";
         }
         else
         {
