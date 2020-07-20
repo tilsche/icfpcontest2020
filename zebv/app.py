@@ -171,8 +171,8 @@ class Player(threading.Thread):
         self.log.info(f"DETONATE(ship_id={ship_id})")
         return self.command(1, ship_id)
 
-    def shoot(self, ship_id, target, x3=()):
-        self.log.info(f"SHOOT(ship_id={ship_id}, target={target}, ?x3={x3})")
+    def shoot(self, ship_id, target, laser_power=()):
+        self.log.info(f"SHOOT(ship_id={ship_id}, target={target}, laser_power={x3})")
         return self.command(2, ship_id, target, x3)
 
 
@@ -183,7 +183,7 @@ class AttacPlayer(Player):
         self.log.info(f"Player Key: {self._player_key}")
         self.previous_target_movements = collections.defaultdict(list)
         # self._ship_params = (10, 10, 10, 10)
-        # (heat_cap, shot_power, shield, live_points)
+        # (fuel, shot_power, heat_reduction, live_points)
         # treffer und schüsse reduzieren head_cap
         # wenn heat_cap aufgebraucht:
         # * schüsse

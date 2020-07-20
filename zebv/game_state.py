@@ -44,7 +44,8 @@ class Ship:
         self.ship_id, ship = ship
         self.position, ship = ship
         self.velocity, ship = ship
-        self.stats, ship = ship
+        stats, ship = ship
+        self.stats = ShipStats(stats)
         self.heat, ship = ship
         self.x6, ship = ship
         self.x7, ship = ship
@@ -52,6 +53,18 @@ class Ship:
 
     def __repr__(self):
         return f"Ship (role: {self.role}, shipId: {self.ship_id}, position: {self.position}, velocity: {self.velocity}, stats: {self.stats}, heat: {self.heat}, x6: {self.x6}, x7: {self.x7})"
+
+
+class ShipStats:
+    def __init__(self, ship_stats):
+        self.fuel, ship_stats = ship_stats
+        self.shoot_power, ship_stats = ship_stats
+        self.heat_reduction, ship_stats = ship_stats
+        self.live_points, ship_stats = ship_stats
+        assert () == ship_stats
+
+    def __repr__(self):
+        return f"Ship (fuel: {self.fuel}, shoot_power: {self.shoot_power}, heat_reduction: {self.heat_reduction}, live_points: {self.live_points}"
 
 
 class GameResponse:
