@@ -136,6 +136,12 @@ class Command:
             )
         return result
 
+    # TODO
+    # -- split command, spcifies the parts that are taken from the inital ship:
+    # (3, 0, (0, 0, 0, 1))
+    # -- split command response:
+    # %%% (1, 1, (6, 0, (512, 1, 64), (), ()), (2, (), (((1, 1, <9, 25>, <0, 0>, (95, 0, 0, 1), 0, 64, 1), ()), ((1, 2, <-7, 23>, <0, 0>, (95, 0, 0, 1), 0, 64, 1), ()), ((0, 0, <2, 14>, <1, -1>, (15, 0, 64, 1), 0, 64, 1), ((3, (0, 0, 0, 1)))), ((0, 3, <2, 14>, <1, -1>, (0, 0, 0, 1), 0, 64, 1), ()))))
+
 
 class Player(threading.Thread):
     def __init__(self, player_key, command: Command, lock: threading.Lock):
