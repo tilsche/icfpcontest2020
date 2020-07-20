@@ -297,9 +297,11 @@ def main(server_url, player_key, api_key):
         if game_resp.game_stage in [0, 1]:
             logger.info("Start Game")
             if game_resp.static_game_info.role == 0:
-                player = AttacPlayer(player_key, command, log_level=logging.DEBUG)
+                lock = threading.Lock()
+                player = AttacPlayer(player_key, command, lock)
             elif game_resp.static_game_info.role == 1:
-                player = DefendPlayer(player_key, command, log_level=logging.DEBUG)
+                lock = threading.Lock()
+                player = DefendPlayer(player_key, command, lock)
             else:
                 raise RuntimeError(f"Unkone role {game_resp.static_game_info.role}")
 
