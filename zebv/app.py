@@ -6,12 +6,13 @@ import click_log
 
 from .api import ApiClient
 from .modem import demod, mod
-from .game_state import GameResponse, LaserResponse
+from .game_state import GameResponse, Ship, LaserResponse
 import zebv.calc as calc
 
 import threading
 import time
 from math import pi
+from typing import Dict, List
 import collections
 import random
 
@@ -203,7 +204,9 @@ class AttacPlayer(Player):
         super().__init__(*args, **kwargs)
         self.log = logger.getChild(f"ATTAC  ({ATTAC})")
         self.log.info(f"Player Key: {self._player_key}")
-        self.previous_target_movements = collections.defaultdict(list)
+        self.previous_target_movements: Dict[int, List[Ship]] = collections.defaultdict(
+            list
+        )
         # self._ship_params = (10, 10, 10, 10)
         # (fuel, shot_power, heat_reduction, live_points)
         # treffer und schüsse reduzieren head_cap
@@ -299,18 +302,15 @@ class AttacPlayer(Player):
     def cause_shoot(self, ship, s_u_c, vec=None):
         for (other_ship, commands) in s_u_c:
             if other_ship.role == DEFEND:  # attac the defenderrs XD
-                shoot_to = calc.shoot_direction(
-                    ship,
-                    other_ship,
-                    self.previous_target_movements[other_ship.ship_id],
-                )
+                target_position = calc.predict_movement(other_ship)
                 self.log.info(
-                    f"SHOOT TO {other_ship.ship_id}, at {other_ship.position}, with {shoot_to}"
+                    f"SHOOT at {target_position}, targeting {other_ship.ship_id} (now at {other_ship.position})"
                 )
+
                 if vec:
-                    return self.shoot_accel(ship.ship_id, shoot_to, 1, vec)
+                    return self.shoot_accel(ship.ship_id, target_position, 1, vec)
                 else:
-                    return self.shoot(ship.ship_id, shoot_to, 1)
+                    return self.shoot(ship.ship_id, target_position, 1)
 
 
 class DefendPlayer(Player):
