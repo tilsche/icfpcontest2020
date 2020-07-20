@@ -7,9 +7,11 @@ import click_log
 from .api import ApiClient
 from .modem import demod, mod
 from .game_state import GameResponse
+import zebv.calc as calc
 
 import threading
 import time
+from math import pi
 
 ATTAC = 0
 DEFEND = 1
@@ -127,12 +129,13 @@ class Command:
 
 
 class Player(threading.Thread):
-    def __init__(self, player_key, command: Command):
+    def __init__(self, player_key, command: Command, lock: threading.Lock):
         super().__init__()
         self._player_key = player_key
         self._command = command
         self.log = logger.getChild("PLAYER")
         self.game_response: GameResponse = None
+        self.lock = lock
 
     def run(self):
         self.log.debug("Start")
@@ -173,10 +176,9 @@ class Player(threading.Thread):
 
 
 class AttacPlayer(Player):
-    def __init__(self, player_key, command, log_level=logging.ERROR):
-        super().__init__(player_key, command)
-        self.log = logger.getChild(f"ATTAC ({ATTAC})")
-        self.log.setLevel(log_level)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.log = logger.getChild(f"ATTAC  ({ATTAC})")
         self.log.info(f"Player Key: {self._player_key}")
         self._ship_params = (1, 2, 3, 4)
 
@@ -187,71 +189,35 @@ class AttacPlayer(Player):
         self.game_response = self.nothing()
 
         while self.game_response.game_stage == 1:
-            self.log.info(self.game_response)
             s_u_c = self.game_response.game_state.ships_and_commands.ships_and_commands
             for (ship, commands) in s_u_c:
                 if ship.role == ATTAC:
-                    self.log.info(f"NOTHING {ship.ship_id}")
-                    resp = self.nothing()
-                    self.game_response = resp
+                    self.lock.acquire()
+                    self.log.info(
+                        f"Tick:     {self.game_response.game_state.game_tick}"
+                    )
+                    self.log.info(f"Position: {ship.position}")
+                    self.log.info(f"Vel:      {ship.velocity}")
+                    self.log.info(f"Distance: {calc.distance(ship.position)}")
+                    self.log.info(f"Commands: {commands}")
+                    self.lock.release()
+
+                    vec = calc.orbit(ship, pi / 2)
+                    # vec = stay_position(ship, inital_pos)
+
+                    self.log.info(f"ACCELERATE {ship.ship_id}, VEC: {vec}")
+                    self.game_response = self.accelerate(ship.ship_id, vec)
+                    # self.game_response = self.detonate(ship.ship_id)
+                    #
+                    # self.game_response = self.shoot(ship.ship_id, (1, 1), 1)
 
         self.log.info(f"Finished: {self.game_response}")
 
 
-def stay_velocity(ship):
-    """
-    Uses the velocity to estimate the right dircetion for the boost
-    """
-    dx, dy = ship.velocity
-    dx = float(dx)
-    dy = float(dy)
-    dt = abs(dx) + abs(dy)
-    dx = dx / dt
-    dy = dy / dt
-
-    vx = 0
-    vy = 0
-    if abs(dx) > 0.25:
-        vx = -1 if dx < 0 else 1
-    if abs(dy) > 0.25:
-        vy = -1 if dy < 0 else 1
-
-    vec = (vx, vy)
-    return vec
-
-
-def stay_position(ship, inital_pos):
-    """
-    Calculates the distance between current position, and intial pos,
-    to estimate the right dircetion for the boost
-    """
-    xi, yi = inital_pos
-    x, y = ship.position
-    dx = float(x - xi)
-    dy = float(y - yi)
-
-    dt = abs(dx) + abs(dy)
-    if dt == 0:
-        return (0, 0)
-
-    dx = dx / dt
-    dy = dy / dt
-
-    vx = 0
-    vy = 0
-    if abs(dx) > 0.25:
-        vx = -1 if dx < 0 else 1
-    if abs(dy) > 0.25:
-        vy = -1 if dy < 0 else 1
-
-    vec = (vx, vy)
-    return vec
-
-
 class DefendPlayer(Player):
-    def __init__(self, player_key, command, log_level=logging.DEBUG):
-        super().__init__(player_key, command)
-        self.log = logger.getChild(f"DEFEND {DEFEND}")
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.log = logger.getChild(f"DEFEND ({DEFEND})")
         self.log.info(f"Player Key: {self._player_key}")
         self._ship_params = (10, 10, 10, 10)
 
@@ -275,15 +241,17 @@ class DefendPlayer(Player):
             s_u_c = self.game_response.game_state.ships_and_commands.ships_and_commands
             for (ship, commands) in s_u_c:
                 if ship.role == DEFEND:
+                    self.lock.acquire()
                     self.log.info(
-                        f"tick: {self.game_response.game_state.game_tick} position: {ship.position}, vel: {ship.velocity}"
+                        f"Tick:     {self.game_response.game_state.game_tick}"
                     )
-                    self.log.info(f"commands: {commands}")
+                    self.log.info(f"Position: {ship.position}")
+                    self.log.info(f"Vel:      {ship.velocity}")
+                    self.log.info(f"Distance: {calc.distance(ship.position)}")
+                    self.log.info(f"Commands: {commands}")
+                    self.lock.release()
 
-                    if not inital_pos:
-                        inital_pos = ship.position
-
-                    vec = stay_velocity(ship)
+                    vec = calc.orbit(ship, pi / 2)
                     # vec = stay_position(ship, inital_pos)
 
                     self.log.info(f"ACCELERATE {ship.ship_id}, VEC: {vec}")
@@ -313,9 +281,10 @@ def main(server_url, player_key, api_key):
 
     if player_key == 0:  # Testcase, not for submission
         logger.info("Choose Testing Mode")
+        lock = threading.Lock()
         attac_player_key, defend_player_key = command.init()
-        attac = AttacPlayer(attac_player_key, command)
-        defend = DefendPlayer(defend_player_key, command)
+        attac = AttacPlayer(attac_player_key, command, lock)
+        defend = DefendPlayer(defend_player_key, command, lock)
         attac.start()
         defend.start()
 
