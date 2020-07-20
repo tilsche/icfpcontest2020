@@ -64,6 +64,7 @@ SimpleNode simple_data(const PExpr& expr)
     return { std::make_shared<SimpleCons>(simple_data(expr->op()->arg()),
                                           simple_data(expr->arg())) };
 }
+
 inline std::ostream& operator<<(std::ostream& os, const SimpleNode& expr)
 {
     if (std::holds_alternative<SimpleNil>(expr))
