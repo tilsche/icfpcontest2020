@@ -67,6 +67,12 @@ logging.basicConfig(handlers=[handler])
 logger = logging.getLogger(__name__)
 
 
+DEGREE = 90
+
+INIT_DIST_FAC = 2
+DEG_MUL = 3
+
+
 class Command:
     def __init__(self, client):
         self.client = client
@@ -205,7 +211,7 @@ class AttacPlayer(Player):
         self.game_response = self.nothing()
 
         inital_distance = None
-        degree = 90
+        degree = DEGREE
         shoot = False
 
         while self.game_response.game_stage == 1:
@@ -220,7 +226,9 @@ class AttacPlayer(Player):
                     self.log.info(
                         f"Tick:     {self.game_response.game_state.game_tick}"
                     )
-                    self.log.info(f"Distance:   {calc.distance(ship.position)}")
+                    self.log.info(
+                        f"Distance: {calc.distance(ship.position)}, Degree: {degree}"
+                    )
 
                     laser_response = None
                     try:
@@ -246,8 +254,11 @@ class AttacPlayer(Player):
                         self.game_response = self.cause_shoot(ship, s_u_c)
                     else:
                         shoot = True
-                        diff = 1.5 * inital_distance - current_distance
-                        degree += 1 * (diff) / inital_distance * 3
+                        diff = current_distance - inital_distance
+                        degree += DEG_MUL * ((diff) / inital_distance) ** INIT_DIST_FAC
+                        self.log.info(
+                            f"Distance: {calc.distance(ship.position)}, New Degree: {degree}, Diff: {((diff) / inital_distance)} "
+                        )
                         rad = calc.rad(degree)
                         self.log.info(f"rad = {rad} ({degree})")
                         vec = calc.orbit(ship, rad)
@@ -292,7 +303,7 @@ class DefendPlayer(Player):
         self.game_response = self.nothing()
 
         inital_distance = None
-        degree = 90
+        degree = DEGREE
         while self.game_response.game_stage == 1:
             # self.log.info(self.game_response)
             # tic_toc = not tic_toc
@@ -311,7 +322,9 @@ class DefendPlayer(Player):
                     self.log.info(
                         f"Tick:     {self.game_response.game_state.game_tick}"
                     )
-                    self.log.info(f"Distance: {calc.distance(ship.position)}")
+                    self.log.info(
+                        f"Distance: {calc.distance(ship.position)}, Degree: {degree}"
+                    )
                     self.log.info(f"Commands: {commands}")
                     self.log.info(f"Ship stats: {ship}")
 
@@ -327,8 +340,11 @@ class DefendPlayer(Player):
                         self.game_response = self.nothing()
 
                     else:
-                        diff = 1.5 * inital_distance - current_distance
-                        degree += 1 * (diff) / inital_distance * 3
+                        diff = current_distance - inital_distance
+                        degree += DEG_MUL * ((diff) / inital_distance) ** INIT_DIST_FAC
+                        self.log.info(
+                            f"Distance: {calc.distance(ship.position)}, New Degree: {degree}, Diff: {((diff) / inital_distance)} "
+                        )
                         rad = calc.rad(degree)
                         self.log.info(f"rad = {rad} ({degree})")
                         vec = calc.orbit(ship, rad)
