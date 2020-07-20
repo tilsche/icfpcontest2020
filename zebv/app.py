@@ -254,10 +254,12 @@ class AttacPlayer(Player):
                         self.game_response = self.cause_shoot(ship, s_u_c)
                     else:
                         shoot = True
-                        diff = current_distance - inital_distance
-                        degree += DEG_MUL * ((diff) / inital_distance) ** INIT_DIST_FAC
+                        diff = current_distance / inital_distance
+                        if diff < 1:
+                            diff = -1 / diff
+                        degree += DEG_MUL * diff ** INIT_DIST_FAC
                         self.log.info(
-                            f"Distance: {calc.distance(ship.position)}, New Degree: {degree}, Diff: {((diff) / inital_distance)} "
+                            f"Distance: {calc.distance(ship.position)}, New Degree: {degree}, Diff: {(diff)} "
                         )
                         rad = calc.rad(degree)
                         self.log.info(f"rad = {rad} ({degree})")
@@ -340,10 +342,12 @@ class DefendPlayer(Player):
                         self.game_response = self.nothing()
 
                     else:
-                        diff = current_distance - inital_distance
-                        degree += DEG_MUL * ((diff) / inital_distance) ** INIT_DIST_FAC
+                        diff = current_distance / inital_distance
+                        if diff < 1:
+                            diff = -1 / diff
+                        degree += DEG_MUL * diff ** INIT_DIST_FAC
                         self.log.info(
-                            f"Distance: {calc.distance(ship.position)}, New Degree: {degree}, Diff: {((diff) / inital_distance)} "
+                            f"Distance: {calc.distance(ship.position)}, New Degree: {degree}, Diff: {(diff)} "
                         )
                         rad = calc.rad(degree)
                         self.log.info(f"rad = {rad} ({degree})")
