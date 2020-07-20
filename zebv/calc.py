@@ -1,5 +1,9 @@
 import math
 
+from .game_state import Ship
+
+from typing import List, Dict, Tuple
+
 
 def stay_velocity(ship):
     """
@@ -85,20 +89,10 @@ def rad(alpha):
     return math.pi * alpha / 180
 
 
-def shoot_direction(ship, target_ship, previous_target_states):
-    if not previous_target_states:
-        return target_ship.position
-    else:
-        # some kind of linear interpolation
-        previous_pos = previous_target_states[-1].position
-        current_pos = target_ship.position
-        x_1 = previous_pos[0]
-        y_1 = previous_pos[1]
-        x_2 = current_pos[0]
-        y_2 = current_pos[1]
-        dx = x_2 - x_1
-        dy = y_2 - y_1
-        x_3 = x_2 + dx
-        y_3 = y_2 + dy
-        return (x_3, y_3)
-
+def shoot_direction(ship: Ship, target_ship: Ship, previous_target_states: List[Ship]):
+    # Lets just assume that ds/dt = v, so s(t+1) ~= s(t) + v
+    # (s = position, v = velocity).
+    return (
+        target_ship.position[0] + ship.velocity[0],
+        target_ship.position[1] + ship.velocity[1],
+    )

@@ -6,12 +6,13 @@ import click_log
 
 from .api import ApiClient
 from .modem import demod, mod
-from .game_state import GameResponse
+from .game_state import GameResponse, Ship
 import zebv.calc as calc
 
 import threading
 import time
 from math import pi
+from typing import Dict, List
 import collections
 
 ATTAC = 0
@@ -181,7 +182,9 @@ class AttacPlayer(Player):
         super().__init__(*args, **kwargs)
         self.log = logger.getChild(f"ATTAC  ({ATTAC})")
         self.log.info(f"Player Key: {self._player_key}")
-        self.previous_target_movements = collections.defaultdict(list)
+        self.previous_target_movements: Dict[int, List[Ship]] = collections.defaultdict(
+            list
+        )
         # self._ship_params = (10, 10, 10, 10)
         # (heat_cap, shot_power, shield, live_points)
         # treffer und schüsse reduzieren head_cap

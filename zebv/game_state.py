@@ -1,5 +1,10 @@
+from typing import List, Tuple
+
+
 class StaticGameInfo:
     def __init__(self, static_game_info):
+        self.role: int
+
         self.x0, static_game_info = static_game_info
         self.role, static_game_info = static_game_info
         self.x2, static_game_info = static_game_info
@@ -25,7 +30,7 @@ class GameState:
 
 class ShipsAndCommands:
     def __init__(self, ships_and_commands):
-        self.ships_and_commands = []
+        self.ships_and_commands: List[Tuple[Ship, list]] = []
         while True:
             if ships_and_commands == ():
                 break
@@ -40,6 +45,9 @@ class ShipsAndCommands:
 
 class Ship:
     def __init__(self, ship):
+        self.position: Tuple[int, int]
+        self.velocity: Tuple[int, int]
+
         self.role, ship = ship
         self.ship_id, ship = ship
         self.position, ship = ship
@@ -61,9 +69,9 @@ class GameResponse:
         game_state, game_response = game_response
         assert game_response == ()
 
-        self.game_stage = game_stage
-        self.static_game_info = ()
-        self.game_state = ()
+        self.game_stage: int = game_stage
+        self.static_game_info: StaticGameInfo = None
+        self.game_state: GameState = None
 
         if self.game_stage in [0, 1]:
             self.static_game_info = StaticGameInfo(static_game_info)
