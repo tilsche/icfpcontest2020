@@ -29,6 +29,8 @@ public:
 private:
     void on_try_all(wxCommandEvent& event);
     void on_undo(wxCommandEvent& event);
+    void on_save_trace(wxCommandEvent& event);
+    void on_load_trace(wxCommandEvent& event);
     void OnExit(wxCommandEvent& event);
     void OnAbout(wxCommandEvent& event);
 
@@ -149,5 +151,7 @@ private:
 enum
 {
     ID_try_all = 1,
-    ID_undo = 2
+    ID_undo = 2,
+    ID_save_trace = 3,
+    ID_load_trace = 4,
 };

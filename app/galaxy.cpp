@@ -5,6 +5,7 @@
 
 #include <nitro/lang/enumerate.hpp>
 #include <nitro/lang/reverse.hpp>
+#include <wx/wfstream.h>
 
 #include "alien.hpp"
 #include "eval.hpp"
@@ -65,7 +66,9 @@ GalaxyFrame::GalaxyFrame(zebra::Interact& interact)
 {
     wxMenu* menuFile = new wxMenu;
     menuFile->Append(ID_try_all, "Try all!");
-    menuFile->Append(ID_undo, "Undo (ctrl-z)\tCtrl+z");
+    menuFile->Append(ID_undo, "Undo\tCtrl+z");
+    menuFile->Append(ID_save_trace, "Save trace\tCtrl+s");
+    menuFile->Append(ID_load_trace, "Load trace");
     menuFile->AppendSeparator();
     menuFile->Append(wxID_EXIT);
     wxMenu* menuHelp = new wxMenu;
@@ -78,6 +81,8 @@ GalaxyFrame::GalaxyFrame(zebra::Interact& interact)
     SetStatusText("Welcome to the Galaxy!");
     Bind(wxEVT_MENU, &GalaxyFrame::on_try_all, this, ID_try_all);
     Bind(wxEVT_MENU, &GalaxyFrame::on_undo, this, ID_undo);
+    Bind(wxEVT_MENU, &GalaxyFrame::on_save_trace, this, ID_save_trace);
+    Bind(wxEVT_MENU, &GalaxyFrame::on_load_trace, this, ID_load_trace);
     Bind(wxEVT_MENU, &GalaxyFrame::OnAbout, this, wxID_ABOUT);
     Bind(wxEVT_MENU, &GalaxyFrame::OnExit, this, wxID_EXIT);
 
@@ -107,6 +112,46 @@ void GalaxyFrame::on_try_all(wxCommandEvent& event)
 void GalaxyFrame::on_undo(wxCommandEvent& event)
 {
     interact_.undo();
+}
+
+void GalaxyFrame::on_save_trace(wxCommandEvent& WXUNUSED(event))
+{
+    wxFileDialog saveFileDialog(this, _("Save gtf2 file"), "", "",
+                                "GalaxyTraceFormat2 files (*.gtf2)|*.gtf2",
+                                wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    if (saveFileDialog.ShowModal() == wxID_CANCEL)
+        return; // the user changed idea...
+
+    // save the current contents in the file;
+    // this can be done with e.g. wxWidgets output streams:
+    std::ofstream output_stream(saveFileDialog.GetPath());
+    if (!output_stream)
+    {
+        wxLogError("Cannot save current contents in file '%s'.", saveFileDialog.GetPath());
+        return;
+    }
+
+    interact_.save_trace(output_stream);
+}
+
+void GalaxyFrame::on_load_trace(wxCommandEvent& WXUNUSED(event))
+{
+    wxFileDialog openFileDialog(this, _("Open gtf2 file"), "", "",
+                                "GalaxyTraceFormat2 files (*.gtf2)|*.gtf2",
+                                wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+    if (openFileDialog.ShowModal() == wxID_CANCEL)
+        return; // the user changed idea...
+
+    // proceed loading the file chosen by the user;
+    // this can be done with e.g. wxWidgets input streams:
+    std::ifstream input_stream(openFileDialog.GetPath());
+    if (!input_stream)
+    {
+        wxLogError("Cannot open file '%s'.", openFileDialog.GetPath());
+        return;
+    }
+
+    interact_.load_trace(input_stream);
 }
 
 GalaxyDC::GalaxyDC(GalaxyPanel* dp) : wxAutoBufferedPaintDC(dp)

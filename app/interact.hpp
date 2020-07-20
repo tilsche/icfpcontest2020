@@ -72,8 +72,26 @@ inline bool operator==(const Coordinate& a, const Coordinate& b)
 }
 inline std::ostream& operator<<(std::ostream& os, const Coordinate& c)
 {
-    os << "<" << c.x << ", " << c.y << ">";
+    os << "<" << c.x << "," << c.y << ">";
     return os;
+}
+
+inline std::istream& operator>>(std::istream& in, Coordinate& c)
+{
+    char chr;
+    in >> chr;
+    if (!in)
+    {
+        return in;
+    }
+    assert(chr == '<');
+    in >> c.x;
+    in >> chr;
+    assert(chr == ',');
+    in >> c.y;
+    in >> chr;
+    assert(chr == '>');
+    return in;
 }
 
 class ImageList : public std::vector<std::vector<Coordinate>>
@@ -140,6 +158,34 @@ public:
     : protocol_(make_operator(protocol)), apiclient_("icfpc2020-api.testkontur.ru", 443)
     {
         history_.emplace_back(operators::nil, ImageList());
+    }
+
+    void clear()
+    {
+        history_.clear();
+        trace_.clear();
+        candidates.clear();
+        history_.emplace_back(operators::nil, ImageList());
+    }
+
+    template <class T>
+    void save_trace(T& os)
+    {
+        for (auto c : trace_)
+        {
+            os << c << "\n";
+        }
+    }
+
+    template <class T>
+    void load_trace(T& is)
+    {
+        clear();
+        Coordinate c;
+        while (is >> c)
+        {
+            this->operator()(c);
+        }
     }
 
 private:
@@ -239,17 +285,20 @@ public:
 
     void undo()
     {
+        candidates.clear();
         if (history_.size() < 2)
         {
             fmt::print("Cant undo any more!");
             return;
         }
         history_.pop_back();
+        trace_.pop_back();
     }
 
 public:
     void operator()(Coordinate coord)
     {
+        trace_.emplace_back(coord);
         candidates.clear();
         step_(state(), coord.as_vector());
     }
@@ -268,6 +317,9 @@ public:
     Evaluator evaluator;
     std::unordered_map<std::tuple<int, std::string, std::string>, std::vector<Coordinate>>
         candidates;
+
+    // one shorter as the history
+    std::vector<Coordinate> trace_;
 
 private:
     std::vector<std::pair<PExpr, ImageList>> history_;
