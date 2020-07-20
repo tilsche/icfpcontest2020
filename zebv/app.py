@@ -207,9 +207,9 @@ class AttacPlayer(Player):
                     if not inital_distance:
                         inital_distance = calc.distance(ship.position)
 
-                    if inital_distance < calc.distance(ship.position):
-                        degree += 5
                     if inital_distance > calc.distance(ship.position):
+                        degree += 5
+                    if inital_distance < calc.distance(ship.position):
                         degree -= 5
                     rad = calc.rad(degree)
                     self.log.info(f"rad = {rad} ({degree})")
@@ -264,9 +264,9 @@ class DefendPlayer(Player):
                     if not inital_distance:
                         inital_distance = calc.distance(ship.position)
 
-                    if inital_distance < calc.distance(ship.position):
-                        degree += 5
                     if inital_distance > calc.distance(ship.position):
+                        degree += 5
+                    if inital_distance < calc.distance(ship.position):
                         degree -= 5
                     rad = calc.rad(degree)
                     self.log.info(f"rad = {rad} ({degree})")
