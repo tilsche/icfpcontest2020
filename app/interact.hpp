@@ -175,9 +175,9 @@ public:
         auto s_state = zebra::to_string(simple_data(state_));
 
         candidates.clear();
-        for (c.x = tl.x; c.x < br.x; c.x++)
+        for (c.x = tl.x; c.x <= br.x; c.x++)
         {
-            for (c.y = tl.y; c.y < br.y; c.y++)
+            for (c.y = tl.y; c.y <= br.y; c.y++)
             {
                 auto [flag, new_state, data] = ap_proto_(c.as_vector());
                 auto s_new_state = zebra::to_string(simple_data(new_state));

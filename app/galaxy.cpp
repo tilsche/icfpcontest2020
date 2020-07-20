@@ -147,32 +147,53 @@ void GalaxyPanel::mouse_right_up(wxMouseEvent& event)
     Refresh();
 }
 
-void GalaxyPanel::render(wxDC& dc)
+void GalaxyPanel::render_candidates(wxDC& dc)
 {
-    bounding_box(dc);
+    static std::vector<wxBrushStyle> candidate_brush_styles = {
+        wxBRUSHSTYLE_BDIAGONAL_HATCH, wxBRUSHSTYLE_CROSSDIAG_HATCH,  wxBRUSHSTYLE_FDIAGONAL_HATCH,
+        wxBRUSHSTYLE_CROSS_HATCH,     wxBRUSHSTYLE_HORIZONTAL_HATCH, wxBRUSHSTYLE_VERTICAL_HATCH,
+    };
 
-    if (scale > 6)
+    for (const auto& elem : nitro::lang::enumerate(interact_.candidates))
     {
-        dc.SetPen(*wxGREY_PEN);
-    }
-    else
-    {
-        dc.SetPen(wxNullPen);
-    }
-
-    for (const auto& elem : nitro::lang::enumerate(nitro::lang::reverse(interact_.images)))
-    {
-        int grayscale = (255 / interact_.images.size()) * (elem.index() + 1);
-        dc.SetBrush(wxBrush(wxColor(grayscale, grayscale, grayscale)));
-
-        for (const auto& pixel : elem.value())
+        auto index = elem.index();
+        const auto& candidate = elem.value();
+        int cweight = 100 + (155 / interact_.candidates.size() * (index + 1));
+        const auto& bs = candidate_brush_styles[index % candidate_brush_styles.size()];
+        if (std::get<0>(candidate.first))
+        {
+            if (scale > 6)
+            {
+                dc.SetPen(*wxRED_PEN);
+            }
+            else
+            {
+                dc.SetPen(wxNullPen);
+            }
+            dc.SetBrush(wxBrush(wxColor(cweight, 0, 0), bs));
+        }
+        else
+        {
+            if (scale > 6)
+            {
+                dc.SetPen(*wxBLUE_PEN);
+            }
+            else
+            {
+                dc.SetPen(wxNullPen);
+            }
+            dc.SetBrush(wxBrush(wxColor(0, 0, cweight), bs));
+        }
+        for (const auto& pixel : candidate.second)
         {
             dc.DrawRectangle(transform(pixel), wxSize(scale, scale));
         }
     }
+}
 
+void GalaxyPanel::render_numbers(wxDC& dc)
+{
     dc.SetBrush(wxNullBrush);
-
     dc.SetPen(wxPen(wxColor(255, 0, 255)));
 
     for (auto& parsed_number : parsed_numbers_)
@@ -195,6 +216,38 @@ void GalaxyPanel::render(wxDC& dc)
     {
         dc.DrawRectangle(transform(*mouse_position_), wxSize(scale, scale));
     }
+}
+
+void GalaxyPanel::render_map(wxDC& dc)
+{
+    if (scale > 6)
+    {
+        dc.SetPen(*wxGREY_PEN);
+    }
+    else
+    {
+        dc.SetPen(wxNullPen);
+    }
+
+    for (const auto& elem : nitro::lang::enumerate(nitro::lang::reverse(interact_.images)))
+    {
+        int grayscale = (255 / interact_.images.size()) * (elem.index() + 1);
+        dc.SetBrush(wxBrush(wxColor(grayscale, grayscale, grayscale)));
+
+        for (const auto& pixel : elem.value())
+        {
+            dc.DrawRectangle(transform(pixel), wxSize(scale, scale));
+        }
+    }
+}
+
+void GalaxyPanel::render(wxDC& dc)
+{
+    bounding_box(dc);
+
+    render_map(dc);
+    render_candidates(dc);
+    render_numbers(dc);
 }
 
 //

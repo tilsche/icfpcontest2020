@@ -82,6 +82,10 @@ private:
 
     void bounding_box(wxDC& dc);
 
+    void render_map(wxDC& dc);
+    void render_candidates(wxDC& dc);
+    void render_numbers(wxDC& dc);
+
     void render(wxDC& dc);
 
     wxPoint transform(zebra::Coordinate coord)
