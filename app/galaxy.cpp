@@ -242,6 +242,12 @@ void GalaxyPanel::render(wxDC& dc)
     dc.SetPen(*wxGREEN_PEN);
     if (mouse_position_)
     {
+        std::stringstream str;
+        str << *mouse_position_;
+
+        dc.SetTextForeground(wxColor(0, 255, 0));
+
+        dc.DrawText(str.str(), transform(mouse_position_->down()));
         dc.DrawRectangle(transform(*mouse_position_), wxSize(scale, scale));
     }
 }
