@@ -18,6 +18,8 @@ export API_KEY=...
 
 ![alt text](https://raw.githubusercontent.com/tilsche/icfpcontest2020/master/resources/galaxy.png "Screennshot of our Galaxy Pad")
 
+Note: master only contains the galaxy evaluator / pad. The submissions / combat is spread across respective branches.
+
 # Our journey / ordeal
 
 We didn't prepare a lot, especially since we were all working remotely this time.
