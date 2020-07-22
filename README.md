@@ -54,7 +54,7 @@ We started to look a bit into the "tutorial", but it was still slow enough to be
 
 While we started off Sunday with some more optimization imporvement, we did hit a wall with Python for the implementation speed and tcod as an interface.
 So we built another evaluator in C++ from Pseudocode that finally went fairly well with respect of performance.
-Oddly enough the further performance optimization attempts didn't yield and progress.
+Oddly enough the further performance optimization attempts didn't yield any progress.
 For instance we tried caching *all* expressions.
 That way we could just compare pointers and never evaluate the same expression twice.
 Still, this was way slower, likely due to > 80 % miss rate on ap (i.e. surprisingly most expressions seemed to be unique).
@@ -108,7 +108,7 @@ I was lucky to be in a team of five and it felt like we needed all the manpower 
 While there was plenty of stuff to do or just try out in parallel, there were also dependencies that created a nice dynamic.
 
 A highlight for me was the communication on discord and especially the live videos.
-The technical side, git/docker submissions and simple API worked fairly well.
+The technical side, git/docker submissions and simple API worked well.
 
 We thank all the organizers for this year's contest.
 Thank you for the very challenging and deep experience.
