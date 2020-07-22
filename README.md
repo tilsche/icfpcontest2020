@@ -16,6 +16,8 @@ export API_KEY=...
 ./galaxy 
 ```
 
+![alt text](https://raw.githubusercontent.com/tilsche/icfpcontest2020/master/resources/galaxy.png "Screennshot of our Galaxy Pad")
+
 # Our journey / ordeal
 
 We didn't prepare a lot, especially since we were all working remotely this time.
