@@ -102,7 +102,7 @@ The galaxy felt like a very consistent place full of surprises and layers of dis
 But it was a bit frustrating to spend the first day on an evaluator only to have it replaced by a couple lines of Pseudocode.
 I suspect the Pseudocode Evluator only works efficiently because it is not generic, i.e., it exploits undocumented properties of `galaxy`, it's input.
 We always suspected that you just had to know enough about functional programming (which we certainly did not) to easily write a fast evaluator.
-Now I'm not complaining that being successful at the **I**CFP programming contest requires knowledge of functional programming.
+Now I'm not complaining that being successful at the IC**F**P programming contest requires knowledge of functional programming.
 But it did feel that this time you needed more specific knowledge to even make some progress.
 I appreciate that the organizers did help out with hints throughout the contest,
 but it would have felt better if there was enough information to do it on our own.
